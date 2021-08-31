@@ -4,19 +4,19 @@ use casper_types::{Key};
 use contract_utils::{get_key, set_key};
 
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
-pub const WETH: &str = "weth";
+pub const WCSPR: &str = "wcspr";
 pub const DAI: &str = "dai";
-pub const ETH: &str = "eth";
+pub const CSPR: &str = "cspr";
 pub const PERMISSIONED_PAIR_ADDRESS: &str = "permissioned_pair_address";
 pub const UNISWAP_V2_FACTROY: &str = "uniswap_v2_factory";
 
 
 
-pub fn set_weth(weth: Key){
-    set_key(WETH, weth);
+pub fn set_wcspr(wcspr: Key){
+    set_key(WCSPR, wcspr);
 }
-pub fn get_weth()-> Key {
-    get_key(WETH).unwrap_or_revert()
+pub fn get_wcspr()-> Key {
+    get_key(WCSPR).unwrap_or_revert()
 }
 
 pub fn set_dai(dai: Key){
@@ -35,11 +35,11 @@ pub fn get_permissioned_pair_address()-> Key {
 
 
 
-pub fn set_eth(eth: Key){
-    set_key(ETH, eth);
+pub fn set_cspr(cspr: Key){
+    set_key(CSPR, cspr);
 }
-pub fn get_eth()-> Key {
-    get_key(ETH).unwrap_or_revert()
+pub fn get_cspr()-> Key {
+    get_key(CSPR).unwrap_or_revert()
 }
 
 pub fn set_uniswap_v2_factory(uniswap_v2_factory: Key){

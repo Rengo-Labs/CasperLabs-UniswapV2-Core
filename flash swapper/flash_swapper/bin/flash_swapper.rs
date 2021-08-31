@@ -28,20 +28,20 @@ impl ContractContext<OnChainContractStorage> for Token {
 impl FLASHSWAPPER<OnChainContractStorage> for Token {}
 
 impl Token {
-    fn constructor(&mut self,weth: Key, dai: Key, uniswap_v2_factory: Key, contract_hash: ContractHash) {
-        FLASHSWAPPER::init(self, weth, dai, uniswap_v2_factory, Key::from(contract_hash));
+    fn constructor(&mut self,wcspr: Key, dai: Key, uniswap_v2_factory: Key, contract_hash: ContractHash) {
+        FLASHSWAPPER::init(self, wcspr, dai, uniswap_v2_factory, Key::from(contract_hash));
     } 
 }
 
 #[no_mangle]
 fn constructor() {
 
-    let weth: Key = runtime::get_named_arg("weth");
+    let wcspr: Key = runtime::get_named_arg("wcspr");
     let dai: Key  = runtime::get_named_arg("dai");
     let uniswap_v2_factory: Key  = runtime::get_named_arg("uniswap_v2_factory");
     
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Token::default().constructor(weth, dai, uniswap_v2_factory, contract_hash);
+    Token::default().constructor(wcspr, dai, uniswap_v2_factory, contract_hash);
 }
  // @notice Flash-borrows amount of token_borrow from a Uniswap V2 pair and repays using token_pay
     // @param token_borrow The address of the token you want to flash-borrow, use 0x0 for ETH
@@ -77,7 +77,7 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("weth", Key::cl_type()),
+            Parameter::new("wcspr", Key::cl_type()),
             Parameter::new("dai", Key::cl_type()),
             Parameter::new("uniswap_v2_factory", Key::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
@@ -102,13 +102,13 @@ fn call() {
         // let permissioned_pair_address: Key = "KEY".into();
 
         let uniswap_v2_factory: Key = runtime::get_named_arg("uniswap_v2_factory");
-        let weth: Key = runtime::get_named_arg("wei");
+        let wcspr: Key = runtime::get_named_arg("wei");
         let dai: Key = runtime::get_named_arg("dai");
 
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
-        "weth" => weth,
+        "wcspr" => wcspr,
         "dai" => dai,
         "uniswap_v2_factory" => uniswap_v2_factory,
         "contract_hash" => contract_hash
