@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "flash_swapper",
+    "flash_swapper-tests"
+]
+
+[profile.release]
+codegen-units = 1
+lto = true

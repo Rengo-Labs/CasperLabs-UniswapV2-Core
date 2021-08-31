@@ -1,0 +1,3 @@
+target
+pair-tests/wasm/*.wasm
+.vscode
