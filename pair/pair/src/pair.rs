@@ -44,14 +44,14 @@ pub enum FailureCode {
 }
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
-    fn init(&mut self, name: String, symbol: String, decimals: u8, domain_separator: String, permit_type_hash: String, contract_hash: Key,factory: Key, reserve0: U128, reserve1: U128, block_timestamp_last: u64, price0_cumulative_last: U256, price1_cumulative_last: U256, k_last: U256, treasury_fee: U256, minimum_liquidity:U256,callee_contract_hash:Key ) {
+    fn init(&mut self, name: String, symbol: String, decimals: u8, domain_separator: String, permit_type_hash: String, contract_hash: Key,factory_hash: Key, reserve0: U128, reserve1: U128, block_timestamp_last: u64, price0_cumulative_last: U256, price1_cumulative_last: U256, k_last: U256, treasury_fee: U256, minimum_liquidity:U256,callee_contract_hash:Key ) {
         data::set_name(name);
         data::set_symbol(symbol);
         data::set_decimals(decimals);
         data::set_domain_separator(domain_separator);
         data::set_permit_type_hash(permit_type_hash);
         data::set_hash(contract_hash);
-        data::set_factory(factory);
+        data::set_factory_hash(factory_hash);
         data::set_reserve0(reserve0);
         data::set_reserve1(reserve1);
         data::set_block_timestamp_last(block_timestamp_last);
@@ -71,6 +71,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn nonce(&mut self, owner: Key) -> U256 {
         Nonces::instance().get(&owner)
+    }
+    fn get_fee_to(&mut self) -> Key{
+        let factory_hash: Key = self.get_factory_hash();
+
+        let factory_hash_add_array = match factory_hash {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+    
+        let factory_hash_add = ContractHash::new(factory_hash_add_array);
+        runtime::call_contract(factory_hash_add,"fee_to",runtime_args!{})
     }
 
     fn transfer(&mut self, recipient: Key, amount: U256) {
@@ -93,7 +104,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         self.make_transfer(owner, recipient, amount);
     }
 
-    fn skim(&mut self,to:Key) 
+    fn skim(&mut self,to: Key) 
     {
 
         let token0: Key = self.get_token0();
@@ -115,16 +126,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-
         let balance0:U256=runtime::call_contract(token0_contract_hash,"balance_of",runtime_args!{"owner" => pair_address});
         let balance1:U256=runtime::call_contract(token1_contract_hash,"balance_of",runtime_args!{"owner" => pair_address});
-
         let balance0_conversion:U128=U128::from(balance0.as_u128());
         let balance1_conversion:U128=U128::from(balance1.as_u128());
-
-        self.make_transfer(token0,to,U256::from((balance0_conversion-reserve0).as_u128()));
-        
-        self.make_transfer(token1,to,U256::from((balance1_conversion-reserve1).as_u128()));
+        self.make_transfer(token0, to, U256::from((balance0_conversion - reserve0).as_u128()));
+        self.make_transfer(token1, to, U256::from((balance1_conversion - reserve1).as_u128()));
 
     }
 
@@ -383,6 +390,18 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
         data::set_total_supply(self.total_supply() + amount);
     }
+    fn mint_amount(&mut self,caller:Key, recipient: Key, amount: U256) {
+
+        let caller_hash_add_array = match caller {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+    
+        let caller_hash_add = ContractHash::new(caller_hash_add_array);
+    
+        let _ret: () = runtime::call_contract(caller_hash_add,"mint",runtime_args!{"to" => recipient, "amount" => amount});
+
+    }
     fn burn(&mut self, recipient: Key, amount: U256) {
         let balances = Balances::instance();
         let balance = balances.get(&recipient);
@@ -416,6 +435,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_treasury_fee(30.into());
         }
     }
+    fn set_reserve0(&mut self, reserve0: U128) {
+        data::set_reserve0(reserve0);
+    }
+    fn set_reserve1(&mut self, reserve1: U128) {
+        data::set_reserve1(reserve1);
+}
     fn total_supply(&mut self) -> U256 {
         data::total_supply()
     }
@@ -431,19 +456,21 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     fn get_token1(&mut self) -> Key {
         data::get_token1()
     }
-    fn get_factory(&mut self) -> Key {
-        data::get_factory()
+    fn get_factory_hash(&mut self) -> Key {
+        data::get_factory_hash()
     }
+    // fn get_fee_to(&mut self) -> Key {
+    //     data::get_fee_to()
+    // }
 
 
-    fn mint_helper(&mut self,to:Key){
+    fn mint_helper(&mut self,to: Key) -> U256{
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves();// gas savings
 
         let token0: Key = data::get_token0();
         let token1: Key = data::get_token1();
         let pair_contract_hash1: Key = data::get_hash();
         let pair_contract_hash2: Key = data::get_hash();
-    
     
         let token0_hash_add_array = match token0 {
             Key::Hash(package) => package,
@@ -459,8 +486,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         };
     
         let token1_hash_add = ContractHash::new(token1_hash_add_array);
-    
-    
         let balance0: U256 = runtime::call_contract(token0_hash_add,"balance_of",runtime_args!{"owner" => pair_contract_hash1});
         let balance1: U256 = runtime::call_contract(token1_hash_add,"balance_of",runtime_args!{"owner" => pair_contract_hash2});
         let amount0: U256 = balance0 - U256::from(reserve0.as_u128());
@@ -470,22 +495,24 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let minimum_liquidity: U256 = data::get_minimum_liquidity();
         
         let mut liquidity: U256 = 0.into();
-
         if total_supply == liquidity{
             liquidity = self.sqrt((amount0 * amount1) - minimum_liquidity);
-            self.mint(Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap(), minimum_liquidity);
-        } else {
-            liquidity = self.min((amount0 * total_supply) / U256::from(reserve0.as_u128()),(amount1 * total_supply) / U256::from(reserve1.as_u128()));
+            self.mint(Key::from_formatted_str("account-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap(), minimum_liquidity);
+        } 
+        else {
+            let x = (amount0 * total_supply) / U256::from(reserve0.as_u128());
+            let y = (amount1 * total_supply) / U256::from(reserve1.as_u128());
+            liquidity = self.min(x,y);
         }
         if liquidity > 0.into(){
             self.mint(to, liquidity);
-    
             self.update(balance0, balance1, reserve0, reserve1);
             if fee_on {
                 let k_last: U256 = U256::from((reserve0 * reserve1).as_u128());// reserve0 and reserve1 are up-to-date
                 data::set_k_last(k_last);
             }
-            data::set_liquidity(liquidity) // return liquidity
+            data::set_liquidity(liquidity); // return liquidity
+            liquidity // return liquidity
         }
         else{
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
@@ -493,7 +520,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         }    
 
     }
-    fn burn_helper(&mut self,to: Key){
+    fn burn_helper(&mut self,to: Key) -> (U256, U256){
         let (reserve0, reserve1, _block_timestamp_last)= self.get_reserves();// gas savings
         let token0: Key = data::get_token0();
         let token1: Key = data::get_token1();
@@ -510,14 +537,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let balance0: U256 = runtime::call_contract(token0_hash_add,"balance_of",runtime_args!{"owner" => data::get_hash()});
         let balance1: U256 = runtime::call_contract(token1_hash_add,"balance_of",runtime_args!{"owner" => data::get_hash()});
         let liquidity: U256 = self.balance_of(data::get_hash());
-        let fee_on: bool = self.mint_fee(reserve0,reserve1);
+        let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let total_supply: U256 = self.total_supply();
         let amount0:U256 = ( liquidity * balance0 ) / total_supply;
         let amount1:U256 = ( liquidity * balance1 ) / total_supply;
         if amount0 > 0.into() && amount1 > 0.into(){
             self.burn(data::get_hash(),liquidity);
-            self.make_transfer(token0, to, balance0);
-            self.make_transfer(token1, to, balance1);
+            self.make_transfer(token0, to, amount0);
+            self.make_transfer(token1, to, amount1);
 
             let token0_hash_add_array = match token0 {
                 Key::Hash(package) => package,
@@ -540,6 +567,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             
             data::set_amount0(amount0);
             data::set_amount1(amount1);
+            (amount0, amount1)
         }
         else{
             //UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED
@@ -547,26 +575,25 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         }
     
     }
-//Completed without testing    
+//Completed testing    
 // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
-    fn mint_fee(&mut self, reserve0: U128, reserve1: U128) -> bool{
-        let factory: Key = self.get_caller();
+    fn mint_fee(&mut self, reserve0: U128, reserve1: U128) ->  bool{
+        let factory_hash: Key = self.get_factory_hash();
 
-        let factory_hash_add_array = match factory {
+        let factory_hash_add_array = match factory_hash {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
     
         let factory_hash_add = ContractHash::new(factory_hash_add_array);
         let fee_to: Key = runtime::call_contract(factory_hash_add,"fee_to",runtime_args!{});
-
+        
         let mut fee_on: bool = false;
-        if fee_to == Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap() || fee_to == Key::from_formatted_str("acount-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap() {
+        if  fee_to == Key::from_formatted_str("account-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap() {
             fee_on = true;
         }
         let k_last: U256 = data::get_k_last(); // gas savings
         let treasury_fee: U256 = data::get_treasury_fee();
-
         if fee_on {
             if k_last != 0.into() {
                 let mul_val: U256 = U256::from((reserve1 * reserve0).as_u128());
@@ -589,11 +616,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         }
         return fee_on;
     }
-//Completed without testing
-    fn initialize(&mut self, token0: Key, token1: Key) {
-        let factory: Key = self.get_factory();
-        let caller: Key = self.get_caller();
-        if factory == caller {
+//Completed with testing
+    fn initialize(&mut self, token0: Key, token1: Key, factory_hash: Key) {
+        let factory_hash_getter: Key = self.get_factory_hash();
+        if factory_hash == factory_hash_getter {
             data::set_token0(token0);
             data::set_token1(token1);   
         }
@@ -602,7 +628,27 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(FailureCode::One as u16));
         }
     }
+    fn set_fee_to(&mut self, fee_to: Key) {
+        let factory_hash: Key = self.get_factory_hash();
+        let factory_hash_add_array = match factory_hash {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        let factory_hash_add = ContractHash::new(factory_hash_add_array);
+       let _fee_to: () = runtime::call_contract(factory_hash_add,"set_fee_to",runtime_args!{"fee_to" => fee_to});
+        
+    }
+    // fn get_fee_to(&mut self) -> Key{
+    //     let factory_hash: Key = self.get_factory_hash();
 
+    //     let factory_hash_add_array = match factory_hash {
+    //         Key::Hash(package) => package,
+    //         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+    //     };
+    
+    //     let factory_hash_add = ContractHash::new(factory_hash_add_array);
+    //     runtime::call_contract(factory_hash_add,"fee_to",runtime_args!{})
+    // }
 
     fn get_reserves(&mut self) -> (U128, U128, u64) {
         let reserve0:U128 = data::get_reserve0();
@@ -653,14 +699,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     /// for_never_overflow
     fn for_never_overflow(&mut self,encode_reserve:U128,uqdiv_reserve:U128,mut general_price_cumulative_last:U256,time_elapsed:u64) -> U256
     {
-        let encode_result:U256=self.encode(encode_reserve);
-        let uqdive_result:U256=self.uqdiv(encode_result,uqdiv_reserve);
+        let encode_result: U256 = self.encode(encode_reserve);
+        let uqdive_result: U256 = self.uqdiv(encode_result,uqdiv_reserve);
         general_price_cumulative_last=general_price_cumulative_last + (uqdive_result * time_elapsed);
         return general_price_cumulative_last;
     }
 
-    //Completed without testing
-    fn update(&mut self,balance0:U256,balance1:U256,reserve0:U128,reserve1:U128){
+    //Completed testing
+    fn update(&mut self,balance0: U256, balance1: U256, reserve0: U128, reserve1: U128){
 
         let one:U128=1.into();
         let overflow_check:U256=U256::from(((U128::MAX)-one).as_u128());
@@ -686,9 +732,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             
             }
         
-            let reserve0_conversion:U128=U128::from(balance0.as_u128());
-            let reserve1_conversion:U128=U128::from(balance1.as_u128());
-
+            let reserve0_conversion:U128 = U128::from(balance0.as_u128());
+            let reserve1_conversion:U128 = U128::from(balance1.as_u128());
             data::set_reserve0(reserve0_conversion);
             data::set_reserve1(reserve1_conversion);
             data::set_block_timestamp_last(block_timestamp);

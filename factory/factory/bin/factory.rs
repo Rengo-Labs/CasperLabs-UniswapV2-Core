@@ -28,20 +28,18 @@ impl ContractContext<OnChainContractStorage> for Factory {
 impl FACTORY<OnChainContractStorage> for Factory {}
 
 impl Factory {
-    fn constructor(&mut self, fee_to: Key, fee_to_setter: Key, all_pairs: Vec<Key>, contract_hash: ContractHash) {
-        FACTORY::init(self, fee_to, fee_to_setter, all_pairs, Key::from(contract_hash));
+    fn constructor(&mut self, fee_to_setter: Key, all_pairs: Vec<Key>, contract_hash: ContractHash) {
+        FACTORY::init(self, fee_to_setter, all_pairs, Key::from(contract_hash));
     }
 }
 
 #[no_mangle]
 fn constructor() {
-    let fee_to: Key = runtime::get_named_arg("fee_to");
     let fee_to_setter: Key = runtime::get_named_arg("fee_to_setter");
     let all_pairs: Vec<Key> = runtime::get_named_arg("all_pairs");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Factory::default().constructor(fee_to, fee_to_setter, all_pairs, contract_hash);
+    Factory::default().constructor(fee_to_setter, all_pairs, contract_hash);
 }
-
 
 
 #[no_mangle]
@@ -72,7 +70,6 @@ fn all_pairs_length() {
 fn set_fee_to() {
     let fee_to: Key = runtime::get_named_arg("fee_to");
     Factory::default().set_fee_to(fee_to);
-    
 }
 
 #[no_mangle]
@@ -85,14 +82,15 @@ fn set_fee_to_setter() {
 fn create_pair() {
     let token_a: Key = runtime::get_named_arg("token_a");
     let token_b: Key = runtime::get_named_arg("token_b");
-    Factory::default().create_pair(token_a,token_b);
+    let pair_hash: Key = runtime::get_named_arg("pair_hash");    
+    Factory::default().create_pair(token_a, token_b, pair_hash);
 }
 
 #[no_mangle]
-fn pair() {
+fn get_pair() {
     let token0: Key = runtime::get_named_arg("token0");
     let token1: Key = runtime::get_named_arg("token1");
-    let ret: Key = Factory::default().pair(token0, token1);
+    let ret: Key = Factory::default().get_pair(token0, token1);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
@@ -101,7 +99,6 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("fee_to", Key::cl_type()),
             Parameter::new("fee_to_setter", Key::cl_type()),
             Parameter::new("all_pairs", CLType::List(Box::new(Key::cl_type()))),
             Parameter::new("contract_hash", ContractHash::cl_type()),
@@ -115,18 +112,20 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("token_a", Key::cl_type()),
             Parameter::new("token_b", Key::cl_type()),
+            Parameter::new("pair_hash", Key::cl_type()),
+            
         ],
-        U256::cl_type(),
+        Key::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "pair",
+        "get_pair",
         vec![
             Parameter::new("token0", Key::cl_type()),
             Parameter::new("token1", Key::cl_type()),
         ],
-        U256::cl_type(),
+        Key::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -183,13 +182,11 @@ fn call() {
     let (contract_hash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
-    let fee_to: Key = runtime::get_named_arg("fee_to");
     let fee_to_setter: Key = runtime::get_named_arg("fee_to_setter");
     let all_pairs: Vec<Key> = Vec::new();
    
     // Prepare constructor args
     let constructor_args = runtime_args! {
-        "fee_to" => fee_to,
         "fee_to_setter" => fee_to_setter,
         "all_pairs" => all_pairs,
         "contract_hash" => contract_hash

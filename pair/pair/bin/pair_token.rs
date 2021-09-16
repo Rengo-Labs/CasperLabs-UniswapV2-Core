@@ -3,14 +3,14 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeSet, format, string::String, vec};
+use alloc::{collections::BTreeSet, format, string::String, vec,boxed::Box};
 
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    runtime_args, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
     Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash, U128
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
@@ -31,8 +31,8 @@ impl ContractContext<OnChainContractStorage> for Pair {
 
 impl PAIR<OnChainContractStorage> for Pair {}
 impl Pair {
-    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, nonce:U256, domain_separator: String, permit_type_hash: String, contract_hash: ContractHash, reserve0: U128, reserve1: U128, block_timestamp_last: u64, price0_cumulative_last: U256, price1_cumulative_last: U256, k_last: U256, treasury_fee: U256, minimum_liquidity: U256,callee_contract_hash :Key) {
-        PAIR::init(self, name, symbol, decimals, domain_separator, permit_type_hash, Key::from(contract_hash), self.get_caller(), reserve0, reserve1, block_timestamp_last, price0_cumulative_last, price1_cumulative_last, k_last, treasury_fee, minimum_liquidity,callee_contract_hash);
+    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, nonce:U256, domain_separator: String, permit_type_hash: String, contract_hash: ContractHash, reserve0: U128, reserve1: U128, block_timestamp_last: u64, price0_cumulative_last: U256, price1_cumulative_last: U256, k_last: U256, treasury_fee: U256, minimum_liquidity: U256,callee_contract_hash :Key, factory_hash:Key) {
+        PAIR::init(self, name, symbol, decimals, domain_separator, permit_type_hash, Key::from(contract_hash), factory_hash, reserve0, reserve1, block_timestamp_last, price0_cumulative_last, price1_cumulative_last, k_last, treasury_fee, minimum_liquidity,callee_contract_hash);
         PAIR::mint(self, self.get_caller(), initial_supply);
         PAIR::set_nonce(self, self.get_caller(), nonce);
     }
@@ -56,7 +56,8 @@ fn constructor() {
     let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
     let minimum_liquidity: U256 = runtime::get_named_arg("minimum_liquidity");
     let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
-    Pair::default().constructor(name, symbol, decimals, initial_supply, nonce, domain_separator, permit_type_hash, contract_hash, reserve0, reserve1, block_timestamp_last, price0_cumulative_last, price1_cumulative_last, k_last, treasury_fee, minimum_liquidity,callee_contract_hash);
+    let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    Pair::default().constructor(name, symbol, decimals, initial_supply, nonce, domain_separator, permit_type_hash, contract_hash, reserve0, reserve1, block_timestamp_last, price0_cumulative_last, price1_cumulative_last, k_last, treasury_fee, minimum_liquidity, callee_contract_hash, factory_hash);
 }
 
 
@@ -78,7 +79,6 @@ fn transfer_from() {
 /// force balances to match reserves
 #[no_mangle]
 fn  skim() {
-
     let to: Key = runtime::get_named_arg("to");
     Pair::default().skim(to);
 }
@@ -86,7 +86,6 @@ fn  skim() {
 /// force reserves to match balances
 #[no_mangle]
 fn  sync() {
-  
     Pair::default().sync();
 }
 
@@ -145,9 +144,41 @@ fn approve() {
 ///  
 #[no_mangle]
 fn mint() {
-
     let to: Key = runtime::get_named_arg("to");
-    Pair::default().mint_helper(to);
+    let liquidity: U256 = Pair::default().mint_helper(to);
+    runtime::ret(CLValue::from_t(liquidity).unwrap_or_revert());
+}
+/// This function is to mint token against the address that user provided by a caller provided by user
+/// 
+/// # Parameters
+/// 
+/// * `caller` - A Key that holds the account address of the caller who called the mint method
+/// 
+/// * `to` - A Key that holds the account address of the user
+/// 
+/// * `amount` - A U256 that holds the value that is going to mint
+///
+#[no_mangle]
+fn mint_amount() {
+
+    let caller: Key = runtime::get_named_arg("caller");
+    let to: Key = runtime::get_named_arg("to");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default().mint_amount(caller,to,amount);
+}
+/// This function is to mint token against the address that user provided with the amount
+/// 
+/// # Parameters
+/// 
+/// * `to` - A Key that holds the account address of the user
+/// 
+/// * `amount` - A U256 that holds the value that is going to mint
+///
+#[no_mangle]
+fn simple_mint() {
+    let to: Key = runtime::get_named_arg("to");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default().mint(to, amount);
 }
 /// This function is to burn token against the address that user provided
 /// 
@@ -158,8 +189,32 @@ fn mint() {
 #[no_mangle]
 fn burn() {
     let to: Key = runtime::get_named_arg("to");
-    Pair::default().burn_helper(to);
+    let (amount0, amount1): (U256, U256) = Pair::default().burn_helper(to);
+    runtime::ret(CLValue::from_t((amount0, amount1)).unwrap_or_revert());
 }
+/// This function is to burn token against the address that user provided by a caller provided by user
+/// 
+/// # Parameters
+/// 
+/// * `caller` - A Key that holds the account address of the caller who called the burn method
+/// 
+/// * `from` - A Key that holds the account address of the user from which caller is goint to burn
+/// 
+/// * `amount` - A U256 that holds the value that is going to burn
+///
+#[no_mangle]
+fn burn_amount() {
+
+    let from: Key = runtime::get_named_arg("from");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default().burn(from,amount);
+}
+/// This function is to get a balance of a owner provided by user
+/// 
+/// # Parameters
+/// 
+/// * `owner` - A Key that holds the account address of the owner against which user wants the Balance
+/// 
 #[no_mangle]
 fn balance_of() {
     let owner: Key = runtime::get_named_arg("owner");
@@ -167,13 +222,34 @@ fn balance_of() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to get the reserves like Reserve0, Reserve1 and Block Time Stamp
+/// 
+#[no_mangle]
+fn get_reserves() {
+    let (reserve0,reserve1,block_timestamp_last): (U128, U128, u64) = Pair::default().get_reserves();
+    runtime::ret(CLValue::from_t((reserve0, reserve1, block_timestamp_last)).unwrap_or_revert());
+    
+}
+/// This function is to get a nonce of a owner provided by user
+/// 
+/// # Parameters
+/// 
+/// * `owner` - A Key that holds the account address of the owner against which user wants the Nonce
+/// 
 #[no_mangle]
 fn nonce() {
     let owner: Key = runtime::get_named_arg("owner");
     let ret: U256 = Pair::default().nonce(owner);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
-
+/// This function is to get a allowance of a owner and spender provided by user
+/// 
+/// # Parameters
+/// 
+/// * `owner` - A Key that holds the account address of the owner against which user wants the Allowance
+///
+/// * `spender` - A Key that holds the account address of the owner against which user wants the Allowance
+/// 
 #[no_mangle]
 fn allowance() {
     let owner: Key = runtime::get_named_arg("owner");
@@ -181,41 +257,90 @@ fn allowance() {
     let ret: U256 = Pair::default().allowance(owner, spender);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
-
+/// This function is to get a Total Supply
+/// 
 #[no_mangle]
 fn total_supply() {
     let ret: U256 = Pair::default().total_supply();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
-
+/// This function is to get a Treasury Fee
+/// 
 #[no_mangle]
 fn treasury_fee() {
     let ret: U256 = Pair::default().get_treasury_fee();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
+/// This function is to get a Token0
+/// 
 #[no_mangle]
 fn token0() {
     let ret: Key = Pair::default().get_token0();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
+/// This function is to get a Token1
+/// 
 #[no_mangle]
 fn token1() {
     let ret: Key = Pair::default().get_token1();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
-// called once by the factory at time of deployment
+/// This method will be called once by the factory at time of create_pair() method
+///
+/// This function is to Initialize Pair Contract with Token0 and Token1 procided by Factory Contract method create_pair()
+/// 
 #[no_mangle]
 pub extern "C" fn initialize() {
     let token0: Key = runtime::get_named_arg("token0");
     let token1: Key = runtime::get_named_arg("token1");
-    Pair::default().initialize(token0, token1);
+    let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    
+    Pair::default().initialize(token0, token1, factory_hash);
 }
+/// This function is to set a fee_to hash
+/// 
+/// # Parameters
+/// 
+/// * `fee_to` - A Key that holds the account address of the fee_to against which user wants to set
+///
+#[no_mangle]
+pub extern "C" fn set_fee_to() {
+    let fee_to: Key = runtime::get_named_arg("fee_to");
+    Pair::default().set_fee_to(fee_to);
+}
+/// This function is to set a treasury_fee
+/// 
+/// # Parameters
+/// 
+/// * `treasury_fee` - A U256 that holds the value that is going to be a treasury_fee
+///
 #[no_mangle]
 pub extern "C" fn set_treasury_fee_percent() {
     let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
     Pair::default().set_treasury_fee_percent(treasury_fee);
 }
-
+/// This function is to set a reserve0
+/// 
+/// # Parameters
+/// 
+/// * `reserve0` - A U128 that holds the value that is going to be a reserve0
+///
+#[no_mangle]
+pub extern "C" fn set_reserve0() {
+    let reserve0: U128 = runtime::get_named_arg("reserve0");
+    Pair::default().set_reserve0(reserve0);
+}
+/// This function is to set a reserve1
+/// 
+/// # Parameters
+/// 
+/// * `reserve1` - A U128 that holds the value that is going to be a reserve1
+///
+#[no_mangle]
+pub extern "C" fn set_reserve1() {
+    let reserve1: U128 = runtime::get_named_arg("reserve1");
+    Pair::default().set_reserve1(reserve1);
+}
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -238,6 +363,8 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("treasury_fee", U256::cl_type()), 
             Parameter::new("minimum_liquidity", U256::cl_type()), 
             Parameter::new("callee_contract_hash", Key::cl_type()), 
+            Parameter::new("factory_hash", Key::cl_type()), 
+            
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -353,7 +480,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("to", Key::cl_type()),
         ],
-        <()>::cl_type(),
+        U256::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -362,7 +489,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("to", Key::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -383,16 +510,36 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "set_reserve0",
+        vec![
+            Parameter::new("reserve0", U128::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_reserve1",
+        vec![
+            Parameter::new("reserve1", U128::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    
+    entry_points.add_entry_point(EntryPoint::new(
         "token0",
         vec![],
-        U256::cl_type(),
+        Key::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "token1",
         vec![],
-        U256::cl_type(),
+        Key::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -401,12 +548,62 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("token0", Key::cl_type()),
             Parameter::new("token1", Key::cl_type()),
+            Parameter::new("factory_hash", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_reserves",
+        vec![],
+        CLType::Tuple3([Box::new(CLType::U128), Box::new(CLType::U128), Box::new(u64::cl_type())]),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_fee_to",
+        vec![
+            Parameter::new("fee_to", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "mint_amount",
+        vec![
+            Parameter::new("caller", Key::cl_type()),
+            Parameter::new("to", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
 
+    entry_points.add_entry_point(EntryPoint::new(
+        "simple_mint",
+        vec![
+            Parameter::new("to", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    
+    entry_points.add_entry_point(EntryPoint::new(
+        "burn_amount",
+        vec![
+            Parameter::new("from", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     
     entry_points
 }
@@ -429,7 +626,8 @@ fn call() {
     let initial_supply: U256 = 1_000.into();
     let nonce: U256 = 0.into();
     let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
-
+    let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    
     let eip_712_domain : &str = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
     let permit_type: &str = "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
     let chain_id : &str = "101";
@@ -450,7 +648,7 @@ fn call() {
 
     let minimum_liquidity: U256 = (10^3).into();
     // let erc20_contract_hash: String = runtime::get_named_arg("erc20_contract_hash");// address / Account hash of ERC20 interface.
-    // let factory: Key = runtime::get_caller();// address / Account hash of factory contract.
+    // let factory_hash: Key = runtime::get_caller();// address / Account hash of factory contract.
 
     let reserve0: U128 = 0.into();
     let reserve1: U128 = 0.into();
@@ -480,8 +678,8 @@ fn call() {
         "k_last" => k_last,
         "treasury_fee" => treasury_fee,
         "minimum_liquidity" => minimum_liquidity,
-        "callee_contract_hash" => callee_contract_hash
-        // "factory" => factory
+        "callee_contract_hash" => callee_contract_hash,
+        "factory_hash" => factory_hash
 
     };
 

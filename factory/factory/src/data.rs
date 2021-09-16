@@ -8,6 +8,8 @@ pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const FEE_TO: &str = "fee_to";
 pub const FEE_TO_SETTER: &str = "fee_to_setter";
 pub const ALL_PAIRS: &str = "all_pairs";
+pub const TOKEN0: &str = "token0";
+pub const TOKEN1: &str = "token1";
 
 pub struct Pairs {
     dict: Dict,
@@ -25,7 +27,12 @@ impl Pairs {
     }
 
     pub fn get(&self, token0: &Key, token1: &Key) -> Key {
-        self.dict.get_by_keys((token0, token1)).unwrap_or_revert()
+
+        match self.dict.get_by_keys((token0, token1))
+        {
+            Some(pair) => pair,
+            None => Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap()
+        }
     }
 
     pub fn set(&self, token0: &Key, token1: &Key, value: Key) {
@@ -46,7 +53,12 @@ pub fn set_fee_to(fee_to: Key){
 }
 
 pub fn get_fee_to() -> Key {
-    get_key(FEE_TO).unwrap_or_revert()
+    match get_key(FEE_TO)
+    {
+        Some(fee_to) => fee_to,
+        None => Key::from_formatted_str("account-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap()
+    }
+    // .unwrap_or_revert()
 }
 
 
@@ -55,7 +67,11 @@ pub fn set_fee_to_setter(fee_to_setter: Key){
 }
 
 pub fn get_fee_to_setter() -> Key {
-    get_key(FEE_TO_SETTER).unwrap_or_revert()
+    match get_key(FEE_TO_SETTER)
+    {
+        Some(fee_to_setter) => fee_to_setter,
+        None => Key::from_formatted_str("account-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap()
+    }
 }
 
 pub fn set_all_pairs(all_pairs: Vec<Key>) {
@@ -63,4 +79,24 @@ pub fn set_all_pairs(all_pairs: Vec<Key>) {
 }
 pub fn get_all_pairs() -> Vec<Key> {
     get_key(ALL_PAIRS).unwrap_or_revert()
+}
+pub fn set_token0(token0: Key) {
+    set_key(TOKEN0,token0);
+}
+pub fn get_token0() -> Key {
+    match get_key(TOKEN0)
+    {
+        Some(token0) => token0,
+        None => Key::from_formatted_str("account-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap()
+    }
+}
+pub fn set_token1(token1: Key) {
+    set_key(TOKEN1,token1);
+}
+pub fn get_token1() -> Key {
+    match get_key(TOKEN1)
+    {
+        Some(token1) => token1,
+        None => Key::from_formatted_str("account-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap()
+    }
 }

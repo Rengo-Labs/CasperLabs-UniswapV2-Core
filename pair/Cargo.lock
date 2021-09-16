@@ -582,19 +582,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "erc20-tests"
-version = "0.2.1"
-dependencies = [
- "blake2",
- "casper-contract",
- "casper-engine-test-support",
- "casper-types",
- "contract-utils",
- "hex",
- "test-env",
-]
-
-[[package]]
 name = "fake-simd"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1062,6 +1049,19 @@ dependencies = [
  "cryptoxide",
  "hex",
  "renvm-sig",
+]
+
+[[package]]
+name = "pair-tests"
+version = "0.2.1"
+dependencies = [
+ "blake2",
+ "casper-contract",
+ "casper-engine-test-support",
+ "casper-types",
+ "contract-utils",
+ "hex",
+ "test-env",
 ]
 
 [[package]]

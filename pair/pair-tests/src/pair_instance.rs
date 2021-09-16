@@ -2,12 +2,12 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, U128};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub struct ERC20Instance(TestContract);
+pub struct PAIRInstance(TestContract);
 
-impl ERC20Instance {
+impl PAIRInstance {
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
@@ -16,17 +16,22 @@ impl ERC20Instance {
         symbol: &str,
         decimals: u8,
         supply: U256,
-    ) -> ERC20Instance {
-        ERC20Instance(TestContract::new(
+        callee_contract_hash: Key,
+        factory_hash: Key,
+
+    ) -> PAIRInstance {
+        PAIRInstance(TestContract::new(
             env,
-            "erc20-token.wasm",
+            "pair-token.wasm",
             contract_name,
             sender,
             runtime_args! {
                 "initial_supply" => supply,
                 "name" => name,
                 "symbol" => symbol,
-                "decimals" => decimals
+                "decimals" => decimals,
+                "callee_contract_hash" => callee_contract_hash,
+                "factory_hash" => factory_hash
             },
         ))
     }
@@ -38,6 +43,8 @@ impl ERC20Instance {
         symbol: &str,
         decimals: u8,
         initial_supply: U256,
+        callee_contract_hash: Key,
+        factory_hash: Key
     ) {
         self.0.call_contract(
             sender,
@@ -46,7 +53,9 @@ impl ERC20Instance {
                 "initial_supply" => initial_supply,
                 "name" => name,
                 "symbol" => symbol,
-                "decimals" => decimals
+                "decimals" => decimals,
+                "callee_contract_hash" => callee_contract_hash,
+                "factory_hash" => factory_hash
             },
         );
     }
@@ -56,7 +65,11 @@ impl ERC20Instance {
             .query_dictionary("balances", key_to_str(&account.into()))
             .unwrap_or_default()
     }
-
+    pub fn nonce<T: Into<Key>>(&self, account: T) -> U256 {
+        self.0
+            .query_dictionary("nonces", key_to_str(&account.into()))
+            .unwrap_or_default()
+    }
     pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
         let owner: Key = owner.into();
         let spender: Key = spender.into();
@@ -75,6 +88,7 @@ impl ERC20Instance {
             },
         );
     }
+
 
     pub fn transfer_from<T: Into<Key>>(
         &self,
@@ -104,22 +118,193 @@ impl ERC20Instance {
             },
         );
     }
+    pub fn initialize<T: Into<Key>>(&self, sender: Sender, token0: T, token1: T, factory_hash: T) {
+        self.0.call_contract(
+            sender,
+            "initialize",
+            runtime_args! {
+                "token0" => token0.into(),
+                "token1" => token1.into(),
+                "factory_hash" => factory_hash.into()
+            },
+        );
+    }
+    pub fn set_treasury_fee_percent(&self, sender: Sender, treasury_fee: U256) {
+        self.0.call_contract(
+            sender,
+            "set_treasury_fee_percent",
+            runtime_args! {
+                "treasury_fee" => treasury_fee,
+            },
+        );
+    }
+    pub fn set_reserve0(&self, sender: Sender, reserve0: U128) {
+        self.0.call_contract(
+            sender,
+            "set_reserve0",
+            runtime_args! {
+                "reserve0" => reserve0,
+            },
+        );
+    }
+    pub fn set_reserve1(&self, sender: Sender, reserve1: U128) {
+        self.0.call_contract(
+            sender,
+            "set_reserve1",
+            runtime_args! {
+                "reserve1" => reserve1,
+            },
+        );
+    }
+    pub fn mint<T: Into<Key>>(&self, sender: Sender, to: T) {
+        self.0.call_contract(
+            sender,
+            "mint",
+            runtime_args! {
+                "to" => to.into(),
+            },
+        );
+    }
+    pub fn simple_mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "simple_mint",
+            runtime_args! {
+                "to" => to.into(),
+                "amount" => amount
+            },
+        );
+    }
+    
+    pub fn mint_amount<T: Into<Key>>(&self, sender: Sender, caller: T, to: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "mint_amount",
+            runtime_args! {
+                "caller" => caller.into(),
+                "to" => to.into(),
+                "amount" => amount
+            },
+        );
+    }
+    pub fn burn<T: Into<Key>>(&self, sender: Sender, to: T) {
+        self.0.call_contract(
+            sender,
+            "burn",
+            runtime_args! {
+                "to" => to.into(),
+            },
+        );
+    }
+    pub fn burn_amount<T: Into<Key>>(&self, sender: Sender, caller: T, from: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "burn_amount",
+            runtime_args! {
+                "caller" => caller.into(),
+                "from" => from.into(),
+                "amount" => amount
+            },
+        );
+    }
+    pub fn sync(&self, sender: Sender) {
+        self.0.call_contract(
+            sender,
+            "sync",
+            runtime_args! {},
+        );
+    }
+    pub fn skim<T: Into<Key>>(&self, sender: Sender, to: T) {
+        self.0.call_contract(
+            sender,
+            "skim",
+            runtime_args! {
+                "to" => to.into(),
+            },
+        );
+    }
+    
+    // pub fn recipient_balance(&self) -> U256 {
+    //     self.0.query_named_key(String::from("recipient_balance"))
+    // }
 
+    // pub fn sender_balance(&self) -> U256 {
+    //     self.0.query_named_key(String::from("sender_balance"))
+    // }
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
     }
-
     pub fn symbol(&self) -> String {
         self.0.query_named_key(String::from("symbol"))
     }
-
     pub fn decimals(&self) -> u8 {
         self.0.query_named_key(String::from("decimals"))
     }
-
     pub fn total_supply(&self) -> U256 {
         self.0.query_named_key(String::from("total_supply"))
     }
+    pub fn token0(&self) -> Key {
+        self.0.query_named_key(String::from("token0"))
+    }
+    pub fn token1(&self) -> Key {
+        self.0.query_named_key(String::from("token1"))
+    }
+    pub fn reserve0(&self) -> U128 {
+        self.0.query_named_key(String::from("reserve0"))
+    }
+    pub fn reserve1(&self) -> U128 {
+        self.0.query_named_key(String::from("reserve1"))
+    }
+    pub fn block_timestamp_last(&self) -> u64 {
+        self.0.query_named_key(String::from("block_timestamp_last"))
+    }
+    pub fn price0_cumulative_last(&self) -> U256 {
+        self.0.query_named_key(String::from("price0_cumulative_last"))
+    }
+    pub fn price1_cumulative_last(&self) -> U256 {
+        self.0.query_named_key(String::from("price1_cumulative_last"))
+    }
+    pub fn k_last(&self) -> U256 {
+        self.0.query_named_key(String::from("k_last"))
+    }
+    pub fn treasury_fee(&self) -> U256 {
+        self.0.query_named_key(String::from("treasury_fee"))
+    }
+    pub fn minimum_liquidity(&self) -> U256 {
+        self.0.query_named_key(String::from("minimum_liquidity"))
+    }
+    pub fn liquidity(&self) -> U256 {
+        self.0.query_named_key(String::from("liquidity"))
+    }
+    pub fn amount0(&self) -> U256 {
+        self.0.query_named_key(String::from("amount0"))
+    }
+    pub fn amount1(&self) -> U256 {
+        self.0.query_named_key(String::from("amount1"))
+    }
+    pub fn callee_contract_hash(&self) -> Key {
+        self.0.query_named_key(String::from("callee_contract_hash"))
+    }
+    pub fn factory_hash(&self) -> Key {
+        self.0.query_named_key(String::from("factory_hash"))
+    }
+    pub fn get_fee_to(&self) -> Key {
+        self.0.query_named_key(String::from("fee_to"))
+    }
+    pub fn self_contract_hash(&self) -> Key {
+        self.0.query_named_key(String::from("self_contract_hash"))
+    }
+    // Factory Method
+    pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T) {
+        self.0.call_contract(
+            sender,
+            "set_fee_to",
+            runtime_args! {
+                "fee_to" => fee_to.into(),
+            },
+        );
+    }
+    
 }
 
 pub fn key_to_str(key: &Key) -> String {
@@ -138,3 +323,4 @@ pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
     hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
     hex::encode(ret)
 }
+

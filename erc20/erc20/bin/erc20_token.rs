@@ -16,9 +16,6 @@ use casper_types::{
 use contract_utils::{ContractContext, OnChainContractStorage};
 use erc20::{self, ERC20};
 
-use renvm_sig::keccak256;
-use hex::encode;
-
 #[derive(Default)]
 struct Token(OnChainContractStorage);
 
@@ -320,25 +317,7 @@ fn call() {
 
     let nonce: U256 = 0.into();
 
-
-    let eip_712_domain : &str="EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
-    let permit_type: &str="Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
-    let chain_id : &str="101";
-
-    let eip_domain_hash=keccak256(eip_712_domain.as_bytes());// to take a byte hash of EIP712Domain
-    let name_hash=keccak256(name.as_bytes());// to take a byte hash of name
-    let one_hash=keccak256("1".as_bytes());// to take a byte hash of "1"
-
-    let eip_domain_hash = encode(eip_domain_hash);// to encode and convert eip_domain_hash into string
-    let name_hash = encode(name_hash);// to encode and convert name_hash into string
-    let one_hash = encode(one_hash);// to encode and convert one_hash into string
-    let concatenated_data:String = format!("{}{}{}{}{}",eip_domain_hash,name_hash,one_hash,chain_id,contract_hash);//string contactination
-    let domain_separator=keccak256(concatenated_data.as_bytes());//to take a byte hash of concatenated Data
-    let permit_type_hash=keccak256(permit_type.as_bytes());// to take a byte hash of Permit Type
-
-    let domain_separator=encode(domain_separator);
-    let permit_type_hash=encode(permit_type_hash);
-
+    let (domain_separator,permit_type_hash) = Token::default().get_permit_type_and_domain_separator(name,contract_hash);
 
     // Prepare constructor args
     let constructor_args = runtime_args! {

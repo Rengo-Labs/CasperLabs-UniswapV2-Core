@@ -56,6 +56,11 @@ impl ERC20Instance {
             .query_dictionary("balances", key_to_str(&account.into()))
             .unwrap_or_default()
     }
+    pub fn nonce<T: Into<Key>>(&self, account: T) -> U256 {
+        self.0
+            .query_dictionary("nonce", key_to_str(&account.into()))
+            .unwrap_or_default()
+    }
 
     pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
         let owner: Key = owner.into();
@@ -100,6 +105,26 @@ impl ERC20Instance {
             "approve",
             runtime_args! {
                 "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+    pub fn mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "mint",
+            runtime_args! {
+                "to" => to.into(),
+                "amount" => amount
+            },
+        );
+    }
+    pub fn burn<T: Into<Key>>(&self, sender: Sender, from: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "burn",
+            runtime_args! {
+                "from" => from.into(),
                 "amount" => amount
             },
         );

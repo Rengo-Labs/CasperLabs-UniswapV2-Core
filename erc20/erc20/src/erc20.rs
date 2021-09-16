@@ -3,7 +3,7 @@ use alloc::{format, string::String, vec::Vec};
 use casper_contract::{
     contract_api::{runtime}
 };
-use casper_types::{Key, U256, BlockTime,ApiError};
+use casper_types::{Key, U256, BlockTime, ApiError, ContractHash};
 use contract_utils::{ContractContext, ContractStorage};
 
 
@@ -15,6 +15,8 @@ use contract_utils::{set_key};
 use renvm_sig::keccak256;
 use renvm_sig::hash_message;
 use cryptoxide::ed25519;
+use hex::encode;
+
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
 #[repr(u16)]
@@ -227,5 +229,23 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn symbol(&mut self) -> String {
         data::symbol()
+    }
+
+    fn get_permit_type_and_domain_separator(&mut self, name: &str, contract_hash: ContractHash) -> (String,String){
+    let eip_712_domain : &str="EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
+    let permit_type: &str="Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
+    let chain_id : &str="101";
+    let eip_domain_hash=keccak256(eip_712_domain.as_bytes());// to take a byte hash of EIP712Domain
+    let name_hash=keccak256(name.as_bytes());// to take a byte hash of name
+    let one_hash=keccak256("1".as_bytes());// to take a byte hash of "1"
+    let eip_domain_hash = encode(eip_domain_hash);// to encode and convert eip_domain_hash into string
+    let name_hash = encode(name_hash);// to encode and convert name_hash into string
+    let one_hash = encode(one_hash);// to encode and convert one_hash into string
+    let concatenated_data:String = format!("{}{}{}{}{}",eip_domain_hash,name_hash,one_hash,chain_id,contract_hash);//string contactination
+    let domain_separator=keccak256(concatenated_data.as_bytes());//to take a byte hash of concatenated Data
+    let permit_type_hash=keccak256(permit_type.as_bytes());// to take a byte hash of Permit Type
+    let domain_separator=encode(domain_separator);
+    let permit_type_hash=encode(permit_type_hash);
+    (domain_separator, permit_type_hash)
     }
 }

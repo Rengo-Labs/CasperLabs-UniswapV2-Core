@@ -1,5 +1,5 @@
 [package]
-name = "erc20-tests"
+name = "pair-tests"
 version = "0.2.1"
 authors = ["karandh <karan@casperlabs.io>", "Maciej Zieliński <maciej@casperlabs.io>"]
 edition = "2018"

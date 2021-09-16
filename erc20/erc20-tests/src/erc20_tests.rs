@@ -4,9 +4,9 @@ use test_env::{Sender, TestEnv};
 
 use crate::erc20_instance::ERC20Instance;
 
-const NAME: &str = "my_token";
-const SYMBOL: &str = "MYT";
-const DECIMALS: u8 = 18;
+const NAME: &str = "ERC20";
+const SYMBOL: &str = "ERC";
+const DECIMALS: u8 = 8;
 const INIT_TOTAL_SUPPLY: u64 = 1000;
 
 fn deploy() -> (TestEnv, ERC20Instance, AccountHash) {
@@ -70,6 +70,26 @@ fn test_erc20_approve() {
     assert_eq!(token.balance_of(user), 0.into());
     assert_eq!(token.allowance(owner, user), amount);
     assert_eq!(token.allowance(user, owner), 0.into());
+}
+#[test]
+fn test_erc20_mint() {
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let amount = 10.into();
+    token.mint(Sender(owner), user, amount);
+    assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
+    assert_eq!(token.balance_of(user), amount);
+    assert_eq!(token.balance_of(user), 10.into());
+}
+#[test]
+fn test_erc20_burn() {
+    let (env, token, owner) = deploy();
+    let user = env.next_user();
+    let amount = 10.into();
+    assert_eq!(token.balance_of(owner), U256::from(INIT_TOTAL_SUPPLY));
+    token.burn(Sender(owner), owner, amount);
+    assert_eq!(token.balance_of(owner), U256::from(INIT_TOTAL_SUPPLY) - amount);
+    assert_eq!(token.balance_of(user), 0.into());
 }
 
 #[test]

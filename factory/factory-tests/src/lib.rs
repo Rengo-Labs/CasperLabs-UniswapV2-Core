@@ -1,5 +1,5 @@
 #[cfg(test)]
-pub mod erc20_tests;
+pub mod factory_tests;
 
 #[cfg(test)]
-pub mod erc20_instance;
+pub mod factory_instance;
