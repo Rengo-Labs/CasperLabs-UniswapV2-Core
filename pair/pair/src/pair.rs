@@ -12,7 +12,6 @@ use casper_types::system::mint::Error as MintError;
 use contract_utils::{set_key,get_key};
 
 use renvm_sig::keccak256;
-use renvm_sig::hash_message;
 use cryptoxide::ed25519;
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
@@ -279,36 +278,21 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         }
         
     }
-    /// Given the subscription details, generate eip-191 standard hash.
-    /// # Parameters
-    ///
-    /// * `data` - A string slice that holds the meta transaction data
-    ///
-    /// * `from` - An Accounthash that holds the account address of the subscriber/signer
-    /// 
-    fn get_subscription_hash(&mut self,data:String,owner:Key) -> [u8;32]
-    {
-        let get_eip191_standard_hash=hash_message(data);
-        let get_eip191_standard_hash_string =hex::encode(get_eip191_standard_hash);
-        let subcription_hash_key=format!("{}{}","SUBSCRIPTION_HASH",owner);
-        set_key(&subcription_hash_key, get_eip191_standard_hash_string);
-        return get_eip191_standard_hash;
-    }
 
-    /// This function is to get subcription signer and verify if it is equal
+    /// This function is to get signer and verify if it is equal
     /// to the signer public key or not. 
     /// 
     /// # Parameters
     ///
-    /// * `public_key` - A string slice that holds the public key of the meta transaction signer,  Subscriber have to get it from running cryptoxide project externally.
+    /// * `public_key` - A string slice that holds the public key of the meta transaction signer
     ///
-    /// * `signature` - A string slice that holds the signature of the meta transaction,  Subscriber have to get it from running cryptoxide project externally.
+    /// * `signature` - A string slice that holds the signature of the meta transaction
     /// 
-    /// * `get_eip191_standard_hash` - A u8 array that holds the eip-191 standard subcription hash of the meta transaction
+    /// * `digest` - A u8 array that holds the digest
     /// 
-    /// * `from` - An Accounthash that holds the account address of the subscriber/signer
+    /// * `owner` - An Accounthash that holds the account address of the signer
     /// 
-    fn get_subscription_signer_and_verification(&mut self,public_key:String,signature:String,get_eip191_standard_hash:[u8;32],owner:Key) -> bool
+    fn ecrecover(&mut self,public_key:String,signature:String,digest:[u8;32],owner:Key) -> bool
     {
         let public_key_without_spaces:String = public_key.split_whitespace().collect();
         let public_key_string: Vec<&str> = public_key_without_spaces.split(',').collect();
@@ -328,7 +312,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             signature_counter = signature_counter+1;
         }
 
-        let result:bool = ed25519::verify(&get_eip191_standard_hash, &public_key_vec, &signature_vec);
+        let result:bool = ed25519::verify(&digest, &public_key_vec, &signature_vec);
         let verify_key=format!("{}{}","VERIFY", owner);
         set_key(&verify_key, result);
         return result;
@@ -364,11 +348,20 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     
             let data:String = format!("{}{}{}{}{}{}", permit_type_hash, owner, spender, value, nonce, deadline);
             let hash = keccak256(data.as_bytes());
+
             let hash_string = hex::encode(hash);
-            let final_data:String = format!("{}{}", domain_separator, hash_string);
-            let eip191_standard_hash:[u8;32] = self.get_subscription_hash(final_data, Key::from(self.get_caller()));
+
+            let encode_packed:String = format!("{}{}{}","\x19\x01", domain_separator, hash_string);
+
+            let digest=keccak256(encode_packed.as_bytes());
+            let digest_string =hex::encode(digest);
+
+            let digest_key=format!("{}{}","digest_",owner);
+            set_key(&digest_key, digest_string);
+
             self.set_nonce(Key::from(self.get_caller()),1.into());
-            let result:bool = self.get_subscription_signer_and_verification(public_key, signature, eip191_standard_hash, Key::from(self.get_caller()));
+
+            let result:bool = self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
             if result == true{
                 self.approve(spender,value);
             }
@@ -390,7 +383,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
         data::set_total_supply(self.total_supply() + amount);
     }
-    fn mint_amount(&mut self,caller:Key, recipient: Key, amount: U256) {
+    fn mint_with_caller(&mut self,caller:Key, recipient: Key, amount: U256) {
 
         let caller_hash_add_array = match caller {
             Key::Hash(package) => package,
@@ -410,7 +403,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_total_supply(self.total_supply() - amount);
         }else {
             runtime::revert(MintError::InsufficientFunds)
-            // PosError::InsufficientPaymentForAmountSpent
         }        
     }
     fn set_nonce(&mut self, recipient: Key, amount: U256) {
@@ -459,9 +451,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     fn get_factory_hash(&mut self) -> Key {
         data::get_factory_hash()
     }
-    // fn get_fee_to(&mut self) -> Key {
-    //     data::get_fee_to()
-    // }
 
 
     fn mint_helper(&mut self,to: Key) -> U256{
@@ -575,8 +564,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         }
     
     }
-//Completed testing    
-// if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
+
+    // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     fn mint_fee(&mut self, reserve0: U128, reserve1: U128) ->  bool{
         let factory_hash: Key = self.get_factory_hash();
 
@@ -616,7 +605,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         }
         return fee_on;
     }
-//Completed with testing
+
     fn initialize(&mut self, token0: Key, token1: Key, factory_hash: Key) {
         let factory_hash_getter: Key = self.get_factory_hash();
         if factory_hash == factory_hash_getter {
@@ -638,17 +627,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
        let _fee_to: () = runtime::call_contract(factory_hash_add,"set_fee_to",runtime_args!{"fee_to" => fee_to});
         
     }
-    // fn get_fee_to(&mut self) -> Key{
-    //     let factory_hash: Key = self.get_factory_hash();
-
-    //     let factory_hash_add_array = match factory_hash {
-    //         Key::Hash(package) => package,
-    //         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-    //     };
-    
-    //     let factory_hash_add = ContractHash::new(factory_hash_add_array);
-    //     runtime::call_contract(factory_hash_add,"fee_to",runtime_args!{})
-    // }
 
     fn get_reserves(&mut self) -> (U128, U128, u64) {
         let reserve0:U128 = data::get_reserve0();
@@ -696,8 +674,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         return z;
     }
 
-    /// for_never_overflow
-    fn for_never_overflow(&mut self,encode_reserve:U128,uqdiv_reserve:U128,mut general_price_cumulative_last:U256,time_elapsed:u64) -> U256
+    /// encode_uqdiv
+    fn encode_uqdiv(&mut self,encode_reserve:U128,uqdiv_reserve:U128,mut general_price_cumulative_last:U256,time_elapsed:u64) -> U256
     {
         let encode_result: U256 = self.encode(encode_reserve);
         let uqdive_result: U256 = self.uqdiv(encode_result,uqdiv_reserve);
@@ -705,7 +683,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         return general_price_cumulative_last;
     }
 
-    //Completed testing
     fn update(&mut self,balance0: U256, balance1: U256, reserve0: U128, reserve1: U128){
 
         let one:U128=1.into();
@@ -724,10 +701,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 let price0_cumulative_last:U256=data::get_price0_cumulative_last();
                 let price1_cumulative_last:U256=data::get_price1_cumulative_last();
         
-                let price0_cumulative_last_result:U256=self.for_never_overflow(reserve1,reserve0,price0_cumulative_last,time_elapsed);
+                let price0_cumulative_last_result:U256=self.encode_uqdiv(reserve1,reserve0,price0_cumulative_last,time_elapsed);
                 data::set_price0_cumulative_last(price0_cumulative_last_result);
 
-                let price1_cumulative_last_result:U256=self.for_never_overflow(reserve0,reserve1,price1_cumulative_last,time_elapsed);
+                let price1_cumulative_last_result:U256=self.encode_uqdiv(reserve0,reserve1,price1_cumulative_last,time_elapsed);
                 data::set_price1_cumulative_last(price1_cumulative_last_result);
             
             }

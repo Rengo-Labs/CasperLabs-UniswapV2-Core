@@ -97,7 +97,7 @@ fn  swap() {
     let amount1_out: U256 = runtime::get_named_arg("amount1_out");
     let to: Key = runtime::get_named_arg("to");
     let data: String = runtime::get_named_arg("data");
-    Pair::default().swap(amount0_out,amount1_out,to,data);
+    Pair::default().swap(amount0_out, amount1_out, to, data);
 
 }
 
@@ -159,12 +159,12 @@ fn mint() {
 /// * `amount` - A U256 that holds the value that is going to mint
 ///
 #[no_mangle]
-fn mint_amount() {
+fn mint_with_caller() {
 
     let caller: Key = runtime::get_named_arg("caller");
     let to: Key = runtime::get_named_arg("to");
     let amount: U256 = runtime::get_named_arg("amount");
-    Pair::default().mint_amount(caller,to,amount);
+    Pair::default().mint_with_caller(caller,to,amount);
 }
 /// This function is to mint token against the address that user provided with the amount
 /// 
@@ -191,23 +191,6 @@ fn burn() {
     let to: Key = runtime::get_named_arg("to");
     let (amount0, amount1): (U256, U256) = Pair::default().burn_helper(to);
     runtime::ret(CLValue::from_t((amount0, amount1)).unwrap_or_revert());
-}
-/// This function is to burn token against the address that user provided by a caller provided by user
-/// 
-/// # Parameters
-/// 
-/// * `caller` - A Key that holds the account address of the caller who called the burn method
-/// 
-/// * `from` - A Key that holds the account address of the user from which caller is goint to burn
-/// 
-/// * `amount` - A U256 that holds the value that is going to burn
-///
-#[no_mangle]
-fn burn_amount() {
-
-    let from: Key = runtime::get_named_arg("from");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Pair::default().burn(from,amount);
 }
 /// This function is to get a balance of a owner provided by user
 /// 
@@ -572,7 +555,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "mint_amount",
+        "mint_with_caller",
         vec![
             Parameter::new("caller", Key::cl_type()),
             Parameter::new("to", Key::cl_type()),
@@ -593,18 +576,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    
-    entry_points.add_entry_point(EntryPoint::new(
-        "burn_amount",
-        vec![
-            Parameter::new("from", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    
     entry_points
 }
 

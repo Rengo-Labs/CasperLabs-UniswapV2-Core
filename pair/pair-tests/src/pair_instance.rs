@@ -91,12 +91,7 @@ impl PAIRInstance {
 
 
     pub fn transfer_from<T: Into<Key>>(
-        &self,
-        sender: Sender,
-        owner: T,
-        recipient: T,
-        amount: U256,
-    ) {
+        &self, sender: Sender, owner: T, recipient: T, amount: U256,) {
         self.0.call_contract(
             sender,
             "transfer_from",
@@ -156,15 +151,7 @@ impl PAIRInstance {
             },
         );
     }
-    pub fn mint<T: Into<Key>>(&self, sender: Sender, to: T) {
-        self.0.call_contract(
-            sender,
-            "mint",
-            runtime_args! {
-                "to" => to.into(),
-            },
-        );
-    }
+    
     pub fn simple_mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
         self.0.call_contract(
             sender,
@@ -176,10 +163,10 @@ impl PAIRInstance {
         );
     }
     
-    pub fn mint_amount<T: Into<Key>>(&self, sender: Sender, caller: T, to: T, amount: U256) {
+    pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: T, amount: U256) {
         self.0.call_contract(
             sender,
-            "mint_amount",
+            "mint_with_caller",
             runtime_args! {
                 "caller" => caller.into(),
                 "to" => to.into(),
@@ -187,26 +174,7 @@ impl PAIRInstance {
             },
         );
     }
-    pub fn burn<T: Into<Key>>(&self, sender: Sender, to: T) {
-        self.0.call_contract(
-            sender,
-            "burn",
-            runtime_args! {
-                "to" => to.into(),
-            },
-        );
-    }
-    pub fn burn_amount<T: Into<Key>>(&self, sender: Sender, caller: T, from: T, amount: U256) {
-        self.0.call_contract(
-            sender,
-            "burn_amount",
-            runtime_args! {
-                "caller" => caller.into(),
-                "from" => from.into(),
-                "amount" => amount
-            },
-        );
-    }
+    
     pub fn sync(&self, sender: Sender) {
         self.0.call_contract(
             sender,
@@ -223,14 +191,6 @@ impl PAIRInstance {
             },
         );
     }
-    
-    // pub fn recipient_balance(&self) -> U256 {
-    //     self.0.query_named_key(String::from("recipient_balance"))
-    // }
-
-    // pub fn sender_balance(&self) -> U256 {
-    //     self.0.query_named_key(String::from("sender_balance"))
-    // }
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
     }

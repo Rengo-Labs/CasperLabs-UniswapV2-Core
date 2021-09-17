@@ -37,22 +37,19 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         if token_a == token_b {
             runtime::revert(Error::UniswapV2IdenticalAddresses);
         }
-        let mut token0 = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
-        let mut token1 = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+        let token0: Key;
+        let token1: Key;
         let address_0 = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
 
-        if token_a < token_b 
-        {
+        if token_a < token_b {
             token0 = token_a;
             token1 = token_b;
-
         } else {
-      
             token0 = token_b;
             token1 = token_a;
-        };
+        }
 
-        // in before 0 address was 0x0
+        // in before 0 address was hash-0
         if token0  == address_0 {
             runtime::revert(Error::UniswapV2ZeroAddress);
         }

@@ -29,7 +29,6 @@ pub const LIQUIDITY: &str = "liquidity";
 pub const AMOUNT0: &str = "amount0";
 pub const AMOUNT1: &str = "amount1";
 pub const CALLEE_CONTRACT_HASH: &str = "callee_contract_hash";
-// pub const FEE_TO: &str = "fee_to";
 
 pub struct Balances {
     dict: Dict,
@@ -259,10 +258,3 @@ pub fn set_callee_contract_hash(callee_contract_hash:Key){
 pub fn get_callee_contract_hash() -> Key {
     get_key(CALLEE_CONTRACT_HASH).unwrap_or_revert()
 }
-
-// pub fn set_fee_to(fee_to: Key){
-//     set_key(FEE_TO, fee_to);
-// }
-// pub fn get_fee_to() -> Key {
-//     get_key(FEE_TO).unwrap_or_revert()
-// }

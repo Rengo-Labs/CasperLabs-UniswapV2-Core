@@ -163,78 +163,6 @@ fn test_pair_set_treasury_fee_percent() {
     assert_eq!(token.treasury_fee(), 30.into());
 }
 
-// #[test]
-// fn test_pair_mint() {
-//     let (env, token, owner, factory_hash) = deploy();
-//     let user = env.next_user();
-//     let token0 = deploy_token0(&env);
-//     let token1 = deploy_token1(&env);
-//     let token0 = Key::Hash(token0.contract_hash());
-//     let token1 = Key::Hash(token1.contract_hash());
-//     let factory_hash = Key::Hash(factory_hash.contract_hash());
-//     let reserve0: U128 = 20.into();
-//     let reserve1: U128 = 10.into();
-//     let amount: U256 = 50.into();
-//     token.initialize(Sender(owner), token0, token1, factory_hash);
-//     // println!("Key::from(A): {}", owner);
-//     // println!("Key::from(B): {}", Key::from(owner).to_formatted_string());
-//     token.set_fee_to(Sender(owner), user);
-//     assert_eq!(token.factory_hash(), factory_hash);
-//     assert_eq!(token.token0(), token0);
-//     assert_eq!(token.token1(), token1);
-//     assert_eq!(token.k_last(), 0.into());
-//     token.set_reserve0(Sender(owner),reserve0);
-//     token.set_reserve1(Sender(owner), reserve1);
-//     token.mint_amount(Sender(owner), token0,token.self_contract_hash(), amount);
-//     token.mint_amount(Sender(owner), token1,token.self_contract_hash(), amount);
-//     token.mint(Sender(owner), user);
-//     assert_eq!(token.reserve0(), 50.into());
-//     assert_eq!(token.reserve1(), 50.into());
-//     assert_eq!(token.k_last(), 0.into());
-//     assert_eq!(token.liquidity(), 1500.into());
-// }
-// #[test]
-// fn test_pair_burn() {
-//     let (env, token, owner, factory_hash) = deploy();
-//     let user = env.next_user();
-//     let token0 = deploy_token0(&env);
-//     let token1 = deploy_token1(&env);
-//     let token0 = Key::Hash(token0.contract_hash());
-//     let token1 = Key::Hash(token1.contract_hash());
-//     let factory_hash = Key::Hash(factory_hash.contract_hash());
-//     let reserve0: U128 = 20.into();
-//     let reserve1: U128 = 10.into();
-//     let amount: U256 = 50.into();
-//     let mint_amount: U256 = 50.into();
-//     token.initialize(Sender(owner), token0, token1, factory_hash);
-//     token.set_fee_to(Sender(owner), user);
-//     assert_eq!(token.factory_hash(), factory_hash);
-//     assert_eq!(token.token0(), token0);
-//     assert_eq!(token.token1(), token1);
-    
-//     token.set_reserve0(Sender(owner), reserve0);
-//     token.set_reserve1(Sender(owner), reserve1);
-//     token.mint_amount(Sender(owner), token0,token.self_contract_hash(), mint_amount);
-//     token.mint_amount(Sender(owner), token1,token.self_contract_hash(), mint_amount);
-//     token.simple_mint(Sender(owner),token.self_contract_hash(), amount);
-//     token.simple_mint(Sender(owner),token0, amount);
-//     token.simple_mint(Sender(owner),token1, amount);
-
-//     assert_eq!(token.balance_of(token0),50.into());
-//     assert_eq!(token.balance_of(token0),50.into());
-//     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-//     let amount: U256= U256::from(INIT_TOTAL_SUPPLY) + amount + amount + amount;
-//     assert_eq!(token.total_supply(), amount);
-//     token.burn(Sender(owner), user);
-//     assert_eq!(token.balance_of(token0),48.into());
-//     assert_eq!(token.balance_of(token1),48.into());
-//     assert_eq!(token.amount0(), 2.into());
-//     assert_eq!(token.amount1(), 2.into());
-//     assert_eq!(token.reserve0(), 50.into());
-//     assert_eq!(token.reserve1(), 50.into());
- 
-// }
-
 #[test]
 fn test_pair_skim() {
     let (env, token, owner, factory_hash) = deploy();
@@ -246,7 +174,7 @@ fn test_pair_skim() {
     let factory_hash = Key::Hash(factory_hash.contract_hash());
     let reserve0: U128 = 20.into();
     let reserve1: U128 = 10.into();
-    let mint_amount: U256 = 50.into();
+    let amount: U256 = 50.into();
     
     token.initialize(Sender(owner), token0, token1, factory_hash);
     assert_eq!(token.token0(), token0);
@@ -254,12 +182,12 @@ fn test_pair_skim() {
     assert_eq!(token.factory_hash(), factory_hash);
     token.set_reserve0(Sender(owner), reserve0);
     token.set_reserve1(Sender(owner), reserve1);
-    token.mint_amount(Sender(owner), token0,token.self_contract_hash(), mint_amount);
-    token.mint_amount(Sender(owner), token1,token.self_contract_hash(), mint_amount);
-    token.simple_mint(Sender(owner),token0, mint_amount);
-    token.simple_mint(Sender(owner),token1, mint_amount);
+    token.mint_with_caller(Sender(owner), token0,token.self_contract_hash(), amount);
+    token.mint_with_caller(Sender(owner), token1,token.self_contract_hash(), amount);
+    token.simple_mint(Sender(owner),token0, amount);
+    token.simple_mint(Sender(owner),token1, amount);
     token.skim(Sender(owner), user);
-    let amount:U256=U256::from(INIT_TOTAL_SUPPLY) + mint_amount + mint_amount;
+    let amount:U256=U256::from(INIT_TOTAL_SUPPLY) + amount + amount;
     assert_eq!(token.total_supply(), amount);
     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
     assert_eq!(token.balance_of(user), 70.into());
@@ -279,15 +207,15 @@ fn test_pair_sync() {
     let factory_hash = Key::Hash(factory_hash.contract_hash());
     let reserve0: U128 = 20.into();
     let reserve1: U128 = 10.into();
-    let mint_amount: U256 = 50.into();
+    let amount: U256 = 50.into();
     token.initialize(Sender(owner), token0, token1, factory_hash);
     assert_eq!(token.factory_hash(), factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
     token.set_reserve0(Sender(owner), reserve0);
     token.set_reserve1(Sender(owner), reserve1);
-    token.mint_amount(Sender(owner), token0,token.self_contract_hash(), mint_amount);
-    token.mint_amount(Sender(owner), token1,token.self_contract_hash(), mint_amount);
+    token.mint_with_caller(Sender(owner), token0,token.self_contract_hash(), amount);
+    token.mint_with_caller(Sender(owner), token1,token.self_contract_hash(), amount);
     token.sync(Sender(owner));
     assert_eq!(token.total_supply(), INIT_TOTAL_SUPPLY.into());
     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
