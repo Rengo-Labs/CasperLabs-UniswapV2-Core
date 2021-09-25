@@ -91,7 +91,7 @@ fn  sync() {
 
 /// this low-level function should be called from a contract which performs important safety checks
 #[no_mangle]
-fn  swap() {
+fn swap() {
 
     let amount0_out: U256 = runtime::get_named_arg("amount0_out");
     let amount1_out: U256 = runtime::get_named_arg("amount1_out");
@@ -129,7 +129,14 @@ fn permit() {
     let deadline: u64 = runtime::get_named_arg("deadline");
     Pair::default().permit(public_key,signature,owner,spender,value,deadline);
 }
-
+/// This function is to approve tokens against the address that user provided so the address can transfer on his behalf
+/// 
+/// # Parameters
+/// 
+/// * `spender` - A Key that holds the account address of the user 
+///  
+/// * `amount` - A U256 that holds the value which is goin to approve
+///  
 #[no_mangle]
 fn approve() {
     let spender: Key = runtime::get_named_arg("spender");
@@ -148,24 +155,24 @@ fn mint() {
     let liquidity: U256 = Pair::default().mint_helper(to);
     runtime::ret(CLValue::from_t(liquidity).unwrap_or_revert());
 }
-/// This function is to mint token against the address that user provided by a caller provided by user
-/// 
-/// # Parameters
-/// 
-/// * `caller` - A Key that holds the account address of the caller who called the mint method
-/// 
-/// * `to` - A Key that holds the account address of the user
-/// 
-/// * `amount` - A U256 that holds the value that is going to mint
-///
-#[no_mangle]
-fn mint_with_caller() {
+// /// This function is to mint token against the address that user provided by a caller provided by user
+// /// 
+// /// # Parameters
+// /// 
+// /// * `caller` - A Key that holds the account address of the caller who called the mint method
+// /// 
+// /// * `to` - A Key that holds the account address of the user
+// /// 
+// /// * `amount` - A U256 that holds the value that is going to mint
+// ///
+// #[no_mangle]
+// fn mint_with_caller() {
 
-    let caller: Key = runtime::get_named_arg("caller");
-    let to: Key = runtime::get_named_arg("to");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Pair::default().mint_with_caller(caller,to,amount);
-}
+//     let caller: Key = runtime::get_named_arg("caller");
+//     let to: Key = runtime::get_named_arg("to");
+//     let amount: U256 = runtime::get_named_arg("amount");
+//     Pair::default().mint_with_caller(caller,to,amount);
+// }
 /// This function is to mint token against the address that user provided with the amount
 /// 
 /// # Parameters
@@ -280,17 +287,17 @@ pub extern "C" fn initialize() {
     
     Pair::default().initialize(token0, token1, factory_hash);
 }
-/// This function is to set a fee_to hash
-/// 
-/// # Parameters
-/// 
-/// * `fee_to` - A Key that holds the account address of the fee_to against which user wants to set
-///
-#[no_mangle]
-pub extern "C" fn set_fee_to() {
-    let fee_to: Key = runtime::get_named_arg("fee_to");
-    Pair::default().set_fee_to(fee_to);
-}
+// /// This function is to set a fee_to hash
+// /// 
+// /// # Parameters
+// /// 
+// /// * `fee_to` - A Key that holds the account address of the fee_to against which user wants to set
+// ///
+// #[no_mangle]
+// pub extern "C" fn set_fee_to() {
+//     let fee_to: Key = runtime::get_named_arg("fee_to");
+//     Pair::default().set_fee_to(fee_to);
+// }
 /// This function is to set a treasury_fee
 /// 
 /// # Parameters
@@ -302,28 +309,7 @@ pub extern "C" fn set_treasury_fee_percent() {
     let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
     Pair::default().set_treasury_fee_percent(treasury_fee);
 }
-/// This function is to set a reserve0
-/// 
-/// # Parameters
-/// 
-/// * `reserve0` - A U128 that holds the value that is going to be a reserve0
-///
-#[no_mangle]
-pub extern "C" fn set_reserve0() {
-    let reserve0: U128 = runtime::get_named_arg("reserve0");
-    Pair::default().set_reserve0(reserve0);
-}
-/// This function is to set a reserve1
-/// 
-/// # Parameters
-/// 
-/// * `reserve1` - A U128 that holds the value that is going to be a reserve1
-///
-#[no_mangle]
-pub extern "C" fn set_reserve1() {
-    let reserve1: U128 = runtime::get_named_arg("reserve1");
-    Pair::default().set_reserve1(reserve1);
-}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -492,25 +478,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_reserve0",
-        vec![
-            Parameter::new("reserve0", U128::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_reserve1",
-        vec![
-            Parameter::new("reserve1", U128::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
     
     entry_points.add_entry_point(EntryPoint::new(
         "token0",
@@ -545,27 +512,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_fee_to",
-        vec![
-            Parameter::new("fee_to", Key::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "mint_with_caller",
-        vec![
-            Parameter::new("caller", Key::cl_type()),
-            Parameter::new("to", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-
     entry_points.add_entry_point(EntryPoint::new(
         "simple_mint",
         vec![

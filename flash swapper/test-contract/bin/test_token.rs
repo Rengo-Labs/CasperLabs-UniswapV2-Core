@@ -3,95 +3,104 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeSet, format, vec, vec::Vec};
-use alloc::prelude::v1::Box;
+use alloc::{collections::BTreeSet, format, string::String, vec,
+};
+
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash,CLType
+    runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
-use factory::{self, FACTORY};
+use test::{self, TEST};
 
 #[derive(Default)]
-struct Factory(OnChainContractStorage);
+struct Test(OnChainContractStorage);
 
-impl ContractContext<OnChainContractStorage> for Factory {
+impl ContractContext<OnChainContractStorage> for Test {
     fn storage(&self) -> &OnChainContractStorage {
         &self.0
     }
 }
 
-impl FACTORY<OnChainContractStorage> for Factory {}
 
-impl Factory {
-    fn constructor(&mut self, fee_to_setter: Key, all_pairs: Vec<Key>, contract_hash: ContractHash) {
-        FACTORY::init(self, fee_to_setter, all_pairs, Key::from(contract_hash));
+impl TEST<OnChainContractStorage> for Test {}
+impl Test {
+    fn constructor(&mut self, name: String, contract_hash: ContractHash) {
+        TEST::init(self, name, Key::from(contract_hash));
     }
 }
-
 #[no_mangle]
 fn constructor() {
-    let fee_to_setter: Key = runtime::get_named_arg("fee_to_setter");
-    let all_pairs: Vec<Key> = runtime::get_named_arg("all_pairs");
+    let name: String = runtime::get_named_arg("name");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Factory::default().constructor(fee_to_setter, all_pairs, contract_hash);
+    Test::default().constructor(name, contract_hash);
 }
 
 
 #[no_mangle]
-fn fee_to() {
-    let ret: Key = Factory::default().get_fee_to();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+fn mint_with_caller() {
+
+    let caller: Key = runtime::get_named_arg("caller");
+    let to: Key = runtime::get_named_arg("to");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Test::default().mint_with_caller(caller,to,amount);
+}
+#[no_mangle]
+fn pair_mint() {
+
+    let caller: Key = runtime::get_named_arg("caller");
+    let to: Key = runtime::get_named_arg("to");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Test::default().pair_mint(caller,to,amount);
+}
+#[no_mangle]
+fn balance() {
+
+    let token: Key = runtime::get_named_arg("token");
+    let owner: Key = runtime::get_named_arg("owner");
+    Test::default().balance(token,owner);
 }
 
 #[no_mangle]
-fn fee_to_setter() {
-    let ret: Key = Factory::default().get_fee_to_setter();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+fn token0() {
+
+    let pair: Key = runtime::get_named_arg("pair");
+    Test::default().token0(pair);
 }
 
 #[no_mangle]
-fn all_pairs() {
-    let ret: Vec<Key> = Factory::default().get_all_pairs();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
-}
+fn token1() {
 
-#[no_mangle]
-fn all_pairs_length() {
-    let ret: Vec<Key> = Factory::default().get_all_pairs();
-    runtime::ret(CLValue::from_t(U256::from(ret.len())).unwrap_or_revert());
+    let pair: Key = runtime::get_named_arg("pair");
+    Test::default().token1(pair);
 }
-
-#[no_mangle]
-fn set_fee_to() {
-    let fee_to: Key = runtime::get_named_arg("fee_to");
-    Factory::default().set_fee_to(fee_to);
-}
-
-#[no_mangle]
-fn set_fee_to_setter() {
-    let fee_to_setter: Key = runtime::get_named_arg("fee_to_setter");
-    Factory::default().set_fee_to_setter(fee_to_setter);
-}
-
+// FACTORY METHOD
 #[no_mangle]
 fn create_pair() {
     let token_a: Key = runtime::get_named_arg("token_a");
     let token_b: Key = runtime::get_named_arg("token_b");
-    let pair_hash: Key = runtime::get_named_arg("pair_hash");    
-    Factory::default().create_pair(token_a, token_b, pair_hash);
+    let pair_hash: Key = runtime::get_named_arg("pair_hash");
+    let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    Test::default().create_pair(token_a, token_b, pair_hash, factory_hash);
 }
 
+// PAIR METHOD
 #[no_mangle]
-fn get_pair() {
-    let token0: Key = runtime::get_named_arg("token0");
-    let token1: Key = runtime::get_named_arg("token1");
-    let ret: Key = Factory::default().get_pair(token0, token1);
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+fn sync() {
+    let pair_hash: Key = runtime::get_named_arg("pair_hash");
+    Test::default().sync(pair_hash);
+}
+
+
+#[no_mangle]
+pub extern "C" fn set_fee_to() {
+    let fee_to: Key = runtime::get_named_arg("fee_to");
+    let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    Test::default().set_fee_to(fee_to,factory_hash);
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -99,12 +108,71 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("fee_to_setter", Key::cl_type()),
-            Parameter::new("all_pairs", CLType::List(Box::new(Key::cl_type()))),
-            Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("name", String::cl_type()),
+            Parameter::new("contract_hash", ContractHash::cl_type()),            
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
+        EntryPointType::Contract,
+    ));
+    
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_fee_to",
+        vec![
+            Parameter::new("fee_to", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "mint_with_caller",
+        vec![
+            Parameter::new("caller", Key::cl_type()),
+            Parameter::new("to", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "pair_mint",
+        vec![
+            Parameter::new("caller", Key::cl_type()),
+            Parameter::new("to", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "balance",
+        vec![
+            Parameter::new("token", Key::cl_type()),
+            Parameter::new("owner", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "token0",
+        vec![
+            Parameter::new("pair", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "token1",
+        vec![
+            Parameter::new("pair", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
@@ -113,64 +181,23 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("token_a", Key::cl_type()),
             Parameter::new("token_b", Key::cl_type()),
             Parameter::new("pair_hash", Key::cl_type()),
-            
+            Parameter::new("factory_hash", Key::cl_type()),
         ],
-        Key::cl_type(),
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "get_pair",
+        "sync",
         vec![
-            Parameter::new("token0", Key::cl_type()),
-            Parameter::new("token1", Key::cl_type()),
+            Parameter::new("pair_hash", Key::cl_type()),
         ],
-        Key::cl_type(),
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "fee_to",
-        vec![],
-        Key::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "fee_to_setter",
-        vec![],
-        Key::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "all_pairs",
-        vec![],
-        CLType::List(Box::new(Key::cl_type())),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "all_pairs_length",
-        vec![],
-        CLType::U256,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_fee_to",
-        vec![Parameter::new("fee_to", Key::cl_type())],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_fee_to_setter",
-        vec![Parameter::new("fee_to_setter", Key::cl_type())],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
+
+
     entry_points
 }
 
@@ -181,13 +208,10 @@ fn call() {
     let (contract_hash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
-    let fee_to_setter: Key = runtime::get_named_arg("fee_to_setter");
-    let all_pairs: Vec<Key> = Vec::new();
-   
+    let name: &str = "TEST";
     // Prepare constructor args
     let constructor_args = runtime_args! {
-        "fee_to_setter" => fee_to_setter,
-        "all_pairs" => all_pairs,
+        "name" => name,    
         "contract_hash" => contract_hash
     };
 
@@ -210,6 +234,7 @@ fn call() {
 
     // Store contract in the account's named keys.
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+  
     runtime::put_key(
         &format!("{}_package_hash", contract_name),
         package_hash.into(),

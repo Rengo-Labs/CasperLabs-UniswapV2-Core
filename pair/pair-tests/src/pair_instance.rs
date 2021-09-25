@@ -133,42 +133,11 @@ impl PAIRInstance {
             },
         );
     }
-    pub fn set_reserve0(&self, sender: Sender, reserve0: U128) {
-        self.0.call_contract(
-            sender,
-            "set_reserve0",
-            runtime_args! {
-                "reserve0" => reserve0,
-            },
-        );
-    }
-    pub fn set_reserve1(&self, sender: Sender, reserve1: U128) {
-        self.0.call_contract(
-            sender,
-            "set_reserve1",
-            runtime_args! {
-                "reserve1" => reserve1,
-            },
-        );
-    }
-    
     pub fn simple_mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
         self.0.call_contract(
             sender,
             "simple_mint",
             runtime_args! {
-                "to" => to.into(),
-                "amount" => amount
-            },
-        );
-    }
-    
-    pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: T, amount: U256) {
-        self.0.call_contract(
-            sender,
-            "mint_with_caller",
-            runtime_args! {
-                "caller" => caller.into(),
                 "to" => to.into(),
                 "amount" => amount
             },
@@ -187,7 +156,20 @@ impl PAIRInstance {
             sender,
             "skim",
             runtime_args! {
+
                 "to" => to.into(),
+            },
+        );
+    }
+    pub fn swap<T: Into<Key>>(&self, sender: Sender, amount0: U256, amount1: U256, to: T, data: &str) {
+        self.0.call_contract(
+            sender,
+            "swap",
+            runtime_args! {
+                "amount0_out" => amount0,
+                "amount1_out" => amount1,
+                "to" => to.into(),
+                "data" => data
             },
         );
     }
@@ -254,17 +236,6 @@ impl PAIRInstance {
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
     }
-    // Factory Method
-    pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T) {
-        self.0.call_contract(
-            sender,
-            "set_fee_to",
-            runtime_args! {
-                "fee_to" => fee_to.into(),
-            },
-        );
-    }
-    
 }
 
 pub fn key_to_str(key: &Key) -> String {

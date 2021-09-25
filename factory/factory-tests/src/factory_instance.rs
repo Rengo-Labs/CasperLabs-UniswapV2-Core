@@ -4,7 +4,6 @@ use blake2::{
 };
 use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs};
 use test_env::{Sender, TestContract, TestEnv};
-
 pub struct FACTORYInstance(pub TestContract);
 
 impl FACTORYInstance {
@@ -84,8 +83,7 @@ impl FACTORYInstance {
     pub fn get_pair<T: Into<Key>>(&self, token0: T, token1: T) -> Key {
         let token0: Key = token0.into();
         let token1: Key = token1.into();
-        self.0
-            .query_dictionary("pairs", keys_to_str(&token0, &token1)).unwrap()
+        self.0.query_dictionary("pairs", keys_to_str(&token0, &token1)).unwrap()
             
     }
 }

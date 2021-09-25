@@ -8,7 +8,6 @@ use casper_types::{
 };
 
 use contract_utils::{ContractContext, ContractStorage};
-
 use crate::data::{self, Pairs, get_all_pairs};
 
 #[repr(u16)]
@@ -49,7 +48,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             token1 = token_a;
         }
 
-        // in before 0 address was hash-0
+        // in before 0 address was hash-0000000000000000000000000000000000000000000000000000000000000000
         if token0  == address_0 {
             runtime::revert(Error::UniswapV2ZeroAddress);
         }

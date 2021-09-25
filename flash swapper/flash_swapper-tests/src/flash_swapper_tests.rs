@@ -1,0 +1,204 @@
+use casper_engine_test_support::AccountHash;
+use casper_types::{Key, RuntimeArgs, U256, runtime_args};
+use test_env::{Sender, TestEnv, TestContract};
+
+
+use crate::flash_swapper_instance::FlashSwapperInstance;
+use crate::test_instance::TESTInstance;
+
+fn deploy_factory(env: &TestEnv) -> TestContract {
+
+    // deploy factory contract
+    let owner_factory = env.next_user();
+    let factory = TestContract::new(
+        &env,
+        "factory.wasm",
+        "factory",
+        Sender(owner_factory),
+        runtime_args! {
+            "fee_to_setter" => Key::from(owner_factory)
+            // contract_name is passed seperately, so we don't need to pass it here.
+        }
+    );
+
+    factory
+}
+
+fn deploy_wcspr(env: &TestEnv) -> TestContract {
+
+    // deploy wcspr contract
+    let owner_wcspr = env.next_user();
+    let wcspr = TestContract::new(
+        &env,
+        "wcspr.wasm",
+        "wcspr",
+        Sender(owner_wcspr),
+        runtime_args! {}
+    );
+
+    wcspr
+}
+
+fn deploy_pair(env: &TestEnv, factory: &TestContract, calle: Key) -> TestContract {
+
+    // deploy wcspr contract
+    let owner_pair = env.next_user();
+    let pair = TestContract::new(
+        &env,
+        "pair-token.wasm",
+        "pair",
+        Sender(owner_pair),
+        runtime_args! {
+            "callee_contract_hash" => calle,
+            "factory_hash" => Key::Hash(factory.contract_hash())
+        }
+    );
+
+    pair
+}
+
+fn deploy_flash_swapper() -> (TestEnv, FlashSwapperInstance, AccountHash, TestContract, TestContract, TestContract, TestContract, TESTInstance) {
+    
+    let env = TestEnv::new();
+    let owner = env.next_user();
+
+    let factory = deploy_factory(&env);
+    let wcspr = deploy_wcspr(&env);
+    let dai = deploy_wcspr(&env);
+    let btc = deploy_wcspr(&env);
+
+    let flash_swapper = FlashSwapperInstance::new(
+        &env,
+        "flash_swapper",
+        Sender(owner),
+        Key::Hash(wcspr.contract_hash()),
+        Key::Hash(dai.contract_hash()),
+        Key::Hash(factory.contract_hash())
+    );
+    let test = TESTInstance::new(
+        &env,
+        "TEST",
+        Sender(owner),
+        "TEST",
+    );
+
+    (env, flash_swapper, owner, factory, wcspr, dai, btc,test)
+}
+
+
+
+#[test]
+fn test_flash_swapper_deploy() {
+
+    let (_, flash_swapper,_, _, _, _, _, _) = deploy_flash_swapper();
+    let self_hash: Key = flash_swapper.self_contract_hash();
+    let zero_addr:Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+    assert_ne!(self_hash, zero_addr);
+}
+
+#[test]
+fn test_start_swap_with_simple_flash_loan() {
+    
+    let (env, flash_swapper, owner, factory, wcspr, dai, _,test) = deploy_flash_swapper();
+    let pair = deploy_pair(&env, &factory, flash_swapper.self_contract_hash());
+    let amount:U256 = 500.into();
+    test.create_pair(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(wcspr.contract_hash()), Key::Hash(pair.contract_hash()), Key::Hash(factory.contract_hash()));
+    test.mint_with_caller(Sender(owner), Key::Hash(wcspr.contract_hash()), Key::Hash(pair.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(pair.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(wcspr.contract_hash()), Key::Hash(wcspr.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(dai.contract_hash()), amount);//500
+
+    test.token0(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.token1(Sender(owner),Key::Hash(pair.contract_hash()));
+    // assert_eq!(test.get_token0(),Key::Hash(wcspr.contract_hash()));
+    // test.balance(Sender(owner), test.get_token0(), test.get_token0());
+    // assert_eq!(test.balance_of(),0.into());
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token0(),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token1(),amount);
+    
+    test.sync(Sender(owner),Key::Hash(pair.contract_hash()));
+    flash_swapper.start_swap(Sender(owner), Key::Hash(wcspr.contract_hash()), 100.into(), Key::Hash(wcspr.contract_hash()), "User Data".into());
+    // assert_eq!(flash_swapper.amount0(),0.into());
+}
+
+#[test]
+fn test_start_swap_with_simple_flash_swap() {
+    let (env, flash_swapper, owner, factory, wcspr, dai, _,test) = deploy_flash_swapper();
+    let pair = deploy_pair(&env, &factory, flash_swapper.self_contract_hash());
+    test.create_pair(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(wcspr.contract_hash()), Key::Hash(pair.contract_hash()), Key::Hash(factory.contract_hash()));
+    let amount:U256 = 500.into();
+    test.mint_with_caller(Sender(owner), Key::Hash(wcspr.contract_hash()), Key::Hash(pair.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(pair.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(wcspr.contract_hash()), Key::Hash(wcspr.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(dai.contract_hash()), amount);//500
+
+    test.token0(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.token1(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token0(),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token1(),amount);
+    
+    test.sync(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token0(),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token1(),amount);
+    
+    flash_swapper.start_swap(Sender(owner), Key::Hash(dai.contract_hash()), 100.into(), Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap(), "User Data".into());
+
+    // assert_eq!(flash_swapper.self_contract_hash(),Key::Hash(dai.contract_hash()));
+
+}
+
+#[test]
+fn test_start_swap_with_traingular_flash_swap() {
+    
+    let (env, flash_swapper, owner, factory, wcspr, dai, btc,test) = deploy_flash_swapper();
+    let pair = deploy_pair(&env, &factory, flash_swapper.self_contract_hash());
+    let amount:U256 = 500.into();
+    test.create_pair(Sender(owner), Key::Hash(btc.contract_hash()), Key::Hash(wcspr.contract_hash()), Key::Hash(pair.contract_hash()), Key::Hash(factory.contract_hash()));
+
+    test.token0(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.token1(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token0(),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token1(),amount);
+
+    test.create_pair(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(wcspr.contract_hash()), Key::Hash(pair.contract_hash()), Key::Hash(factory.contract_hash()));
+
+    test.token0(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.token1(Sender(owner),Key::Hash(pair.contract_hash()));
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token0(),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),test.get_token1(),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),Key::Hash(dai.contract_hash()),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),Key::Hash(btc.contract_hash()),amount);
+    test.pair_mint(Sender(owner),Key::Hash(pair.contract_hash()),Key::Hash(wcspr.contract_hash()),amount);
+
+    
+    test.mint_with_caller(Sender(owner), Key::Hash(wcspr.contract_hash()), Key::Hash(pair.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(pair.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(btc.contract_hash()), Key::Hash(pair.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(wcspr.contract_hash()), Key::Hash(wcspr.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(dai.contract_hash()), Key::Hash(dai.contract_hash()), amount);//500
+    test.mint_with_caller(Sender(owner), Key::Hash(btc.contract_hash()), Key::Hash(btc.contract_hash()), amount);//500
+
+    
+    
+    test.sync(Sender(owner),Key::Hash(pair.contract_hash()));
+    flash_swapper.start_swap(Sender(owner), Key::Hash(dai.contract_hash()), 10.into(), Key::Hash(btc.contract_hash()), "User Data".into());
+    // println!("btc {:?}",Key::Hash(btc.contract_hash()));
+    // println!("WCSPR {:?}",Key::Hash(wcspr.contract_hash()));
+    // println!("DAI {:?}",Key::Hash(dai.contract_hash()));
+    // println!("TOKEN0 {:?}",flash_swapper.token0());
+    // println!("TOKEN1 {:?}",flash_swapper.token1());
+    // println!("BORROW {:?}",flash_swapper.token_borrow());
+    // assert_eq!(flash_swapper.token1(),flash_swapper.token_borrow());
+}
+
+#[test]
+#[should_panic]
+fn test_calling_construction() {
+    let (_env, flash_swapper, owner, factory, wcspr, dai, _,_) = deploy_flash_swapper();
+    flash_swapper.constructor(
+        Sender(owner),
+        Key::Hash(wcspr.contract_hash()),
+        Key::Hash(dai.contract_hash()),
+        Key::Hash(factory.contract_hash()),
+    );
+}

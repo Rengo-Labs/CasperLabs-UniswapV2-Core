@@ -8,8 +8,6 @@ pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const FEE_TO: &str = "fee_to";
 pub const FEE_TO_SETTER: &str = "fee_to_setter";
 pub const ALL_PAIRS: &str = "all_pairs";
-pub const TOKEN0: &str = "token0";
-pub const TOKEN1: &str = "token1";
 
 pub struct Pairs {
     dict: Dict,

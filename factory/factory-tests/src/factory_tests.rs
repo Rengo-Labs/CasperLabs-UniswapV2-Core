@@ -6,41 +6,6 @@ use crate::factory_instance::FACTORYInstance;
 
 const NAME_FACTORY: &str = "Factory";
 
-
-// fn deploy() -> (TestEnv, PAIRInstance, AccountHash, TestContract) {
-
-//     let env = TestEnv::new();
-//     let owner = env.next_user();
-
-//     // deploy factory contract
-//     let env_factory = TestEnv::new();
-//     // let owner_factory = env.next_user();
-//     let factory_contract = TestContract::new(
-//         //&env_factory,
-//         &env,
-//         "factory.wasm",
-//         "factory",
-//         Sender(owner),
-//         runtime_args! {
-//             "fee_to_setter" => Key::from(owner)
-//             // "contract_name" 
-//             // contract_name is passed seperately, so we don't need to pass it here.
-//         }
-//     );
-//     let token = PAIRInstance::new(
-//         &env,
-//         NAME,
-//         Sender(owner),
-//         NAME,
-//         SYMBOL,
-//         DECIMALS,
-//         INIT_TOTAL_SUPPLY.into(),
-//         Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap(),
-//         Key::Hash(factory_contract.contract_hash())
-//     );
-//     (env, token, owner, factory_contract)
-// }
-
 fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
     let env = TestEnv::new();
     let owner = env.next_user();
@@ -154,7 +119,6 @@ fn test_factory_set_fee_to() {
 #[test]
 fn test_factory_create_pair() {
     let (env, token, owner,pair_hash) = deploy();
-    // let user = env.next_user();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);

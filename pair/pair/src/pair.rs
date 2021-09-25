@@ -9,9 +9,10 @@ use contract_utils::{ContractContext, ContractStorage};
 
 use crate::data::{self, Allowances, Balances, Nonces};
 use casper_types::system::mint::Error as MintError;
-use contract_utils::{set_key,get_key};
+use contract_utils::{set_key};
 
 use renvm_sig::keccak256;
+use renvm_sig::hash_message;
 use cryptoxide::ed25519;
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
@@ -61,6 +62,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_minimum_liquidity(minimum_liquidity);
         data::set_callee_contract_hash(callee_contract_hash);
         Nonces::init();
+        self.set_nonce(Key::from(self.get_caller()),0.into());
         Balances::init();
         Allowances::init();
     }
@@ -71,17 +73,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     fn nonce(&mut self, owner: Key) -> U256 {
         Nonces::instance().get(&owner)
     }
-    fn get_fee_to(&mut self) -> Key{
-        let factory_hash: Key = self.get_factory_hash();
+    // fn get_fee_to(&mut self) -> Key{
+    //     let factory_hash: Key = self.get_factory_hash();
 
-        let factory_hash_add_array = match factory_hash {
-            Key::Hash(package) => package,
-            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-        };
+    //     let factory_hash_add_array = match factory_hash {
+    //         Key::Hash(package) => package,
+    //         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+    //     };
     
-        let factory_hash_add = ContractHash::new(factory_hash_add_array);
-        runtime::call_contract(factory_hash_add,"fee_to",runtime_args!{})
-    }
+    //     let factory_hash_add = ContractHash::new(factory_hash_add_array);
+    //     runtime::call_contract(factory_hash_add,"fee_to",runtime_args!{})
+    // }
 
     fn transfer(&mut self, recipient: Key, amount: U256) {
         self.make_transfer(self.get_caller(), recipient, amount);
@@ -110,6 +112,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let token1: Key = self.get_token1();
         let reserve0: U128 = data::get_reserve0();
         let reserve1: U128 = data::get_reserve1();
+        
         let pair_address: Key = data::get_hash();
 
         //convert Key to ContractHash
@@ -168,30 +171,25 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
        
         let pair_address: Key = data::get_hash();
       
-        let zero:U256=0.into();
-        if (amount0_out > zero) || (amount1_out > zero)
-        {
+        let zero: U256=0.into();
+        if (amount0_out > zero) || (amount1_out > zero){
             let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
-            if (amount0_out < U256::from(reserve0.as_u128())) && (amount1_out < U256::from(reserve1.as_u128()))
-            {
+            if (amount0_out < U256::from(reserve0.as_u128())) && (amount1_out < U256::from(reserve1.as_u128())){
 
                 let token0: Key = self.get_token0();
                 let token1: Key = self.get_token1();
 
-                if (to != token0) && (to != token1)
-                {
+                if (to != token0) && (to != token1){
 
-                    if amount0_out > zero
-                    {
+                    if amount0_out > zero{
                         self.make_transfer(token0, to, amount0_out); // optimistically transfer tokens
                     }
-                    if amount1_out > zero
-                    {
+                    if amount1_out > zero{
                         self.make_transfer(token1, to, amount1_out); // optimistically transfer tokens
                     }
                     if data.len() > 0
                     {
-                        let uniswap_v2_callee_address:Key=get_key("callee_contract_hash").unwrap();
+                        let uniswap_v2_callee_address:Key = to;
 
                         //convert Key to ContractHash
                         let uniswap_v2_callee_address_hash_add_array = match uniswap_v2_callee_address {
@@ -200,8 +198,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                         };
                         let uniswap_v2_callee_contract_hash = ContractHash::new(uniswap_v2_callee_address_hash_add_array);
 
-                        let _result:bool=runtime::call_contract(uniswap_v2_callee_contract_hash,"uniswap_v2_call",runtime_args!{"sender" => pair_address,"amount0" => amount0_out,"amount1" => amount1_out,"data" => data});
-
+                        let _result:() = runtime::call_contract(uniswap_v2_callee_contract_hash,"uniswap_v2_call",runtime_args!{"sender" => data::get_callee_contract_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data});
                     }
 
                     //convert Key to ContractHash
@@ -220,21 +217,20 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
                     let balance0:U256=runtime::call_contract(token0_contract_hash,"balance_of",runtime_args!{"owner" => pair_address});
                     let balance1:U256=runtime::call_contract(token1_contract_hash,"balance_of",runtime_args!{"owner" => pair_address});
-
-                    let mut amount0_in:U256=0.into();
-                    let mut amount1_in:U256=0.into();
+                    let mut amount0_in:U256 = 0.into();
+                    let mut amount1_in:U256 = 0.into();
 
                     if balance0 > (U256::from(reserve0.as_u128()) - amount0_out){
                         amount0_in = balance0 - (U256::from(reserve0.as_u128()) - amount0_out);
+                        
                     }
-
                     if balance1 > (U256::from(reserve1.as_u128()) - amount1_out){
                         amount1_in = balance1 - (U256::from(reserve1.as_u128()) - amount1_out);
+                        
                     }
-                    
                     if (amount0_in > zero) || (amount1_in > zero){
-                        let amount_1000:U256=1000.into();
-                        let amount_3:U256=3.into();
+                        let amount_1000: U256 = 1000.into();
+                        let amount_3: U256 = 3.into();
 
                         let balance0_adjusted:U256=(balance0 * amount_1000) - (amount0_in * amount_3);
                         let balance1_adjusted:U256=(balance1 * amount_1000) - (amount1_in * amount_3);
@@ -336,12 +332,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     /// * `deadeline` - A u64 that holds the deadline limit
     /// 
     fn permit(&mut self, public_key: String, signature: String, owner: Key, spender: Key, value : U256, deadline: u64) {
-     
+        
         let domain_separator:String = data::get_domain_separator();
         let permit_type_hash:String = data::get_permit_type_hash();
         let nonce:U256 = self.nonce(Key::from(self.get_caller()));
 
-        let deadline_into_blocktime = BlockTime::new(deadline);
+        let deadline_into_blocktime = BlockTime::new(deadline*1000);
         let blocktime = runtime::get_blocktime();
 
         if deadline_into_blocktime >= blocktime{
@@ -350,10 +346,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             let hash = keccak256(data.as_bytes());
 
             let hash_string = hex::encode(hash);
+           
+            let encode_packed:String = format!("{}{}", domain_separator, hash_string);
 
-            let encode_packed:String = format!("{}{}{}","\x19\x01", domain_separator, hash_string);
-
-            let digest=keccak256(encode_packed.as_bytes());
+            let digest=hash_message(encode_packed);
+        
             let digest_string =hex::encode(digest);
 
             let digest_key=format!("{}{}","digest_",owner);
@@ -363,7 +360,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
             let result:bool = self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
             if result == true{
-                self.approve(spender,value);
+                Allowances::instance().set(&owner, &spender, value);
             }
             else{
                 //signature verification failed
@@ -382,18 +379,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         balances.set(&recipient, balance + amount);
 
         data::set_total_supply(self.total_supply() + amount);
-    }
-    fn mint_with_caller(&mut self,caller:Key, recipient: Key, amount: U256) {
-
-        let caller_hash_add_array = match caller {
-            Key::Hash(package) => package,
-            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-        };
-    
-        let caller_hash_add = ContractHash::new(caller_hash_add_array);
-    
-        let _ret: () = runtime::call_contract(caller_hash_add,"mint",runtime_args!{"to" => recipient, "amount" => amount});
-
     }
     fn burn(&mut self, recipient: Key, amount: U256) {
         let balances = Balances::instance();
@@ -617,16 +602,16 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             runtime::revert(ApiError::User(FailureCode::One as u16));
         }
     }
-    fn set_fee_to(&mut self, fee_to: Key) {
-        let factory_hash: Key = self.get_factory_hash();
-        let factory_hash_add_array = match factory_hash {
-            Key::Hash(package) => package,
-            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-        };
-        let factory_hash_add = ContractHash::new(factory_hash_add_array);
-       let _fee_to: () = runtime::call_contract(factory_hash_add,"set_fee_to",runtime_args!{"fee_to" => fee_to});
+    // fn set_fee_to(&mut self, fee_to: Key) {
+    //     let factory_hash: Key = self.get_factory_hash();
+    //     let factory_hash_add_array = match factory_hash {
+    //         Key::Hash(package) => package,
+    //         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+    //     };
+    //     let factory_hash_add = ContractHash::new(factory_hash_add_array);
+    //    let _fee_to: () = runtime::call_contract(factory_hash_add,"set_fee_to",runtime_args!{"fee_to" => fee_to});
         
-    }
+    // }
 
     fn get_reserves(&mut self) -> (U128, U128, u64) {
         let reserve0:U128 = data::get_reserve0();
