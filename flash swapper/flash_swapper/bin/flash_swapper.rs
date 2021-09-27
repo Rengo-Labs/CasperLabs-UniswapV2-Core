@@ -5,14 +5,8 @@ extern crate alloc;
 
 use alloc::{collections::BTreeSet, format, string::String, vec};
 
-use casper_contract::{
-    contract_api::{runtime, storage},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{
-    runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, ContractHash, U256
-};
+use casper_contract::{contract_api::{runtime, storage}, unwrap_or_revert::UnwrapOrRevert};
+use casper_types::{runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, ContractHash, U256};
 use contract_utils::{ContractContext, OnChainContractStorage};
 use flash_swapper::{self, FLASHSWAPPER};
 
@@ -28,27 +22,27 @@ impl ContractContext<OnChainContractStorage> for Token {
 impl FLASHSWAPPER<OnChainContractStorage> for Token {}
 
 impl Token {
-    fn constructor(&mut self,wcspr: Key, dai: Key, uniswap_v2_factory: Key, contract_hash: ContractHash) {
+    fn constructor(&mut self, wcspr: Key, dai: Key, uniswap_v2_factory: Key, contract_hash: ContractHash) {
         FLASHSWAPPER::init(self, wcspr, dai, uniswap_v2_factory, Key::from(contract_hash));
     } 
 }
 
 #[no_mangle]
 fn constructor() {
-
     let wcspr: Key = runtime::get_named_arg("wcspr");
     let dai: Key  = runtime::get_named_arg("dai");
     let uniswap_v2_factory: Key  = runtime::get_named_arg("uniswap_v2_factory");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-
     Token::default().constructor(wcspr, dai, uniswap_v2_factory, contract_hash);
 }
- // @notice Flash-borrows amount of token_borrow from a Uniswap V2 pair and repays using token_pay
-    // @param token_borrow The address of the token you want to flash-borrow, use 0x0 for ETH
-    // @param amount The amount of token_borrow you will borrow
-    // @param token_pay The address of the token you want to use to payback the flash-borrow, use 0x0 for ETH
-    // @param user_data Data that will be passed to the `execute` function for the user
-    // @dev Depending on your use case, you may want to add access controls to this function
+
+/// @notice Flash-borrows amount of token_borrow from a Uniswap V2 pair and repays using token_pay
+/// @param token_borrow The address of the token you want to flash-borrow, use 0x0 for ETH
+/// @param amount The amount of token_borrow you will borrow
+/// @param token_pay The address of the token you want to use to payback the flash-borrow, use 0x0 for ETH
+/// @param user_data Data that will be passed to the `execute` function for the user
+/// @dev Depending on your use case, you may want to add access controls to this function
+
 #[no_mangle]
 fn start_swap() {
     let token_borrow: Key = runtime::get_named_arg("token_borrow");
@@ -58,7 +52,8 @@ fn start_swap() {
     Token::default().start_swap(token_borrow, amount, token_pay, user_data);
 }
 
-// @notice Function is called by the Uniswap V2 pair's `swap` function
+/// @notice Function is called by the Uniswap V2 pair's `swap` function
+
 #[no_mangle]
 fn uniswap_v2_call() {
     let sender: Key = runtime::get_named_arg("sender");
@@ -67,8 +62,6 @@ fn uniswap_v2_call() {
     let data = runtime::get_named_arg("data");
     Token::default().uniswap_v2_call(sender, amount0, amount1, data);
 }
-
-
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -108,7 +101,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    
     entry_points
 }
 
@@ -116,13 +108,11 @@ fn get_entry_points() -> EntryPoints {
 fn call() {
     // Build new package with initial a first version of the contract.
     let (package_hash, access_token) = storage::create_contract_package_at_hash();
-    let (contract_hash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+    let (contract_hash, _) = storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
     let uniswap_v2_factory: Key = runtime::get_named_arg("uniswap_v2_factory");
     let wcspr: Key = runtime::get_named_arg("wcspr");
     let dai: Key = runtime::get_named_arg("dai");
-
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "wcspr" => wcspr,
@@ -132,21 +122,15 @@ fn call() {
     };
 
     // Add the constructor group to the package hash with a single URef.
-    let constructor_access: URef =
-        storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
-            .unwrap_or_revert()
-            .pop()
-            .unwrap_or_revert();
+    let constructor_access: URef = storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
 
     // Call the constructor entry point
-    let _: () =
-        runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+    let _: () = runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
 
     // Remove all URefs from the constructor group, so no one can call it for the second time.
     let mut urefs = BTreeSet::new();
     urefs.insert(constructor_access);
-    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
-        .unwrap_or_revert();
+    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs).unwrap_or_revert();
 
     // Store contract in the account's named keys.
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");

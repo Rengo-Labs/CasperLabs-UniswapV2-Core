@@ -9,11 +9,7 @@ const NAME_FACTORY: &str = "Factory";
 fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
     let env = TestEnv::new();
     let owner = env.next_user();
-
     let _env_pair = TestEnv::new();
-    // let owner_factory = env.next_user();
-    
-
     let token = FACTORYInstance::new(
         &env,
         NAME_FACTORY,
@@ -24,9 +20,7 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
     let symbol: &str = "ERC";
     let decimals: u8 = 8;
     let init_total_supply: U256 = 1000.into();
-        
     let pair_contract = TestContract::new(
-        //&env_factory,
         &env,
         "pair-token.wasm",
         "Pair",
@@ -41,19 +35,15 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
             // contract_name is passed seperately, so we don't need to pass it here.
         }
     );
-    // println!("PAIR CONTRACT {:?}",pair_contract);
     (env, token, owner,pair_contract)
 }
+
 fn deploy_token0(env: &TestEnv) -> TestContract {
-
     let _owner = env.next_user();
-
     let decimals: u8 = 18;
     let init_total_supply: U256 = 1000.into();
-
     let token0_env = TestEnv::new();
     let token0_owner = token0_env.next_user();
-
     let token0_contract = TestContract::new(
         &env,
         "erc20-token.wasm",
@@ -66,16 +56,14 @@ fn deploy_token0(env: &TestEnv) -> TestContract {
             "decimals" => decimals
         }
     );
-    println!("token0_contract: {}", Key::Hash(token0_contract.contract_hash()).to_formatted_string());
     token0_contract
 }
+
 fn deploy_token1(env: &TestEnv) -> TestContract {
     let decimals: u8 = 18;
     let init_total_supply: U256 = 1000.into();
-
     let token1_env = TestEnv::new();
     let token1_owner = token1_env.next_user();
-
     let token1_contract = TestContract::new(
         &env,
         "erc20-token.wasm",
@@ -88,17 +76,15 @@ fn deploy_token1(env: &TestEnv) -> TestContract {
             "decimals" => decimals
         }
     );
-    println!("token1_contract: {}", Key::Hash(token1_contract.contract_hash()).to_formatted_string());
     token1_contract
 }
-
 
 #[test]
 fn test_factory_deploy() {
     let (_env, token, owner,_pair_hash) = deploy();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
-
 }
+
 #[test]
 fn test_factory_set_fee_to_setter() {
     let (env, token, owner,_pair_hash) = deploy();
@@ -107,15 +93,17 @@ fn test_factory_set_fee_to_setter() {
     token.set_fee_to_setter(Sender(owner), user,);
     assert_eq!(token.fee_to_setter(), Key::Account(user));
 }
+
 #[test]
 fn test_factory_set_fee_to() {
     let (env, token, owner,_pair_hash) = deploy();
     let user = env.next_user();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
-    token.set_fee_to(Sender(owner), user,);
+    token.set_fee_to(Sender(owner), user);
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     assert_eq!(token.fee_to(), Key::Account(user));
 }
+
 #[test]
 fn test_factory_create_pair() {
     let (env, token, owner,pair_hash) = deploy();

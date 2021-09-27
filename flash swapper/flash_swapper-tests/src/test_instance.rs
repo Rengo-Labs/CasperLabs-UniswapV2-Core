@@ -40,8 +40,6 @@ impl TESTInstance {
         );
     }
 
-  
-    
     pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: Key, amount: U256) {
         self.0.call_contract(
             sender,
@@ -53,6 +51,7 @@ impl TESTInstance {
             },
         );
     }
+
     pub fn pair_mint<T: Into<Key>>(&self, sender: Sender, caller: T, to: Key, amount: U256) {
         self.0.call_contract(
             sender,
@@ -64,6 +63,7 @@ impl TESTInstance {
             },
         );
     }
+
     pub fn balance<T: Into<Key>>(&self, sender: Sender, token: T, owner: Key) {
         self.0.call_contract(
             sender,
@@ -74,6 +74,7 @@ impl TESTInstance {
             },
         );
     }
+
     pub fn token0<T: Into<Key>>(&self, sender: Sender, pair: T) {
         self.0.call_contract(
             sender,
@@ -83,6 +84,7 @@ impl TESTInstance {
             },
         );
     }
+
     pub fn token1<T: Into<Key>>(&self, sender: Sender, pair: T) {
         self.0.call_contract(
             sender,
@@ -92,24 +94,31 @@ impl TESTInstance {
             },
         );
     }
+
     pub fn get_token0(&self) -> Key{
         self.0.query_named_key(String::from("token0"))
     }
+
     pub fn get_token1(&self) -> Key{
         self.0.query_named_key(String::from("token1"))
     }
+
     pub fn balance_of(&self) -> U256 {
         self.0.query_named_key(String::from("Balance"))
     }
+
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
     }
+
     pub fn get_fee_to(&self) -> Key {
         self.0.query_named_key(String::from("fee_to"))
     }
+
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
     }
+
     // Factory Method
     pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T, factory_hash: Key) {
         self.0.call_contract(
@@ -123,8 +132,7 @@ impl TESTInstance {
     }
 
     // Factory Method
-    pub fn create_pair(&self, sender: Sender, token_a: Key, token_b: Key, pair_hash: Key, factory_hash: Key) {
-        
+    pub fn create_pair(&self, sender: Sender, token_a: Key, token_b: Key, pair_hash: Key, factory_hash: Key) {    
         self.0.call_contract(
             sender,
             "create_pair",

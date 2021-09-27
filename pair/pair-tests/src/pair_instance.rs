@@ -133,10 +133,10 @@ impl PAIRInstance {
             },
         );
     }
-    pub fn simple_mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
+    pub fn erc20_mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
         self.0.call_contract(
             sender,
-            "simple_mint",
+            "erc20_mint",
             runtime_args! {
                 "to" => to.into(),
                 "amount" => amount

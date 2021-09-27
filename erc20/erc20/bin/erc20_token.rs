@@ -2,17 +2,9 @@
 #![no_std]
 
 extern crate alloc;
-
 use alloc::{collections::BTreeSet, format, string::String, vec};
-
-use casper_contract::{
-    contract_api::{runtime, storage},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{
-    runtime_args, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash
-};
+use casper_contract::{ contract_api::{ runtime, storage}, unwrap_or_revert::UnwrapOrRevert,};
+use casper_types::{ runtime_args, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash};
 use contract_utils::{ContractContext, OnChainContractStorage};
 use erc20::{self, ERC20};
 
@@ -28,7 +20,7 @@ impl ContractContext<OnChainContractStorage> for Token {
 impl ERC20<OnChainContractStorage> for Token {}
 
 impl Token {
-    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, nonce:U256, domain_separator: String, permit_type_hash: String, contract_hash: ContractHash) {
+    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, nonce: U256, domain_separator: String, permit_type_hash: String, contract_hash: ContractHash) {
         ERC20::init(self, name, symbol, decimals, domain_separator, permit_type_hash, Key::from(contract_hash));
         ERC20::mint(self, self.get_caller(), initial_supply);
         ERC20::set_nonce(self, self.get_caller(), nonce);
@@ -48,6 +40,14 @@ fn constructor() {
     Token::default().constructor(name, symbol, decimals, initial_supply, nonce, domain_separator, permit_type_hash, contract_hash);
 }
 
+/// This function is to transfer tokens against the address that user provided
+/// 
+/// # Parameters
+/// 
+/// * `recipient` - A Key that holds the account address of the user
+/// 
+/// * `amount` - A U256 that holds the amount for approve
+///  
 
 #[no_mangle]
 fn transfer() {
@@ -55,6 +55,17 @@ fn transfer() {
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().transfer(recipient, amount);
 }
+
+/// This function is to transfer tokens against the address that has been approved before by owner
+/// 
+/// # Parameters
+///
+/// * `owner` - A Key that holds the account address of the user
+///  
+/// * `recipient` - A Key that holds the account address of the user
+/// 
+/// * `amount` - A U256 that holds the amount for approve
+///  
 
 #[no_mangle]
 fn transfer_from() {
@@ -80,10 +91,10 @@ fn transfer_from() {
 /// * `value` - A U256 that holds the value
 ///  
 /// * `deadeline` - A u64 that holds the deadline limit
-/// 
+///
+
 #[no_mangle]
 fn permit() {
-
     let public_key:String= runtime::get_named_arg("public");
     let signature:String = runtime::get_named_arg("signature");
     let owner: Key = runtime::get_named_arg("owner");
@@ -93,12 +104,22 @@ fn permit() {
     Token::default().permit(public_key,signature,owner,spender,value,deadline);
 }
 
+/// This function is to approve tokens against the address that user provided
+/// 
+/// # Parameters
+/// 
+/// * `spender` - A Key that holds the account address of the user
+/// 
+/// * `amount` - A U256 that holds the amount for approve
+///  
+
 #[no_mangle]
 fn approve() {
     let spender: Key = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().approve(spender, amount);
 }
+
 /// This function is to mint token against the address that user provided
 /// 
 /// # Parameters
@@ -106,13 +127,15 @@ fn approve() {
 /// * `to` - A Key that holds the account address of the user
 /// 
 /// * `amount` - A U256 that holds the amount for mint
-///  
+///
+
 #[no_mangle]
 fn mint() {
     let to: Key = runtime::get_named_arg("to");
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().mint(to, amount);
 }
+
 /// This function is to burn token against the address that user provided
 /// 
 /// # Parameters
@@ -120,19 +143,35 @@ fn mint() {
 /// * `from` - A Key that holds the account address of the user
 /// 
 /// * `amount` - A U256 that holds the amount for burn
-///  
+///
+
 #[no_mangle]
 fn burn() {
     let from: Key = runtime::get_named_arg("from");
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().burn(from, amount);
 }
+
+/// This function is to return the Balance of owner against the address that user provided
+/// 
+/// # Parameters
+/// 
+/// * `owner` - A Key that holds the account address of the user against which user wants to get balance
+///
+
 #[no_mangle]
 fn balance_of() {
     let owner: Key = runtime::get_named_arg("owner");
     let ret: U256 = Token::default().balance_of(owner);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
+
+/// This function is to return the Nonce of owner against the address that user provided
+/// 
+/// # Parameters
+/// 
+/// * `owner` - A Key that holds the account address of the user against which user wants to get nonce
+///
 
 #[no_mangle]
 fn nonce() {
@@ -141,17 +180,35 @@ fn nonce() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to return the Name of contract
+/// 
+
+
 #[no_mangle]
 fn name() {
     let ret: String = Token::default().name();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to return the Symbol of contract
+/// 
+
 #[no_mangle]
 fn symbol() {
     let ret: String = Token::default().symbol();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
+
+/// This function is to return the Allowance of owner and spender that user provided
+/// 
+/// # Parameters
+/// 
+/// * `owner` - A Key that holds the account address of the user 
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+
+
 #[no_mangle]
 fn allowance() {
     let owner: Key = runtime::get_named_arg("owner");
@@ -159,6 +216,9 @@ fn allowance() {
     let ret: U256 = Token::default().allowance(owner, spender);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
+
+/// This function is to return the Total Supply of the contract 
+/// 
 
 #[no_mangle]
 fn total_supply() {
@@ -232,14 +292,18 @@ fn get_entry_points() -> EntryPoints {
 
     entry_points.add_entry_point(EntryPoint::new(
         "balance_of",
-        vec![Parameter::new("owner", Key::cl_type())],
+        vec![
+            Parameter::new("owner", Key::cl_type())
+        ],
         U256::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "nonce",
-        vec![Parameter::new("owner", Key::cl_type())],
+        vec![
+            Parameter::new("owner", Key::cl_type())
+        ],
         U256::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -305,11 +369,6 @@ fn call() {
     let (contract_hash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
-    // Read arguments for the constructor call.
-    // let name: String = runtime::get_named_arg("name");
-    // let symbol: String = runtime::get_named_arg("symbol");
-    // let decimals: u8 = runtime::get_named_arg("decimals");
-    // let initial_supply: U256 = runtime::get_named_arg("initial_supply");
     let name: &str = "ERC20";
     let symbol: &str = "ERC";
     let decimals: u8 = 8;
@@ -334,10 +393,7 @@ fn call() {
 
     // Add the constructor group to the package hash with a single URef.
     let constructor_access: URef =
-        storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
-            .unwrap_or_revert()
-            .pop()
-            .unwrap_or_revert();
+        storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
 
     // Call the constructor entry point
     let _: () =

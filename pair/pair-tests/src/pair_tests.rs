@@ -177,6 +177,7 @@ fn test_pair_approve() {
     assert_eq!(token.allowance(owner, user), amount);
     assert_eq!(token.allowance(user, owner), 0.into());
 }
+
 #[test]
 fn test_pair_initialize() {
     let (env, token, owner, factory_hash,test) = deploy();
@@ -232,8 +233,8 @@ fn test_pair_skim() {
     assert_eq!(token.reserve0(), 20.into());
     assert_eq!(token.reserve1(), 10.into());
 
-    token.simple_mint(Sender(owner),token0, amount3);
-    token.simple_mint(Sender(owner),token1, amount3);
+    token.erc20_mint(Sender(owner),token0, amount3);
+    token.erc20_mint(Sender(owner),token1, amount3);
     
    
     test.mint_with_caller(Sender(owner), token0,token.self_contract_hash(), amount);
@@ -300,8 +301,8 @@ fn test_pair_swap() {
     assert_eq!(token.reserve1(), 50.into());
     test.mint_with_caller(Sender(owner), token0,token.self_contract_hash(), amount);
     test.mint_with_caller(Sender(owner), token1,token.self_contract_hash(), amount);
-    token.simple_mint(Sender(owner),token0, amount);
-    token.simple_mint(Sender(owner),token1, amount);
+    token.erc20_mint(Sender(owner),token0, amount);
+    token.erc20_mint(Sender(owner),token1, amount);
     assert_eq!(token.balance_of(token0),100.into());
     assert_eq!(token.balance_of(token1),100.into());
     token.swap(Sender(owner), amount2, amount3, user, data);

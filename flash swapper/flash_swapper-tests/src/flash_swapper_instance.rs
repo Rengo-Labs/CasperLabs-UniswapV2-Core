@@ -31,25 +31,13 @@ impl FlashSwapperInstance {
             },
         ))
     }
-    pub fn self_contract_hash(&self) -> Key {
-        self.0.query_named_key(String::from("self_contract_hash"))
-    }
-    pub fn balance_pair(&self) -> U256 {
-        self.0.query_named_key(String::from("pair_balance"))
-    }
-    pub fn amount0(&self) -> U256 {
-        self.0.query_named_key(String::from("amount0"))
-    }
 
     pub fn mint_with_caller(&self, caller:Key, recipient: Key, amount: U256) {
-
         let caller_hash_add_array = match caller {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-    
         let caller_hash_add = ContractHash::new(caller_hash_add_array);
-    
         let _ret: () = runtime::call_contract(caller_hash_add,"mint",runtime_args!{"to" => recipient, "amount" => amount});
 
     }
@@ -92,6 +80,17 @@ impl FlashSwapperInstance {
         );
     }
 
+    pub fn self_contract_hash(&self) -> Key {
+        self.0.query_named_key(String::from("self_contract_hash"))
+    }
+
+    pub fn balance_pair(&self) -> U256 {
+        self.0.query_named_key(String::from("pair_balance"))
+    }
+    
+    pub fn amount0(&self) -> U256 {
+        self.0.query_named_key(String::from("amount0"))
+    }
    
 }
 

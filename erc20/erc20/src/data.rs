@@ -15,7 +15,6 @@ pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const DOMAIN_SEPARATOR: &str = "domain_separator";
 pub const PERMIT_TYPE_HASH: &str = "permit_type_hash";
 
-
 pub struct Balances {
     dict: Dict,
 }
@@ -124,7 +123,7 @@ pub fn set_hash(contract_hash: Key){
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
 
-pub fn get_hash()-> Key {
+pub fn get_hash() -> Key {
     get_key(SELF_CONTRACT_HASH).unwrap_or_revert()
 }
 

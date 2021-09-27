@@ -36,7 +36,7 @@ impl Pairs {
     }
 }
 
-pub fn set_hash(contract_hash: Key){
+pub fn set_hash(contract_hash: Key) {
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
 
@@ -44,7 +44,7 @@ pub fn get_hash()-> Key {
     get_key(SELF_CONTRACT_HASH).unwrap_or_revert()
 }
 
-pub fn set_fee_to(fee_to: Key){
+pub fn set_fee_to(fee_to: Key) {
     set_key(FEE_TO, fee_to);
 }
 
@@ -55,12 +55,12 @@ pub fn get_fee_to() -> Key {
     }
 }
 
-pub fn set_fee_to_setter(fee_to_setter: Key){
+pub fn set_fee_to_setter(fee_to_setter: Key) {
     set_key(FEE_TO_SETTER, fee_to_setter);
 }
 
 pub fn get_fee_to_setter() -> Key {
-    match get_key(FEE_TO_SETTER){
+    match get_key(FEE_TO_SETTER) {
         Some(fee_to_setter) => fee_to_setter,
         None => Key::from_formatted_str("account-hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap()
     }

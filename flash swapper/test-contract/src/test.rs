@@ -35,7 +35,7 @@ pub trait TEST<Storage: ContractStorage>: ContractContext<Storage> {
     
         let caller_hash_add = ContractHash::new(caller_hash_add_array);
     
-        let _ret: () = runtime::call_contract(caller_hash_add,"simple_mint",runtime_args!{"to" => recipient, "amount" => amount});
+        let _ret: () = runtime::call_contract(caller_hash_add,"erc20_mint",runtime_args!{"to" => recipient, "amount" => amount});
 
     }
     fn balance(&mut self,token:Key, owner: Key) {

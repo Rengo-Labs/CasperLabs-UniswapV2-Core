@@ -8,15 +8,7 @@ use test_env::{Sender, TestContract, TestEnv};
 pub struct ERC20Instance(TestContract);
 
 impl ERC20Instance {
-    pub fn new(
-        env: &TestEnv,
-        contract_name: &str,
-        sender: Sender,
-        name: &str,
-        symbol: &str,
-        decimals: u8,
-        supply: U256,
-    ) -> ERC20Instance {
+    pub fn new( env: &TestEnv, contract_name: &str, sender: Sender, name: &str, symbol: &str, decimals: u8, supply: U256, ) -> ERC20Instance {
         ERC20Instance(TestContract::new(
             env,
             "erc20-token.wasm",
@@ -31,14 +23,7 @@ impl ERC20Instance {
         ))
     }
 
-    pub fn constructor(
-        &self,
-        sender: Sender,
-        name: &str,
-        symbol: &str,
-        decimals: u8,
-        initial_supply: U256,
-    ) {
+    pub fn constructor( &self, sender: Sender, name: &str, symbol: &str, decimals: u8, initial_supply: U256,) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -49,25 +34,6 @@ impl ERC20Instance {
                 "decimals" => decimals
             },
         );
-    }
-
-    pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
-        self.0
-            .query_dictionary("balances", key_to_str(&account.into()))
-            .unwrap_or_default()
-    }
-    pub fn nonce<T: Into<Key>>(&self, account: T) -> U256 {
-        self.0
-            .query_dictionary("nonce", key_to_str(&account.into()))
-            .unwrap_or_default()
-    }
-
-    pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
-        let owner: Key = owner.into();
-        let spender: Key = spender.into();
-        self.0
-            .query_dictionary("allowances", keys_to_str(&owner, &spender))
-            .unwrap_or_default()
     }
 
     pub fn transfer<T: Into<Key>>(&self, sender: Sender, recipient: T, amount: U256) {
@@ -128,6 +94,20 @@ impl ERC20Instance {
                 "amount" => amount
             },
         );
+    }
+
+    pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
+        self.0.query_dictionary("balances", key_to_str(&account.into())).unwrap_or_default()
+    }
+
+    pub fn nonce<T: Into<Key>>(&self, account: T) -> U256 {
+        self.0.query_dictionary("nonce", key_to_str(&account.into())).unwrap_or_default()
+    }
+
+    pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
+        let owner: Key = owner.into();
+        let spender: Key = spender.into();
+        self.0.query_dictionary("allowances", keys_to_str(&owner, &spender)).unwrap_or_default()
     }
 
     pub fn name(&self) -> String {
