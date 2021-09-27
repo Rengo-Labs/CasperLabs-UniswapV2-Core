@@ -478,7 +478,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let wcspr_contract_hash: ContractHash = ContractHash::new(wcspr_address_hash_add_array);
         let () = runtime::call_contract(wcspr_contract_hash, "transfer", runtime_args!{"recipient" => borrow_pair_address, "amount" => amount_of_wcspr});
         let flash_swapper_address: Key = data::get_hash();
-        let _result: () = runtime::call_contract(borrow_pair_contract_hash, "swap",runtime_args!{"amount0_out" => amount0_out, "amount1_out" => amount1_out, "to" => flash_swapper_address, "data" => user_data.clone()});   
+        let _result: () = runtime::call_contract(borrow_pair_contract_hash, "swap",runtime_args!{"amount0_out" => amount0_out, "amount1_out" => amount1_out, "to" => flash_swapper_address, "data" => ""});   
         // compute the amount of _tokenPay that needs to be repaid
         let pay_pair_address: Key = data::get_permissioned_pair_address(); // gas efficiency
         let pair_balance_wcspr: U256 = runtime::call_contract(wcspr_contract_hash, "balance_of", runtime_args!{"owner" => pay_pair_address});
