@@ -8,7 +8,15 @@ use test_env::{Sender, TestContract, TestEnv};
 pub struct WCSPRInstance(TestContract);
 
 impl WCSPRInstance {
-    pub fn new(env: &TestEnv, contract_name: &str, sender: Sender, name: &str, symbol: &str, decimals: u8, supply: U256) -> WCSPRInstance {
+    pub fn new(
+        env: &TestEnv,
+        contract_name: &str,
+        sender: Sender,
+        name: &str,
+        symbol: &str,
+        decimals: u8,
+        supply: U256,
+    ) -> WCSPRInstance {
         WCSPRInstance(TestContract::new(
             env,
             "wcspr-token.wasm",
@@ -23,7 +31,14 @@ impl WCSPRInstance {
         ))
     }
 
-    pub fn constructor(&self, sender: Sender, name: &str, symbol: &str, decimals: u8, initial_supply: U256) {
+    pub fn constructor(
+        &self,
+        sender: Sender,
+        name: &str,
+        symbol: &str,
+        decimals: u8,
+        initial_supply: U256,
+    ) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -47,7 +62,13 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn transfer_from<T: Into<Key>>(&self, sender: Sender, owner: T, recipient: T, amount: U256) {
+    pub fn transfer_from<T: Into<Key>>(
+        &self,
+        sender: Sender,
+        owner: T,
+        recipient: T,
+        amount: U256,
+    ) {
         self.0.call_contract(
             sender,
             "transfer_from",
@@ -71,13 +92,17 @@ impl WCSPRInstance {
     }
 
     pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
-        self.0.query_dictionary("balances", key_to_str(&account.into())).unwrap_or_default()
+        self.0
+            .query_dictionary("balances", key_to_str(&account.into()))
+            .unwrap_or_default()
     }
 
     pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
         let owner: Key = owner.into();
         let spender: Key = spender.into();
-        self.0.query_dictionary("allowances", keys_to_str(&owner, &spender)).unwrap_or_default()
+        self.0
+            .query_dictionary("allowances", keys_to_str(&owner, &spender))
+            .unwrap_or_default()
     }
 
     pub fn name(&self) -> String {

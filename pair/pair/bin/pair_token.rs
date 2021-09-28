@@ -3,14 +3,20 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeSet, format, string::String, vec,boxed::Box};
+use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
 
-use casper_contract::{contract_api::{runtime, storage}, unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{runtime_args, CLType, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash, U128};
+use casper_contract::{
+    contract_api::{runtime, storage},
+    unwrap_or_revert::UnwrapOrRevert,
+};
+use casper_types::{
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
+    EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U128, U256,
+};
 use contract_utils::{ContractContext, OnChainContractStorage};
+use hex::encode;
 use pair::{self, PAIR};
 use renvm_sig::keccak256;
-use hex::encode;
 
 #[derive(Default)]
 struct Pair(OnChainContractStorage);
@@ -24,8 +30,46 @@ impl ContractContext<OnChainContractStorage> for Pair {
 impl PAIR<OnChainContractStorage> for Pair {}
 
 impl Pair {
-    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, nonce:U256, domain_separator: String, permit_type_hash: String, contract_hash: ContractHash, reserve0: U128, reserve1: U128, block_timestamp_last: u64, price0_cumulative_last: U256, price1_cumulative_last: U256, k_last: U256, treasury_fee: U256, minimum_liquidity: U256,callee_contract_hash :Key, factory_hash:Key) {
-        PAIR::init(self, name, symbol, decimals, domain_separator, permit_type_hash, Key::from(contract_hash), factory_hash, reserve0, reserve1, block_timestamp_last, price0_cumulative_last, price1_cumulative_last, k_last, treasury_fee, minimum_liquidity,callee_contract_hash);
+    fn constructor(
+        &mut self,
+        name: String,
+        symbol: String,
+        decimals: u8,
+        initial_supply: U256,
+        nonce: U256,
+        domain_separator: String,
+        permit_type_hash: String,
+        contract_hash: ContractHash,
+        reserve0: U128,
+        reserve1: U128,
+        block_timestamp_last: u64,
+        price0_cumulative_last: U256,
+        price1_cumulative_last: U256,
+        k_last: U256,
+        treasury_fee: U256,
+        minimum_liquidity: U256,
+        callee_contract_hash: Key,
+        factory_hash: Key,
+    ) {
+        PAIR::init(
+            self,
+            name,
+            symbol,
+            decimals,
+            domain_separator,
+            permit_type_hash,
+            Key::from(contract_hash),
+            factory_hash,
+            reserve0,
+            reserve1,
+            block_timestamp_last,
+            price0_cumulative_last,
+            price1_cumulative_last,
+            k_last,
+            treasury_fee,
+            minimum_liquidity,
+            callee_contract_hash,
+        );
         PAIR::mint(self, self.get_caller(), initial_supply);
         PAIR::set_nonce(self, self.get_caller(), nonce);
     }
@@ -46,20 +90,39 @@ fn constructor() {
     let block_timestamp_last: u64 = runtime::get_named_arg("block_timestamp_last");
     let price0_cumulative_last: U256 = runtime::get_named_arg("price0_cumulative_last");
     let price1_cumulative_last: U256 = runtime::get_named_arg("price1_cumulative_last");
-    let k_last: U256 = runtime::get_named_arg("k_last");                  // reserve0 * reserve1, as of immediately after the most recent liquidity event
+    let k_last: U256 = runtime::get_named_arg("k_last"); // reserve0 * reserve1, as of immediately after the most recent liquidity event
     let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
     let minimum_liquidity: U256 = runtime::get_named_arg("minimum_liquidity");
     let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
-    Pair::default().constructor(name, symbol, decimals, initial_supply, nonce, domain_separator, permit_type_hash, contract_hash, reserve0, reserve1, block_timestamp_last, price0_cumulative_last, price1_cumulative_last, k_last, treasury_fee, minimum_liquidity, callee_contract_hash, factory_hash);
+    Pair::default().constructor(
+        name,
+        symbol,
+        decimals,
+        initial_supply,
+        nonce,
+        domain_separator,
+        permit_type_hash,
+        contract_hash,
+        reserve0,
+        reserve1,
+        block_timestamp_last,
+        price0_cumulative_last,
+        price1_cumulative_last,
+        k_last,
+        treasury_fee,
+        minimum_liquidity,
+        callee_contract_hash,
+        factory_hash,
+    );
 }
 
 /// This function is to transfer tokens against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `recipient` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for approve
 ///
 
@@ -71,13 +134,13 @@ fn transfer() {
 }
 
 /// This function is to transfer tokens against the address that has been approved before by owner
-/// 
+///
 /// # Parameters
 ///
 /// * `owner` - A Key that holds the account address of the user
 ///  
 /// * `recipient` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for approve
 ///  
 
@@ -92,7 +155,7 @@ fn transfer_from() {
 /// force balances to match reserves
 
 #[no_mangle]
-fn  skim() {
+fn skim() {
     let to: Key = runtime::get_named_arg("to");
     Pair::default().skim(to);
 }
@@ -100,7 +163,7 @@ fn  skim() {
 /// force reserves to match balances
 
 #[no_mangle]
-fn  sync() {
+fn sync() {
     Pair::default().sync();
 }
 
@@ -116,42 +179,42 @@ fn swap() {
 }
 
 /// This function is to get meta transaction signer and verify if it is equal
-/// to the signer public key or not then call approve. 
-/// 
+/// to the signer public key or not then call approve.
+///
 /// # Parameters
 ///
 /// * `public_key` - A string slice that holds the public key of the meta transaction signer,  Subscriber have to get it from running cryptoxide project externally.
 ///
 /// * `signature` - A string slice that holds the signature of the meta transaction,  Subscriber have to get it from running cryptoxide project externally.
-/// 
+///
 /// * `owner` - A Key that holds the account address of the owner
-/// 
+///
 /// * `spender` - A Key that holds the account address of the spender
 ///  
 /// * `value` - A U256 that holds the value
 ///  
 /// * `deadeline` - A u64 that holds the deadline limit
-/// 
+///
 
 #[no_mangle]
 fn permit() {
-    let public_key:String= runtime::get_named_arg("public");
-    let signature:String = runtime::get_named_arg("signature");
+    let public_key: String = runtime::get_named_arg("public");
+    let signature: String = runtime::get_named_arg("signature");
     let owner: Key = runtime::get_named_arg("owner");
-    let spender: Key  = runtime::get_named_arg("spender");
+    let spender: Key = runtime::get_named_arg("spender");
     let value: U256 = runtime::get_named_arg("value");
     let deadline: u64 = runtime::get_named_arg("deadline");
-    Pair::default().permit(public_key,signature,owner,spender,value,deadline);
+    Pair::default().permit(public_key, signature, owner, spender, value, deadline);
 }
 
 /// This function is to approve tokens against the address that user provided so the address can transfer on his behalf
-/// 
+///
 /// # Parameters
-/// 
-/// * `spender` - A Key that holds the account address of the user 
+///
+/// * `spender` - A Key that holds the account address of the user
 ///  
 /// * `amount` - A U256 that holds the value which is goin to approve
-/// 
+///
 
 #[no_mangle]
 fn approve() {
@@ -161,9 +224,9 @@ fn approve() {
 }
 
 /// This function is to mint token against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `to` - A Key that holds the account address of the user
 ///  
 
@@ -175,11 +238,11 @@ fn mint() {
 }
 
 /// This function is to mint token against the address that user provided with the amount
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `to` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the value that is going to mint
 ///
 
@@ -191,9 +254,9 @@ fn erc20_mint() {
 }
 
 /// This function is to burn token against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `from` - A Key that holds the account address of the user
 ///
 
@@ -205,9 +268,9 @@ fn burn() {
 }
 
 /// This function is to get a balance of a owner provided by user
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `owner` - A Key that holds the account address of the owner against which user wants the Balance
 ///
 
@@ -223,17 +286,17 @@ fn balance_of() {
 
 #[no_mangle]
 fn get_reserves() {
-    let (reserve0,reserve1,block_timestamp_last): (U128, U128, u64) = Pair::default().get_reserves();
+    let (reserve0, reserve1, block_timestamp_last): (U128, U128, u64) =
+        Pair::default().get_reserves();
     runtime::ret(CLValue::from_t((reserve0, reserve1, block_timestamp_last)).unwrap_or_revert());
-    
 }
 
 /// This function is to get a nonce of a owner provided by user
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `owner` - A Key that holds the account address of the owner against which user wants the Nonce
-/// 
+///
 
 #[no_mangle]
 fn nonce() {
@@ -243,9 +306,9 @@ fn nonce() {
 }
 
 /// This function is to get a allowance of a owner and spender provided by user
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `owner` - A Key that holds the account address of the owner against which user wants the Allowance
 ///
 /// * `spender` - A Key that holds the account address of the owner against which user wants the Allowance
@@ -278,7 +341,7 @@ fn treasury_fee() {
 }
 
 /// This function is to fetch a Token0
-/// 
+///
 
 #[no_mangle]
 fn token0() {
@@ -305,14 +368,14 @@ pub extern "C" fn initialize() {
     let token0: Key = runtime::get_named_arg("token0");
     let token1: Key = runtime::get_named_arg("token1");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
-    
+
     Pair::default().initialize(token0, token1, factory_hash);
 }
 
 /// This function is to set a treasury_fee
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `treasury_fee` - A U256 that holds the value that is going to be a treasury_fee
 ///
 
@@ -340,12 +403,11 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("block_timestamp_last", u64::cl_type()),
             Parameter::new("price0_cumulative_last", U256::cl_type()),
             Parameter::new("price1_cumulative_last", U256::cl_type()),
-            Parameter::new("k_last", U256::cl_type()),              // reserve0 * reserve1, as of immediately after the most recent liquidity event
-            Parameter::new("treasury_fee", U256::cl_type()), 
-            Parameter::new("minimum_liquidity", U256::cl_type()), 
-            Parameter::new("callee_contract_hash", Key::cl_type()), 
-            Parameter::new("factory_hash", Key::cl_type()), 
-            
+            Parameter::new("k_last", U256::cl_type()), // reserve0 * reserve1, as of immediately after the most recent liquidity event
+            Parameter::new("treasury_fee", U256::cl_type()),
+            Parameter::new("minimum_liquidity", U256::cl_type()),
+            Parameter::new("callee_contract_hash", Key::cl_type()),
+            Parameter::new("factory_hash", Key::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -386,9 +448,7 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "skim",
-        vec![
-            Parameter::new("to", Key::cl_type()),
-        ],
+        vec![Parameter::new("to", Key::cl_type())],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -457,18 +517,14 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "mint",
-        vec![
-            Parameter::new("to", Key::cl_type()),
-        ],
+        vec![Parameter::new("to", Key::cl_type())],
         U256::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "burn",
-        vec![
-            Parameter::new("to", Key::cl_type()),
-        ],
+        vec![Parameter::new("to", Key::cl_type())],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -482,9 +538,7 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "set_treasury_fee_percent",
-        vec![
-            Parameter::new("treasury_fee", U256::cl_type()),
-        ],
+        vec![Parameter::new("treasury_fee", U256::cl_type())],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -517,7 +571,11 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "get_reserves",
         vec![],
-        CLType::Tuple3([Box::new(CLType::U128), Box::new(CLType::U128), Box::new(u64::cl_type())]),
+        CLType::Tuple3([
+            Box::new(CLType::U128),
+            Box::new(CLType::U128),
+            Box::new(u64::cl_type()),
+        ]),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -538,35 +596,41 @@ fn get_entry_points() -> EntryPoints {
 fn call() {
     // Build new package with initial a first version of the contract.
     let (package_hash, access_token) = storage::create_contract_package_at_hash();
-    let (contract_hash, _) =  storage::add_contract_version(package_hash, get_entry_points(), Default::default());
-    let name: &str = "ERC20";
-    let symbol: &str = "ERC";
-    let decimals: u8 = 8;
-    let initial_supply: U256 = 1_000.into();
+    let (contract_hash, _) =
+        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+    let name: String = runtime::get_named_arg("name");
+    let symbol: String = runtime::get_named_arg("symbol");
+    let decimals: u8 = runtime::get_named_arg("decimals");
+    let initial_supply: U256 = runtime::get_named_arg("initial_supply");
     let nonce: U256 = 0.into();
     let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
-    let eip_712_domain : &str = "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
-    let permit_type: &str = "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
-    let chain_id : &str = "101";
-    let eip_domain_hash = keccak256(eip_712_domain.as_bytes());// to take a byte hash of EIP712Domain
-    let name_hash = keccak256(name.as_bytes());// to take a byte hash of name
-    let one_hash = keccak256("1".as_bytes());// to take a byte hash of "1"
-    let eip_domain_hash = encode(eip_domain_hash);// to encode and convert eip_domain_hash into string
-    let name_hash = encode(name_hash);// to encode and convert name_hash into string
-    let one_hash = encode(one_hash);// to encode and convert one_hash into string
-    let concatenated_data:String = format!("{}{}{}{}{}",eip_domain_hash,name_hash,one_hash,chain_id,contract_hash);//string contactination
-    let domain_separator = keccak256(concatenated_data.as_bytes());//to take a byte hash of concatenated Data
-    let permit_type_hash = keccak256(permit_type.as_bytes());// to take a byte hash of Permit Type
+    let eip_712_domain: &str =
+        "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
+    let permit_type: &str =
+        "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
+    let chain_id: &str = "101";
+    let eip_domain_hash = keccak256(eip_712_domain.as_bytes()); // to take a byte hash of EIP712Domain
+    let name_hash = keccak256(name.as_bytes()); // to take a byte hash of name
+    let one_hash = keccak256("1".as_bytes()); // to take a byte hash of "1"
+    let eip_domain_hash = encode(eip_domain_hash); // to encode and convert eip_domain_hash into string
+    let name_hash = encode(name_hash); // to encode and convert name_hash into string
+    let one_hash = encode(one_hash); // to encode and convert one_hash into string
+    let concatenated_data: String = format!(
+        "{}{}{}{}{}",
+        eip_domain_hash, name_hash, one_hash, chain_id, contract_hash
+    ); //string contactination
+    let domain_separator = keccak256(concatenated_data.as_bytes()); //to take a byte hash of concatenated Data
+    let permit_type_hash = keccak256(permit_type.as_bytes()); // to take a byte hash of Permit Type
     let domain_separator = encode(domain_separator);
     let permit_type_hash = encode(permit_type_hash);
-    let minimum_liquidity: U256 = (10^3).into();
+    let minimum_liquidity: U256 = (10 ^ 3).into();
     let reserve0: U128 = 0.into();
     let reserve1: U128 = 0.into();
     let block_timestamp_last: u64 = 0;
     let price0_cumulative_last: U256 = 0.into();
     let price1_cumulative_last: U256 = 0.into();
-    let k_last: U256 = 0.into();// reserve0 * reserve1, as of immediately after the most recent liquidity event
+    let k_last: U256 = 0.into(); // reserve0 * reserve1, as of immediately after the most recent liquidity event
     let treasury_fee: U256 = 0.into();
 
     // Prepare constructor args
@@ -592,19 +656,25 @@ fn call() {
     };
 
     // Add the constructor group to the package hash with a single URef.
-    let constructor_access: URef = storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
+    let constructor_access: URef =
+        storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
+            .unwrap_or_revert()
+            .pop()
+            .unwrap_or_revert();
 
     // Call the constructor entry point
-    let _: () = runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+    let _: () =
+        runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
 
     // Remove all URefs from the constructor group, so no one can call it for the second time.
     let mut urefs = BTreeSet::new();
     urefs.insert(constructor_access);
-    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs).unwrap_or_revert();
+    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
+        .unwrap_or_revert();
 
     // Store contract in the account's named keys.
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-  
+
     runtime::put_key(
         &format!("{}_package_hash", contract_name),
         package_hash.into(),

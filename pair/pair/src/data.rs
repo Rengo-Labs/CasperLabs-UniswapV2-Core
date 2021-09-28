@@ -1,7 +1,7 @@
 use alloc::string::String;
 
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, U256, U128};
+use casper_types::{Key, U128, U256};
 use contract_utils::{get_key, set_key, Dict};
 
 pub const BALANCES_DICT: &str = "balances";
@@ -270,7 +270,7 @@ pub fn get_amount1() -> U256 {
     get_key(AMOUNT1).unwrap_or_revert()
 }
 
-pub fn set_callee_contract_hash(callee_contract_hash:Key) {
+pub fn set_callee_contract_hash(callee_contract_hash: Key) {
     set_key(CALLEE_CONTRACT_HASH, callee_contract_hash);
 }
 

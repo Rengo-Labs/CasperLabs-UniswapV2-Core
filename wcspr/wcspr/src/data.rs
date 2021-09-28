@@ -91,7 +91,7 @@ pub fn set_total_supply(total_supply: U256) {
     set_key(TOTAL_SUPPLY, total_supply);
 }
 
-pub fn set_hash(contract_hash: Key){
+pub fn set_hash(contract_hash: Key) {
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
 

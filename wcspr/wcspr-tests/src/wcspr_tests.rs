@@ -44,7 +44,10 @@ fn test_wcspr_transfer() {
     let user = env.next_user();
     let amount = 10.into();
     token.transfer(Sender(owner), user, amount);
-    assert_eq!(token.balance_of(owner), U256::from(INIT_TOTAL_SUPPLY) - amount);
+    assert_eq!(
+        token.balance_of(owner),
+        U256::from(INIT_TOTAL_SUPPLY) - amount
+    );
     assert_eq!(token.balance_of(user), amount);
 }
 
@@ -78,7 +81,10 @@ fn test_wcspr_transfer_from() {
     let amount = 3.into();
     token.approve(Sender(owner), spender, allowance);
     token.transfer_from(Sender(spender), owner, recipient, amount);
-    assert_eq!(token.balance_of(owner), U256::from(INIT_TOTAL_SUPPLY) - amount);
+    assert_eq!(
+        token.balance_of(owner),
+        U256::from(INIT_TOTAL_SUPPLY) - amount
+    );
     assert_eq!(token.balance_of(spender), 0.into());
     assert_eq!(token.balance_of(recipient), amount);
     assert_eq!(token.allowance(owner, spender), allowance - amount);

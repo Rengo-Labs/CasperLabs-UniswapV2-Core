@@ -8,13 +8,7 @@ use test_env::{Sender, TestContract, TestEnv};
 pub struct TESTInstance(TestContract);
 
 impl TESTInstance {
-    pub fn new(
-        env: &TestEnv,
-        contract_name: &str,
-        sender: Sender,
-        name: &str,
-
-    ) -> TESTInstance {
+    pub fn new(env: &TestEnv, contract_name: &str, sender: Sender, name: &str) -> TESTInstance {
         TESTInstance(TestContract::new(
             env,
             "test-token.wasm",
@@ -26,11 +20,7 @@ impl TESTInstance {
         ))
     }
 
-    pub fn constructor(
-        &self,
-        sender: Sender,
-        name: &str,
-    ) {
+    pub fn constructor(&self, sender: Sender, name: &str) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -95,11 +85,11 @@ impl TESTInstance {
         );
     }
 
-    pub fn get_token0(&self) -> Key{
+    pub fn get_token0(&self) -> Key {
         self.0.query_named_key(String::from("token0"))
     }
 
-    pub fn get_token1(&self) -> Key{
+    pub fn get_token1(&self) -> Key {
         self.0.query_named_key(String::from("token1"))
     }
 
@@ -132,7 +122,14 @@ impl TESTInstance {
     }
 
     // Factory Method
-    pub fn create_pair(&self, sender: Sender, token_a: Key, token_b: Key, pair_hash: Key, factory_hash: Key) {    
+    pub fn create_pair(
+        &self,
+        sender: Sender,
+        token_a: Key,
+        token_b: Key,
+        pair_hash: Key,
+        factory_hash: Key,
+    ) {
         self.0.call_contract(
             sender,
             "create_pair",
@@ -146,7 +143,6 @@ impl TESTInstance {
     }
     // Pair Method
     pub fn sync(&self, sender: Sender, pair_hash: Key) {
-        
         self.0.call_contract(
             sender,
             "sync",
@@ -173,4 +169,3 @@ pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
     hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
     hex::encode(ret)
 }
-

@@ -2,13 +2,13 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{ContractHash, Key,ApiError, RuntimeArgs, U256, bytesrepr::ToBytes, runtime_args};
+use casper_types::{
+    bytesrepr::ToBytes, runtime_args, ApiError, ContractHash, Key, RuntimeArgs, U256,
+};
 use test_env::{Sender, TestContract, TestEnv};
 pub struct FlashSwapperInstance(TestContract);
 
-use casper_contract::{
-    contract_api::{runtime}
-};
+use casper_contract::contract_api::runtime;
 
 impl FlashSwapperInstance {
     pub fn new(
@@ -32,14 +32,17 @@ impl FlashSwapperInstance {
         ))
     }
 
-    pub fn mint_with_caller(&self, caller:Key, recipient: Key, amount: U256) {
+    pub fn mint_with_caller(&self, caller: Key, recipient: Key, amount: U256) {
         let caller_hash_add_array = match caller {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let caller_hash_add = ContractHash::new(caller_hash_add_array);
-        let _ret: () = runtime::call_contract(caller_hash_add,"mint",runtime_args!{"to" => recipient, "amount" => amount});
-
+        let _ret: () = runtime::call_contract(
+            caller_hash_add,
+            "mint",
+            runtime_args! {"to" => recipient, "amount" => amount},
+        );
     }
 
     pub fn constructor(&self, sender: Sender, wcspr: Key, dai: Key, uniswap_v2_factory: Key) {
@@ -54,7 +57,14 @@ impl FlashSwapperInstance {
         );
     }
 
-    pub fn start_swap(&self, sender: Sender, token_borrow: Key, amount: U256, token_pay: Key, user_data: String) {
+    pub fn start_swap(
+        &self,
+        sender: Sender,
+        token_borrow: Key,
+        amount: U256,
+        token_pay: Key,
+        user_data: String,
+    ) {
         self.0.call_contract(
             sender,
             "start_swap",
@@ -67,7 +77,14 @@ impl FlashSwapperInstance {
         );
     }
 
-    pub fn uniswap_v2_call(&self, sender: Sender, _sender: Key, amount0: U256, amount1: U256, data: String) {
+    pub fn uniswap_v2_call(
+        &self,
+        sender: Sender,
+        _sender: Key,
+        amount0: U256,
+        amount1: U256,
+        data: String,
+    ) {
         self.0.call_contract(
             sender,
             "uniswap_v2_call",
@@ -87,13 +104,11 @@ impl FlashSwapperInstance {
     pub fn balance_pair(&self) -> U256 {
         self.0.query_named_key(String::from("pair_balance"))
     }
-    
+
     pub fn amount0(&self) -> U256 {
         self.0.query_named_key(String::from("amount0"))
     }
-   
 }
-
 
 pub fn key_to_str(key: &Key) -> String {
     match key {

@@ -119,7 +119,7 @@ pub fn set_total_supply(total_supply: U256) {
     set_key(TOTAL_SUPPLY, total_supply);
 }
 
-pub fn set_hash(contract_hash: Key){
+pub fn set_hash(contract_hash: Key) {
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
 
@@ -127,7 +127,7 @@ pub fn get_hash() -> Key {
     get_key(SELF_CONTRACT_HASH).unwrap_or_revert()
 }
 
-pub fn set_domain_separator(domain_separator: String){
+pub fn set_domain_separator(domain_separator: String) {
     set_key(DOMAIN_SEPARATOR, domain_separator);
 }
 
@@ -135,7 +135,7 @@ pub fn get_domain_separator() -> String {
     get_key(DOMAIN_SEPARATOR).unwrap_or_revert()
 }
 
-pub fn set_permit_type_hash(permit_type_hash: String){
+pub fn set_permit_type_hash(permit_type_hash: String) {
     set_key(PERMIT_TYPE_HASH, permit_type_hash);
 }
 

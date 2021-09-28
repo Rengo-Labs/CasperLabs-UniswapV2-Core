@@ -1,9 +1,9 @@
-use alloc::{vec::Vec};
+use alloc::vec::Vec;
 
-use casper_contract::{contract_api::{runtime}};
-use casper_types::{runtime_args, Key, RuntimeArgs, ContractHash,ApiError};
+use crate::data::{self, get_all_pairs, Pairs};
+use casper_contract::contract_api::runtime;
+use casper_types::{runtime_args, ApiError, ContractHash, Key, RuntimeArgs};
 use contract_utils::{ContractContext, ContractStorage};
-use crate::data::{self, Pairs, get_all_pairs};
 
 #[repr(u16)]
 pub enum Error {
@@ -20,20 +20,23 @@ impl From<Error> for ApiError {
 }
 
 pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
-    fn init(&mut self, fee_to_setter:Key, all_pairs:Vec<Key>, contract_hash: Key ) {
+    fn init(&mut self, fee_to_setter: Key, all_pairs: Vec<Key>, contract_hash: Key) {
         data::set_fee_to_setter(fee_to_setter);
         data::set_all_pairs(all_pairs);
         data::set_hash(contract_hash);
         Pairs::init();
     }
 
-    fn create_pair(&mut self,token_a: Key, token_b: Key, pair_hash: Key) {
+    fn create_pair(&mut self, token_a: Key, token_b: Key, pair_hash: Key) -> Key {
         if token_a == token_b {
             runtime::revert(Error::UniswapV2IdenticalAddresses);
         }
         let token0: Key;
         let token1: Key;
-        let address_0: Key = Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000").unwrap();
+        let address_0: Key = Key::from_formatted_str(
+            "hash-0000000000000000000000000000000000000000000000000000000000000000",
+        )
+        .unwrap();
         if token_a < token_b {
             token0 = token_a;
             token1 = token_b;
@@ -42,7 +45,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             token1 = token_a;
         }
         // in before 0 address was hash-0000000000000000000000000000000000000000000000000000000000000000
-        if token0  == address_0 {
+        if token0 == address_0 {
             runtime::revert(Error::UniswapV2ZeroAddress);
         }
         let pair_0_1_key: Key = self.get_pair(token0, token1);
@@ -59,20 +62,25 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let pair_contract_hash = ContractHash::new(pair_hash_add_array);
-        let _ret: () = runtime::call_contract(pair_contract_hash, "initialize", runtime_args!{"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() });
-        // handling the pair creation by updating the storage       
+        let _ret: () = runtime::call_contract(
+            pair_contract_hash,
+            "initialize",
+            runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
+        );
+        // handling the pair creation by updating the storage
         self.set_pair(token0, token1, pair_hash);
         self.set_pair(token1, token0, pair_hash);
         let mut pairs: Vec<Key> = get_all_pairs();
         pairs.push(pair_hash);
         self.set_all_pairs(pairs);
+        pair_hash
     }
 
     fn get_pair(&mut self, token0: Key, token1: Key) -> Key {
         Pairs::instance().get(&token0, &token1)
     }
 
-    fn set_pair(&mut self, token0: Key, token1: Key, value:Key) {
+    fn set_pair(&mut self, token0: Key, token1: Key, value: Key) {
         Pairs::instance().set(&token0, &token1, value);
     }
 

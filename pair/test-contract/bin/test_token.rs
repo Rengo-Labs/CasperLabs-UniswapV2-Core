@@ -3,16 +3,15 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeSet, format, string::String, vec,
-};
+use alloc::{collections::BTreeSet, format, string::String, vec};
 
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash
+    runtime_args, CLTyped, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use test::{self, TEST};
@@ -26,13 +25,14 @@ impl ContractContext<OnChainContractStorage> for Test {
     }
 }
 
-
 impl TEST<OnChainContractStorage> for Test {}
+
 impl Test {
     fn constructor(&mut self, name: String, contract_hash: ContractHash) {
         TEST::init(self, name, Key::from(contract_hash));
     }
 }
+
 #[no_mangle]
 fn constructor() {
     let name: String = runtime::get_named_arg("name");
@@ -40,22 +40,19 @@ fn constructor() {
     Test::default().constructor(name, contract_hash);
 }
 
-
 #[no_mangle]
 fn mint_with_caller() {
-
     let caller: Key = runtime::get_named_arg("caller");
     let to: Key = runtime::get_named_arg("to");
     let amount: U256 = runtime::get_named_arg("amount");
-    Test::default().mint_with_caller(caller,to,amount);
+    Test::default().mint_with_caller(caller, to, amount);
 }
-
 
 #[no_mangle]
 pub extern "C" fn set_fee_to() {
     let fee_to: Key = runtime::get_named_arg("fee_to");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
-    Test::default().set_fee_to(fee_to,factory_hash);
+    Test::default().set_fee_to(fee_to, factory_hash);
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -64,18 +61,15 @@ fn get_entry_points() -> EntryPoints {
         "constructor",
         vec![
             Parameter::new("name", String::cl_type()),
-            Parameter::new("contract_hash", ContractHash::cl_type()),            
+            Parameter::new("contract_hash", ContractHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
         EntryPointType::Contract,
     ));
-    
     entry_points.add_entry_point(EntryPoint::new(
         "set_fee_to",
-        vec![
-            Parameter::new("fee_to", Key::cl_type()),
-        ],
+        vec![Parameter::new("fee_to", Key::cl_type())],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -91,7 +85,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points
 }
 
@@ -105,7 +98,7 @@ fn call() {
     let name: &str = "TEST";
     // Prepare constructor args
     let constructor_args = runtime_args! {
-        "name" => name,    
+        "name" => name,
         "contract_hash" => contract_hash
     };
 
@@ -128,7 +121,7 @@ fn call() {
 
     // Store contract in the account's named keys.
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-  
+
     runtime::put_key(
         &format!("{}_package_hash", contract_name),
         package_hash.into(),

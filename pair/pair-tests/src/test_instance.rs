@@ -8,13 +8,7 @@ use test_env::{Sender, TestContract, TestEnv};
 pub struct TESTInstance(TestContract);
 
 impl TESTInstance {
-    pub fn new(
-        env: &TestEnv,
-        contract_name: &str,
-        sender: Sender,
-        name: &str,
-
-    ) -> TESTInstance {
+    pub fn new(env: &TestEnv, contract_name: &str, sender: Sender, name: &str) -> TESTInstance {
         TESTInstance(TestContract::new(
             env,
             "test-token.wasm",
@@ -26,11 +20,7 @@ impl TESTInstance {
         ))
     }
 
-    pub fn constructor(
-        &self,
-        sender: Sender,
-        name: &str,
-    ) {
+    pub fn constructor(&self, sender: Sender, name: &str) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -40,8 +30,6 @@ impl TESTInstance {
         );
     }
 
-  
-    
     pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: Key, amount: U256) {
         self.0.call_contract(
             sender,
@@ -53,16 +41,19 @@ impl TESTInstance {
             },
         );
     }
-    
+
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
     }
+
     pub fn get_fee_to(&self) -> Key {
         self.0.query_named_key(String::from("fee_to"))
     }
+
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
     }
+
     // Factory Method
     pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T, factory_hash: Key) {
         self.0.call_contract(
@@ -74,7 +65,6 @@ impl TESTInstance {
             },
         );
     }
-    
 }
 
 pub fn key_to_str(key: &Key) -> String {
@@ -93,4 +83,3 @@ pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
     hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
     hex::encode(ret)
 }
-

@@ -3,8 +3,14 @@
 
 extern crate alloc;
 use alloc::{collections::BTreeSet, format, string::String, vec};
-use casper_contract::{ contract_api::{runtime, storage}, unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{ runtime_args, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash};
+use casper_contract::{
+    contract_api::{runtime, storage},
+    unwrap_or_revert::UnwrapOrRevert,
+};
+use casper_types::{
+    runtime_args, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+};
 use contract_utils::{ContractContext, OnChainContractStorage};
 use wcspr::{self, WCSPR};
 
@@ -20,7 +26,14 @@ impl ContractContext<OnChainContractStorage> for Token {
 impl WCSPR<OnChainContractStorage> for Token {}
 
 impl Token {
-    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, contract_hash: ContractHash) {
+    fn constructor(
+        &mut self,
+        name: String,
+        symbol: String,
+        decimals: u8,
+        initial_supply: U256,
+        contract_hash: ContractHash,
+    ) {
         WCSPR::init(self, name, symbol, decimals, Key::from(contract_hash));
         WCSPR::deposit(self, self.get_caller(), initial_supply);
     }
@@ -37,11 +50,11 @@ fn constructor() {
 }
 
 /// This function is to transfer tokens against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `recipient` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for approve
 ///
 
@@ -53,13 +66,13 @@ fn transfer() {
 }
 
 /// This function is to transfer tokens against the address that has been approved before by owner
-/// 
+///
 /// # Parameters
 ///
 /// * `owner` - A Key that holds the account address of the user
 ///  
 /// * `recipient` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for approve
 ///
 
@@ -72,11 +85,11 @@ fn transfer_from() {
 }
 
 /// This function is to approve tokens against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `spender` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for approve
 ///
 
@@ -88,11 +101,11 @@ fn approve() {
 }
 
 /// This function is to deposit token against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `to` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for deposit
 ///
 
@@ -104,11 +117,11 @@ fn deposit() {
 }
 
 /// This function is to withdraw token against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `from` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for withdraw
 ///
 
@@ -120,9 +133,9 @@ fn withdraw() {
 }
 
 /// This function is to return the Balance of owner against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `owner` - A Key that holds the account address of the user against which user wants to get balance
 ///
 
@@ -134,7 +147,7 @@ fn balance_of() {
 }
 
 /// This function is to return the Name of contract
-/// 
+///
 
 #[no_mangle]
 fn name() {
@@ -152,10 +165,10 @@ fn symbol() {
 }
 
 /// This function is to return the Allowance of owner and spender that user provided
-/// 
+///
 /// # Parameters
-/// 
-/// * `owner` - A Key that holds the account address of the user 
+///
+/// * `owner` - A Key that holds the account address of the user
 ///
 /// * `spender` - A Key that holds the account address of the user
 ///
@@ -168,8 +181,8 @@ fn allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
-/// This function is to return the Total Supply of the contract 
-/// 
+/// This function is to return the Total Supply of the contract
+///
 
 #[no_mangle]
 fn total_supply() {
@@ -225,9 +238,7 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "balance_of",
-        vec![
-            Parameter::new("owner", Key::cl_type())
-        ],
+        vec![Parameter::new("owner", Key::cl_type())],
         U256::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -290,11 +301,13 @@ fn get_entry_points() -> EntryPoints {
 fn call() {
     // Build new package with initial a first version of the contract.
     let (package_hash, access_token) = storage::create_contract_package_at_hash();
-    let (contract_hash, _) = storage::add_contract_version(package_hash, get_entry_points(), Default::default());
-    let name: &str = "Wrapped_Casper";
-    let symbol: &str = "WCSPR";
-    let decimals: u8 = 8;
-    let initial_supply: U256 = 1_000.into();
+    let (contract_hash, _) =
+        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+
+    let name: String = runtime::get_named_arg("name");
+    let symbol: String = runtime::get_named_arg("symbol");
+    let decimals: u8 = runtime::get_named_arg("decimals");
+    let initial_supply: U256 = runtime::get_named_arg("initial_supply");
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
@@ -307,7 +320,10 @@ fn call() {
 
     // Add the constructor group to the package hash with a single URef.
     let constructor_access: URef =
-        storage::create_contract_user_group(package_hash, "constructor", 1, Default::default()).unwrap_or_revert().pop().unwrap_or_revert();
+        storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
+            .unwrap_or_revert()
+            .pop()
+            .unwrap_or_revert();
 
     // Call the constructor entry point
     let _: () =
@@ -316,7 +332,8 @@ fn call() {
     // Remove all URefs from the constructor group, so no one can call it for the second time.
     let mut urefs = BTreeSet::new();
     urefs.insert(constructor_access);
-    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs).unwrap_or_revert();
+    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
+        .unwrap_or_revert();
 
     // Store contract in the account's named keys.
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");

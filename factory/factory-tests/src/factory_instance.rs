@@ -1,4 +1,7 @@
-use blake2::{digest::{Update, VariableOutput}, VarBlake2b};
+use blake2::{
+    digest::{Update, VariableOutput},
+    VarBlake2b,
+};
 use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs};
 use test_env::{Sender, TestContract, TestEnv};
 
@@ -52,18 +55,6 @@ impl FACTORYInstance {
         );
     }
 
-    pub fn create_pair<T: Into<Key>>(&self, sender: Sender, token_a: T, token_b: T, pair_hash: T) {
-        self.0.call_contract(
-            sender,
-            "create_pair",
-            runtime_args! {
-                "token_a" => token_a.into(),
-                "token_b" => token_b.into(),
-                "pair_hash" => pair_hash.into(),
-            },
-        );
-    }
-
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
     }
@@ -83,7 +74,9 @@ impl FACTORYInstance {
     pub fn get_pair<T: Into<Key>>(&self, token0: T, token1: T) -> Key {
         let token0: Key = token0.into();
         let token1: Key = token1.into();
-        self.0.query_dictionary("pairs", keys_to_str(&token0, &token1)).unwrap()
+        self.0
+            .query_dictionary("pairs", keys_to_str(&token0, &token1))
+            .unwrap()
     }
 }
 

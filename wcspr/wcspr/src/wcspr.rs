@@ -1,9 +1,9 @@
-use alloc::{ string::String};
-use casper_contract::{contract_api::{runtime}};
+use crate::data::{self, Allowances, Balances};
+use alloc::string::String;
+use casper_contract::contract_api::runtime;
+use casper_types::system::mint::Error as MintError;
 use casper_types::{Key, U256};
 use contract_utils::{ContractContext, ContractStorage};
-use crate::data::{self, Allowances, Balances};
-use casper_types::system::mint::Error as MintError;
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     fn init(&mut self, name: String, symbol: String, decimals: u8, contract_hash: Key) {
@@ -54,7 +54,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_total_supply(data::total_supply() - amount);
         } else {
             runtime::revert(MintError::InsufficientFunds)
-        }    
+        }
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) {
