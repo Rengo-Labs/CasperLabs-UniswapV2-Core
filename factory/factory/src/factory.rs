@@ -27,7 +27,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         Pairs::init();
     }
 
-    fn create_pair(&mut self, token_a: Key, token_b: Key, pair_hash: Key) -> Key {
+    fn create_pair(&mut self, token_a: Key, token_b: Key, pair_hash: Key) {
         if token_a == token_b {
             runtime::revert(Error::UniswapV2IdenticalAddresses);
         }
@@ -73,7 +73,6 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         let mut pairs: Vec<Key> = get_all_pairs();
         pairs.push(pair_hash);
         self.set_all_pairs(pairs);
-        pair_hash
     }
 
     fn get_pair(&mut self, token0: Key, token1: Key) -> Key {
