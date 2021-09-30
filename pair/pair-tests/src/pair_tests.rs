@@ -12,13 +12,21 @@ const INIT_TOTAL_SUPPLY: u64 = 1000;
 
 fn deploy_wcspr(env: &TestEnv) -> TestContract {
     // deploy wcspr contract
+    let decimals: u8 = 18;
+    let init_total_supply: U256 = 1000.into();
+
     let owner_wcspr = env.next_user();
     let wcspr = TestContract::new(
         &env,
-        "wcspr.wasm",
+        "wcspr-token.wasm",
         "wcspr",
         Sender(owner_wcspr),
-        runtime_args! {},
+        runtime_args! {
+            "initial_supply" => init_total_supply,
+            "name" => "token1",
+            "symbol" => "tk1",
+            "decimals" => decimals
+        },
     );
 
     wcspr

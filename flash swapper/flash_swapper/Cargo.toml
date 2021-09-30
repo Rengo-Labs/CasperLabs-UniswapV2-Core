@@ -1,23 +1,21 @@
 [package]
+authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
+edition = "2018"
 name = "flash_swapper"
 version = "0.1.0"
-authors = ["karandh <karan@casperlabs.io>", "Maciej Zieliński <maciej@casperlabs.io>"]
-edition = "2018"
-
 
 [dependencies]
 casper-contract = "1.3.2"
 casper-types = "1.3.2"
-contract-utils = { path = "../utils/contract-utils" }
-hex = { version = "0.4.3", default-features = false }
+contract-utils = {path = "../utils/contract-utils"}
+hex = {version = "0.4.3", default-features = false}
 
 [[bin]]
-name = "flash-swapper"
-path = "bin/flash_swapper.rs"
 bench = false
 doctest = false
+name = "flash-swapper"
+path = "bin/flash_swapper.rs"
 test = false
-
 
 [features]
 default = ["casper-contract/std", "casper-types/std"]

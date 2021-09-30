@@ -55,6 +55,18 @@ impl FACTORYInstance {
         );
     }
 
+    pub fn create_pair<T: Into<Key>>(&self, sender: Sender, token_a: T, token_b: T, pair_hash: T) {
+        self.0.call_contract(
+            sender,
+            "create_pair",
+            runtime_args! {
+            "token_a" => token_a.into(),
+            "token_b" => token_b.into(),
+            "pair_hash" => pair_hash.into(),
+            },
+        );
+    }
+
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
     }

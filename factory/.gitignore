@@ -1,3 +1,3 @@
 target
-erc20-tests/wasm/*.wasm
+factory-tests/wasm/*.wasm
 .vscode

@@ -91,7 +91,7 @@ pub trait TEST<Storage: ContractStorage>: ContractContext<Storage> {
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let factory_hash_add = ContractHash::new(factory_hash_add_array);
-        let _create_pair: Key = runtime::call_contract(
+        let _create_pair: () = runtime::call_contract(
             factory_hash_add,
             "create_pair",
             runtime_args! {
