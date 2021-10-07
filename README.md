@@ -14,7 +14,7 @@ To run the Contracts make sure you are in the folder of your required contract.
 ## Table of contents
 
 - [Interacting with the contract](#interacting-with-the-contract)
-- [Install the prerequisites](#install-the-prerequisites)
+  - [Install the prerequisites](#install-the-prerequisites)
   - [Known contract hashes](#known-contract-hashes)
 - [Deploying ERC20 contract manually](#deploying-erc20-contract-manually)
   - [Entry Point methods](#erc20-entry-point-methods)
