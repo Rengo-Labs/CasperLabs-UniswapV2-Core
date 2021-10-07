@@ -14,6 +14,7 @@ To run the Contracts make sure you are in the folder of your required contract.
 ## Table of contents
 
 - [Interacting with the contract](#interacting-with-the-contract)
+- [Install the prerequisites](#install-the-prerequisites)
   - [Known contract hashes](#known-contract-hashes)
 - [Deploying ERC20 contract manually](#deploying-erc20-contract-manually)
   - [Entry Point methods](#erc20-entry-point-methods)
@@ -42,7 +43,7 @@ To run the Contracts make sure you are in the folder of your required contract.
     - [```name```](#wcspr-name)
     - [```symbol```](#wcspr-symbol)
 - [Deploying PAIR contract manually](#deploying-pair-contract-manually)
- - [Manual Deployment](#pair-manual-deployment)
+  - [Manual Deployment](#pair-manual-deployment)
   - [Entry Point methods](#pair-entry-point-methods)
     - [```transfer```](#pair-transfer)
     - [```transfer_from```](#pair-transfer-from)
@@ -75,16 +76,11 @@ To run the Contracts make sure you are in the folder of your required contract.
     - [```set_fee_to```](#factory-set-fee-to)
     - [```set_fee_to_setter```](#factory-set-fee-to-setter)
 - [Deploying FLASH SWAPPER contract manually](#deploying-flash-swapper-contract-manually)
- - [Manual Deployment](#flash-swapper-manual-deployment)
+  - [Manual Deployment](#flash-swapper-manual-deployment)
   - [Entry Point methods](#flash-swapper-entry-point-methods)
     - [```start_swap```](#flash-swapper-start-swap)
     - [```uniswap_v2_call```](#flash-swapper-uniswap-v2-call)
 
-
-- [Development](#development)
-  - [Setup](#setup)
-  - [Build](#build)
-  - [Test](#test)
 
 
 ## Interacting with the contract
