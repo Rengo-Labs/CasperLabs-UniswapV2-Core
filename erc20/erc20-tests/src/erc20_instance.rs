@@ -51,25 +51,6 @@ impl ERC20Instance {
         );
     }
 
-    pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
-        self.0
-            .query_dictionary("balances", key_to_str(&account.into()))
-            .unwrap_or_default()
-    }
-    pub fn nonce<T: Into<Key>>(&self, account: T) -> U256 {
-        self.0
-            .query_dictionary("nonce", key_to_str(&account.into()))
-            .unwrap_or_default()
-    }
-
-    pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
-        let owner: Key = owner.into();
-        let spender: Key = spender.into();
-        self.0
-            .query_dictionary("allowances", keys_to_str(&owner, &spender))
-            .unwrap_or_default()
-    }
-
     pub fn transfer<T: Into<Key>>(&self, sender: Sender, recipient: T, amount: U256) {
         self.0.call_contract(
             sender,
@@ -128,6 +109,26 @@ impl ERC20Instance {
                 "amount" => amount
             },
         );
+    }
+
+    pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
+        self.0
+            .query_dictionary("balances", key_to_str(&account.into()))
+            .unwrap_or_default()
+    }
+
+    pub fn nonce<T: Into<Key>>(&self, account: T) -> U256 {
+        self.0
+            .query_dictionary("nonce", key_to_str(&account.into()))
+            .unwrap_or_default()
+    }
+
+    pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
+        let owner: Key = owner.into();
+        let spender: Key = spender.into();
+        self.0
+            .query_dictionary("allowances", keys_to_str(&owner, &spender))
+            .unwrap_or_default()
     }
 
     pub fn name(&self) -> String {

@@ -5,9 +5,9 @@ use blake2::{
 use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub struct ERC20Instance(TestContract);
+pub struct WCSPRInstance(TestContract);
 
-impl ERC20Instance {
+impl WCSPRInstance {
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
@@ -16,10 +16,10 @@ impl ERC20Instance {
         symbol: &str,
         decimals: u8,
         supply: U256,
-    ) -> ERC20Instance {
-        ERC20Instance(TestContract::new(
+    ) -> WCSPRInstance {
+        WCSPRInstance(TestContract::new(
             env,
-            "erc20-token.wasm",
+            "wcspr-token.wasm",
             contract_name,
             sender,
             runtime_args! {
@@ -49,20 +49,6 @@ impl ERC20Instance {
                 "decimals" => decimals
             },
         );
-    }
-
-    pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
-        self.0
-            .query_dictionary("balances", key_to_str(&account.into()))
-            .unwrap_or_default()
-    }
-
-    pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
-        let owner: Key = owner.into();
-        let spender: Key = spender.into();
-        self.0
-            .query_dictionary("allowances", keys_to_str(&owner, &spender))
-            .unwrap_or_default()
     }
 
     pub fn transfer<T: Into<Key>>(&self, sender: Sender, recipient: T, amount: U256) {
@@ -103,6 +89,20 @@ impl ERC20Instance {
                 "amount" => amount
             },
         );
+    }
+
+    pub fn balance_of<T: Into<Key>>(&self, account: T) -> U256 {
+        self.0
+            .query_dictionary("balances", key_to_str(&account.into()))
+            .unwrap_or_default()
+    }
+
+    pub fn allowance<T: Into<Key>>(&self, owner: T, spender: T) -> U256 {
+        let owner: Key = owner.into();
+        let spender: Key = spender.into();
+        self.0
+            .query_dictionary("allowances", keys_to_str(&owner, &spender))
+            .unwrap_or_default()
     }
 
     pub fn name(&self) -> String {

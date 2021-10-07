@@ -25,11 +25,7 @@ impl FACTORYInstance {
         ))
     }
 
-    pub fn constructor<T: Into<Key>>(
-        &self,
-        sender: Sender,
-        fee_to_setter: T,
-    ) {
+    pub fn constructor<T: Into<Key>>(&self, sender: Sender, fee_to_setter: T) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -38,7 +34,6 @@ impl FACTORYInstance {
             },
         );
     }
-
 
     pub fn set_fee_to_setter<T: Into<Key>>(&self, sender: Sender, fee_to_setter: T) {
         self.0.call_contract(
@@ -49,6 +44,7 @@ impl FACTORYInstance {
             },
         );
     }
+
     pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T) {
         self.0.call_contract(
             sender,
@@ -58,35 +54,41 @@ impl FACTORYInstance {
             },
         );
     }
-    pub fn create_pair<T: Into<Key>>(&self, sender: Sender, token_a: T,token_b: T, pair_hash: T) {
+
+    pub fn create_pair<T: Into<Key>>(&self, sender: Sender, token_a: T, token_b: T, pair_hash: T) {
         self.0.call_contract(
             sender,
             "create_pair",
             runtime_args! {
-                "token_a" => token_a.into(),
-                "token_b" => token_b.into(),
-                "pair_hash" => pair_hash.into(),
+            "token_a" => token_a.into(),
+            "token_b" => token_b.into(),
+            "pair_hash" => pair_hash.into(),
             },
         );
     }
+
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
     }
+
     pub fn fee_to(&self) -> Key {
         self.0.query_named_key(String::from("fee_to"))
     }
+
     pub fn fee_to_setter(&self) -> Key {
         self.0.query_named_key(String::from("fee_to_setter"))
     }
+
     pub fn all_pairs(&self) -> Vec<Key> {
         self.0.query_named_key(String::from("all_pairs"))
     }
+
     pub fn get_pair<T: Into<Key>>(&self, token0: T, token1: T) -> Key {
         let token0: Key = token0.into();
         let token1: Key = token1.into();
         self.0
-            .query_dictionary("pairs", keys_to_str(&token0, &token1)).unwrap()
-            
+            .query_dictionary("pairs", keys_to_str(&token0, &token1))
+            .unwrap()
     }
 }
 

@@ -2,17 +2,17 @@ use casper_engine_test_support::AccountHash;
 use casper_types::U256;
 use test_env::{Sender, TestEnv};
 
-use crate::erc20_instance::ERC20Instance;
+use crate::wcspr_instance::WCSPRInstance;
 
-const NAME: &str = "my_token";
-const SYMBOL: &str = "MYT";
-const DECIMALS: u8 = 18;
+const NAME: &str = "Wrapped_Casper";
+const SYMBOL: &str = "WCSPR";
+const DECIMALS: u8 = 8;
 const INIT_TOTAL_SUPPLY: u64 = 1000;
 
-fn deploy() -> (TestEnv, ERC20Instance, AccountHash) {
+fn deploy() -> (TestEnv, WCSPRInstance, AccountHash) {
     let env = TestEnv::new();
     let owner = env.next_user();
-    let token = ERC20Instance::new(
+    let token = WCSPRInstance::new(
         &env,
         NAME,
         Sender(owner),
@@ -25,7 +25,7 @@ fn deploy() -> (TestEnv, ERC20Instance, AccountHash) {
 }
 
 #[test]
-fn test_erc20_deploy() {
+fn test_wcspr_deploy() {
     let (env, token, owner) = deploy();
     let user = env.next_user();
     assert_eq!(token.name(), NAME);
@@ -39,7 +39,7 @@ fn test_erc20_deploy() {
 }
 
 #[test]
-fn test_erc20_transfer() {
+fn test_wcspr_transfer() {
     let (env, token, owner) = deploy();
     let user = env.next_user();
     let amount = 10.into();
@@ -53,7 +53,7 @@ fn test_erc20_transfer() {
 
 #[test]
 #[should_panic]
-fn test_erc20_transfer_too_much() {
+fn test_wcspr_transfer_too_much() {
     let (env, token, owner) = deploy();
     let user = env.next_user();
     let amount = U256::from(INIT_TOTAL_SUPPLY) + U256::one();
@@ -61,7 +61,7 @@ fn test_erc20_transfer_too_much() {
 }
 
 #[test]
-fn test_erc20_approve() {
+fn test_wcspr_approve() {
     let (env, token, owner) = deploy();
     let user = env.next_user();
     let amount = 10.into();
@@ -73,7 +73,7 @@ fn test_erc20_approve() {
 }
 
 #[test]
-fn test_erc20_transfer_from() {
+fn test_wcspr_transfer_from() {
     let (env, token, owner) = deploy();
     let spender = env.next_user();
     let recipient = env.next_user();
@@ -92,7 +92,7 @@ fn test_erc20_transfer_from() {
 
 #[test]
 #[should_panic]
-fn test_erc20_transfer_from_too_much() {
+fn test_wcspr_transfer_from_too_much() {
     let (env, token, owner) = deploy();
     let spender = env.next_user();
     let recipient = env.next_user();

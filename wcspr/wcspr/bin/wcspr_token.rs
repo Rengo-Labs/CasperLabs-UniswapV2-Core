@@ -2,16 +2,14 @@
 #![no_std]
 
 extern crate alloc;
-
 use alloc::{collections::BTreeSet, format, string::String, vec};
-
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, CLValue, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U256, ContractHash
+    runtime_args, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use wcspr::{self, WCSPR};
@@ -28,7 +26,14 @@ impl ContractContext<OnChainContractStorage> for Token {
 impl WCSPR<OnChainContractStorage> for Token {}
 
 impl Token {
-    fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, contract_hash: ContractHash) {
+    fn constructor(
+        &mut self,
+        name: String,
+        symbol: String,
+        decimals: u8,
+        initial_supply: U256,
+        contract_hash: ContractHash,
+    ) {
         WCSPR::init(self, name, symbol, decimals, Key::from(contract_hash));
         WCSPR::deposit(self, self.get_caller(), initial_supply);
     }
@@ -44,6 +49,14 @@ fn constructor() {
     Token::default().constructor(name, symbol, decimals, initial_supply, contract_hash);
 }
 
+/// This function is to transfer tokens against the address that user provided
+///
+/// # Parameters
+///
+/// * `recipient` - A Key that holds the account address of the user
+///
+/// * `amount` - A U256 that holds the amount for approve
+///
 
 #[no_mangle]
 fn transfer() {
@@ -51,6 +64,17 @@ fn transfer() {
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().transfer(recipient, amount);
 }
+
+/// This function is to transfer tokens against the address that has been approved before by owner
+///
+/// # Parameters
+///
+/// * `owner` - A Key that holds the account address of the user
+///  
+/// * `recipient` - A Key that holds the account address of the user
+///
+/// * `amount` - A U256 that holds the amount for approve
+///
 
 #[no_mangle]
 fn transfer_from() {
@@ -60,6 +84,14 @@ fn transfer_from() {
     Token::default().transfer_from(owner, recipient, amount);
 }
 
+/// This function is to approve tokens against the address that user provided
+///
+/// # Parameters
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+/// * `amount` - A U256 that holds the amount for approve
+///
 
 #[no_mangle]
 fn approve() {
@@ -67,34 +99,46 @@ fn approve() {
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().approve(spender, amount);
 }
+
 /// This function is to deposit token against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `to` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for deposit
-///  
+///
+
 #[no_mangle]
 fn deposit() {
     let to: Key = runtime::get_named_arg("to");
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().deposit(to, amount);
 }
+
 /// This function is to withdraw token against the address that user provided
-/// 
+///
 /// # Parameters
-/// 
+///
 /// * `from` - A Key that holds the account address of the user
-/// 
+///
 /// * `amount` - A U256 that holds the amount for withdraw
-///  
+///
+
 #[no_mangle]
 fn withdraw() {
     let from: Key = runtime::get_named_arg("from");
     let amount: U256 = runtime::get_named_arg("amount");
     Token::default().withdraw(from, amount);
 }
+
+/// This function is to return the Balance of owner against the address that user provided
+///
+/// # Parameters
+///
+/// * `owner` - A Key that holds the account address of the user against which user wants to get balance
+///
+
 #[no_mangle]
 fn balance_of() {
     let owner: Key = runtime::get_named_arg("owner");
@@ -102,17 +146,33 @@ fn balance_of() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to return the Name of contract
+///
+
 #[no_mangle]
 fn name() {
     let ret: String = Token::default().name();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to return the Symbol of contract
+///
+
 #[no_mangle]
 fn symbol() {
     let ret: String = Token::default().symbol();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
+
+/// This function is to return the Allowance of owner and spender that user provided
+///
+/// # Parameters
+///
+/// * `owner` - A Key that holds the account address of the user
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+
 #[no_mangle]
 fn allowance() {
     let owner: Key = runtime::get_named_arg("owner");
@@ -120,6 +180,9 @@ fn allowance() {
     let ret: U256 = Token::default().allowance(owner, spender);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
+
+/// This function is to return the Total Supply of the contract
+///
 
 #[no_mangle]
 fn total_supply() {
@@ -173,7 +236,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
     entry_points.add_entry_point(EntryPoint::new(
         "balance_of",
         vec![Parameter::new("owner", Key::cl_type())],
@@ -242,10 +304,10 @@ fn call() {
     let (contract_hash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
-    let name: &str = "Wrapped_Casper";
-    let symbol: &str = "WCSPR";
-    let decimals: u8 = 8;
-    let initial_supply: U256 = 1_000.into();
+    let name: String = runtime::get_named_arg("name");
+    let symbol: String = runtime::get_named_arg("symbol");
+    let decimals: u8 = runtime::get_named_arg("decimals");
+    let initial_supply: U256 = runtime::get_named_arg("initial_supply");
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
@@ -254,7 +316,6 @@ fn call() {
         "decimals" => decimals,
         "initial_supply" => initial_supply,
         "contract_hash" => contract_hash
-
     };
 
     // Add the constructor group to the package hash with a single URef.

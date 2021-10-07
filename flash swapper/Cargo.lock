@@ -406,19 +406,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "erc20-tests"
-version = "0.2.1"
-dependencies = [
- "blake2",
- "casper-contract",
- "casper-engine-test-support",
- "casper-types",
- "contract-utils",
- "hex",
- "test-env",
-]
-
-[[package]]
 name = "ff"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -437,6 +424,19 @@ dependencies = [
  "casper-types",
  "contract-utils",
  "hex",
+]
+
+[[package]]
+name = "flash_swapper-tests"
+version = "0.2.1"
+dependencies = [
+ "blake2",
+ "casper-contract",
+ "casper-engine-test-support",
+ "casper-types",
+ "contract-utils",
+ "hex",
+ "test-env",
 ]
 
 [[package]]

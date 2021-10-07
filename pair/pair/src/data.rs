@@ -1,7 +1,7 @@
 use alloc::string::String;
 
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, U256, U128};
+use casper_types::{Key, U128, U256};
 use contract_utils::{get_key, set_key, Dict};
 
 pub const BALANCES_DICT: &str = "balances";
@@ -134,127 +134,146 @@ pub fn set_total_supply(total_supply: U256) {
     set_key(TOTAL_SUPPLY, total_supply);
 }
 
-pub fn set_hash(contract_hash: Key){
+pub fn set_hash(contract_hash: Key) {
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
+
 pub fn get_hash() -> Key {
     get_key(SELF_CONTRACT_HASH).unwrap_or_revert()
 }
 
-pub fn set_factory_hash(factory_hash: Key){
+pub fn set_factory_hash(factory_hash: Key) {
     set_key(FACTORY, factory_hash);
 }
+
 pub fn get_factory_hash() -> Key {
     get_key(FACTORY).unwrap_or_revert()
 }
 
-
-pub fn set_token0(token0: Key){
+pub fn set_token0(token0: Key) {
     set_key(TOKEN0, token0);
 }
+
 pub fn get_token0() -> Key {
     get_key(TOKEN0).unwrap_or_revert()
 }
-pub fn set_token1(token1: Key){
+
+pub fn set_token1(token1: Key) {
     set_key(TOKEN1, token1);
 }
+
 pub fn get_token1() -> Key {
     get_key(TOKEN1).unwrap_or_revert()
 }
-pub fn set_domain_separator(domain_separator: String){
+
+pub fn set_domain_separator(domain_separator: String) {
     set_key(DOMAIN_SEPARATOR, domain_separator);
 }
+
 pub fn get_domain_separator() -> String {
     get_key(DOMAIN_SEPARATOR).unwrap_or_revert()
 }
 
-pub fn set_permit_type_hash(permit_type_hash: String){
+pub fn set_permit_type_hash(permit_type_hash: String) {
     set_key(PERMIT_TYPE_HASH, permit_type_hash);
 }
+
 pub fn get_permit_type_hash() -> String {
     get_key(PERMIT_TYPE_HASH).unwrap_or_revert()
 }
 
-pub fn set_reserve0(reserve0: U128){
+pub fn set_reserve0(reserve0: U128) {
     set_key(RESERVE0, reserve0);
 }
+
 pub fn get_reserve0() -> U128 {
     get_key(RESERVE0).unwrap_or_revert()
 }
 
-pub fn set_reserve1(reserve1: U128){
+pub fn set_reserve1(reserve1: U128) {
     set_key(RESERVE1, reserve1);
 }
+
 pub fn get_reserve1() -> U128 {
     get_key(RESERVE1).unwrap_or_revert()
 }
 
-pub fn set_block_timestamp_last(block_timestamp_last: u64){
+pub fn set_block_timestamp_last(block_timestamp_last: u64) {
     set_key(BLOCK_TIMESTAMP_LAST, block_timestamp_last);
 }
+
 pub fn get_block_timestamp_last() -> u64 {
     get_key(BLOCK_TIMESTAMP_LAST).unwrap_or_revert()
 }
 
-pub fn set_price0_cumulative_last(price0_cumulative_last: U256){
+pub fn set_price0_cumulative_last(price0_cumulative_last: U256) {
     set_key(PRICE0_CUMULATIVE_LAST, price0_cumulative_last);
 }
+
 pub fn get_price0_cumulative_last() -> U256 {
     get_key(PRICE0_CUMULATIVE_LAST).unwrap_or_revert()
 }
 
-pub fn set_price1_cumulative_last(price1_cumulative_last: U256){
+pub fn set_price1_cumulative_last(price1_cumulative_last: U256) {
     set_key(PRICE1_CUMULATIVE_LAST, price1_cumulative_last);
 }
+
 pub fn get_price1_cumulative_last() -> U256 {
     get_key(PRICE1_CUMULATIVE_LAST).unwrap_or_revert()
 }
 
-pub fn set_k_last(k_last: U256){
+pub fn set_k_last(k_last: U256) {
     set_key(K_LAST, k_last);
 }
+
 pub fn get_k_last() -> U256 {
     get_key(K_LAST).unwrap_or_revert()
 }
 
-pub fn set_treasury_fee(treasury_fee: U256){
+pub fn set_treasury_fee(treasury_fee: U256) {
     set_key(TREASURY_FEE, treasury_fee);
 }
+
 pub fn get_treasury_fee() -> U256 {
     get_key(TREASURY_FEE).unwrap_or_revert()
 }
 
-pub fn set_minimum_liquidity(minimum_liquidity: U256){
+pub fn set_minimum_liquidity(minimum_liquidity: U256) {
     set_key(MINIMUM_LIQUIDITY, minimum_liquidity);
 }
+
 pub fn get_minimum_liquidity() -> U256 {
     get_key(MINIMUM_LIQUIDITY).unwrap_or_revert()
 }
 
-pub fn set_liquidity(liquidity: U256){
+pub fn set_liquidity(liquidity: U256) {
     set_key(LIQUIDITY, liquidity);
 }
+
 pub fn get_liquidity() -> U256 {
     get_key(LIQUIDITY).unwrap_or_revert()
 }
 
-pub fn set_amount0(amount0: U256){
+pub fn set_amount0(amount0: U256) {
     set_key(AMOUNT0, amount0);
 }
+
 pub fn get_amount0() -> U256 {
     get_key(AMOUNT0).unwrap_or_revert()
 }
 
-pub fn set_amount1(amount1: U256){
+pub fn set_amount1(amount1: U256) {
     set_key(AMOUNT1, amount1);
 }
+
 pub fn get_amount1() -> U256 {
     get_key(AMOUNT1).unwrap_or_revert()
 }
 
-pub fn set_callee_contract_hash(callee_contract_hash:Key){
+pub fn set_callee_contract_hash(callee_contract_hash: Key) {
     set_key(CALLEE_CONTRACT_HASH, callee_contract_hash);
 }
+
 pub fn get_callee_contract_hash() -> Key {
     get_key(CALLEE_CONTRACT_HASH).unwrap_or_revert()
 }

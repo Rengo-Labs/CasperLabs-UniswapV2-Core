@@ -1,5 +1,4 @@
 use alloc::string::String;
-
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::{Key, U256};
 use contract_utils::{get_key, set_key, Dict};
@@ -11,8 +10,6 @@ pub const SYMBOL: &str = "symbol";
 pub const DECIMALS: &str = "decimals";
 pub const TOTAL_SUPPLY: &str = "total_supply";
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
-
-
 
 pub struct Balances {
     dict: Dict,
@@ -94,10 +91,10 @@ pub fn set_total_supply(total_supply: U256) {
     set_key(TOTAL_SUPPLY, total_supply);
 }
 
-pub fn set_hash(contract_hash: Key){
+pub fn set_hash(contract_hash: Key) {
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
 
-pub fn get_hash()-> Key {
+pub fn get_hash() -> Key {
     get_key(SELF_CONTRACT_HASH).unwrap_or_revert()
 }
