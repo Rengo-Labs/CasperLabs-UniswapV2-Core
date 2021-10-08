@@ -1,8 +1,8 @@
-# Scytalelabs-UniswapV2Core
+# Uniswap V2 Core for Casper Blockchain
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
 ## Steps
-There are 5 contracts in this folder 
+There are 5 contracts in this folder
 1) ERC20 Token Contract
 2) Pair Contract
 3) Factory Contract
@@ -113,15 +113,15 @@ All contracts have already being deployed. Inorder to interact with the specific
 
 Network| Contract Name | Account info contract hash | Contract owner
 ---|---|---|---
-Testnet| ERC20 | `hash-621dd1f5d73c70b43c9b85b6bf549326b65d3cd7fb2cd28067b378998ad3bf8d` | Casper 
+Testnet| ERC20 | `hash-621dd1f5d73c70b43c9b85b6bf549326b65d3cd7fb2cd28067b378998ad3bf8d` | Casper
 Association
-Testnet| WCSPR | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper 
+Testnet| WCSPR | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper
 Association
-Testnet| FLASHSWAPPER | ` hash-fbfeda8b97f056f526f20c2fc2b486d9bdbfb3e46b9a164527e57c0c86e68612` | Casper 
+Testnet| FLASHSWAPPER | ` hash-fbfeda8b97f056f526f20c2fc2b486d9bdbfb3e46b9a164527e57c0c86e68612` | Casper
 Association
-Testnet| PAIR | `hash-8e6fbaae9f5ff3bb3cca7cb15723b2a47917d074922575187cb136e8d4b169a7` | Casper 
+Testnet| PAIR | `hash-8e6fbaae9f5ff3bb3cca7cb15723b2a47917d074922575187cb136e8d4b169a7` | Casper
 Association
-Testnet| FACTORY | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper 
+Testnet| FACTORY | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper
 Association
 
 
@@ -155,7 +155,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-recipient | Key 
+recipient | Key
 amount | U256
 
 
@@ -169,8 +169,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-recipient | Key 
+owner | Key
+recipient | Key
 amount | U256
 
 
@@ -184,7 +184,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-public | String 
+public | String
 signature | String
 owner | Key
 spender | Key
@@ -203,7 +203,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-spender | Key 
+spender | Key
 amount | U256
 
 This method **returns** nothing.
@@ -215,7 +215,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -228,7 +228,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -241,8 +241,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-spender | Key 
+owner | Key
+spender | Key
 
 
 This method **returns** U256.
@@ -267,7 +267,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -280,7 +280,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -337,7 +337,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-recipient | Key 
+recipient | Key
 amount | U256
 
 
@@ -352,8 +352,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-recipient | Key 
+owner | Key
+recipient | Key
 amount | U256
 
 
@@ -369,7 +369,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-spender | Key 
+spender | Key
 amount | U256
 
 This method **returns** nothing.
@@ -381,7 +381,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 This method **returns** U256.
 
@@ -392,8 +392,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-spender | Key 
+owner | Key
+spender | Key
 
 This method **returns** U256.
 
@@ -410,7 +410,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -423,7 +423,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -527,7 +527,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-recipient | Key 
+recipient | Key
 amount | U256
 
 
@@ -542,8 +542,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-recipient | Key 
+owner | Key
+recipient | Key
 amount | U256
 
 
@@ -557,8 +557,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-amount0_out | U256 
-amount1_out | U256 
+amount0_out | U256
+amount1_out | U256
 to | Key
 data | String
 
@@ -597,7 +597,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-public | String 
+public | String
 signature | String
 owner | Key
 spender | Key
@@ -616,7 +616,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-spender | Key 
+spender | Key
 amount | U256
 
 
@@ -630,7 +630,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -643,7 +643,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -656,8 +656,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-spender | Key 
+owner | Key
+spender | Key
 
 
 This method **returns** U256.
@@ -696,7 +696,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 
 This method **returns** Tuple(U256, U256).
 
@@ -782,7 +782,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -815,9 +815,9 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-token_a | Key 
-token_b | Key 
-pair_hash | Key 
+token_a | Key
+token_b | Key
+pair_hash | Key
 
 
 This method **returns** nothing.
@@ -831,8 +831,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-token0 | Key 
-token1 | Key 
+token0 | Key
+token1 | Key
 
 
 This method **returns** Key.
@@ -1001,7 +1001,7 @@ This method will start swap.
 - simple_flash_loan
 This method will be invoked if both tokens (token_borrow and token_pay) are the same.
 - simple_flash_swap
-This method will be invoked if both tokens (token_borrow and token_pay) are not the same. one of them must be equal to 
+This method will be invoked if both tokens (token_borrow and token_pay) are not the same. one of them must be equal to
 “Hash-0000000000000000000000000000000000000000000000000000000000000000”
 - triangular_flash_swap
 This method will be invoked if both tokens (token_borrow and token_pay) are not the same.
@@ -1011,7 +1011,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-token_borrow | Key 
+token_borrow | Key
 amount | U256
 token_pay | Key
 user_data | String
@@ -1020,7 +1020,7 @@ This method **returns** nothing.
 
 
 - #### uniswap_v2_call <a id="flash-swapper-uniswap-v2-call"></a>
-This method is called by `swap` method of `pair contract`. 
+This method is called by `swap` method of `pair contract`.
 <br>the sender must be a `Flash Swapper Contract` hash if user data has some value.
 `Uniswap_v2_call` must be called from a contract. Users cannot directly invoke this method.
 
@@ -1029,7 +1029,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-sender | Key 
+sender | Key
 amount0 | U256
 amount1 | U256
 data | String
