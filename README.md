@@ -1,4 +1,4 @@
-# Uniswap V2 Core for Casper Blockchain
+# Uniswap V2 Core - Casper Blockchain
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
 ## Steps
