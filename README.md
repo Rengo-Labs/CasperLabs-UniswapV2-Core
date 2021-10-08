@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Uniswap V2 Core - Casper Blockchain
+>>>>>>> fix readme
+=======
+# Uniswap V2 Core for Casper Blockchain
 >>>>>>> fix readme
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
