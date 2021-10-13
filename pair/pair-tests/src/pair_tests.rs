@@ -202,6 +202,7 @@ fn test_pair_initialize() {
 #[test]
 fn test_pair_set_treasury_fee_percent() {
     let (_env, token, owner, _factory_hash, _test) = deploy();
+    assert_eq!(token.treasury_fee(), 3.into());
     let treasury_fee: U256 = 10.into();
     token.set_treasury_fee_percent(Sender(owner), treasury_fee);
     assert_eq!(token.treasury_fee(), treasury_fee);
@@ -209,6 +210,10 @@ fn test_pair_set_treasury_fee_percent() {
     let treasury_fee: U256 = 31.into();
     token.set_treasury_fee_percent(Sender(owner), treasury_fee);
     assert_eq!(token.treasury_fee(), 30.into());
+    // treasuary fee cannot be less than 3
+    let treasury_fee: U256 = 1.into();
+    token.set_treasury_fee_percent(Sender(owner), treasury_fee);
+    assert_eq!(token.treasury_fee(), 3.into());
 }
 
 #[test]

@@ -1537,6 +1537,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "test"
+version = "0.1.0"
+dependencies = [
+ "casper-contract",
+ "casper-types",
+ "contract-utils",
+ "cryptoxide",
+ "hex",
+ "renvm-sig",
+]
+
+[[package]]
 name = "test-env"
 version = "0.1.0"
 dependencies = [

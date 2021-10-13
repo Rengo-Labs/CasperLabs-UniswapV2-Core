@@ -416,10 +416,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn set_treasury_fee_percent(&mut self, treasury_fee: U256) {
-        if treasury_fee < 30.into() {
+        if treasury_fee < 30.into() && treasury_fee > 3.into() {
             data::set_treasury_fee(treasury_fee);
-        } else {
+        } else if treasury_fee >= 30.into() {
             data::set_treasury_fee(30.into());
+        } else {
+            data::set_treasury_fee(3.into());
         }
     }
 
