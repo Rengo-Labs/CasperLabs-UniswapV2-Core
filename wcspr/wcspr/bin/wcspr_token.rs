@@ -9,7 +9,7 @@ use casper_contract::{
 };
 use casper_types::{
     runtime_args, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use wcspr::{self, WCSPR};
@@ -30,12 +30,9 @@ impl Token {
         &mut self,
         name: String,
         symbol: String,
-        decimals: u8,
-        initial_supply: U256,
         contract_hash: ContractHash,
     ) {
-        WCSPR::init(self, name, symbol, decimals, Key::from(contract_hash));
-        WCSPR::deposit(self, self.get_caller(), initial_supply);
+        WCSPR::init(self, name, symbol, Key::from(contract_hash));
     }
 }
 
@@ -43,10 +40,8 @@ impl Token {
 fn constructor() {
     let name: String = runtime::get_named_arg("name");
     let symbol: String = runtime::get_named_arg("symbol");
-    let decimals: u8 = runtime::get_named_arg("decimals");
-    let initial_supply: U256 = runtime::get_named_arg("initial_supply");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Token::default().constructor(name, symbol, decimals, initial_supply, contract_hash);
+    Token::default().constructor(name, symbol, contract_hash);
 }
 
 /// This function is to transfer tokens against the address that user provided
@@ -110,10 +105,11 @@ fn approve() {
 ///
 
 #[no_mangle]
-fn deposit() {
+fn deposit() 
+{
     let to: Key = runtime::get_named_arg("to");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().deposit(to, amount);
+    let purse: URef = runtime::get_named_arg("purse");
+    Token::default().deposit(to, purse);
 }
 
 /// This function is to withdraw token against the address that user provided
@@ -128,7 +124,7 @@ fn deposit() {
 #[no_mangle]
 fn withdraw() {
     let from: Key = runtime::get_named_arg("from");
-    let amount: U256 = runtime::get_named_arg("amount");
+    let amount: U512 = runtime::get_named_arg("amount");
     Token::default().withdraw(from, amount);
 }
 
@@ -181,14 +177,6 @@ fn allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
-/// This function is to return the Total Supply of the contract
-///
-
-#[no_mangle]
-fn total_supply() {
-    let ret: U256 = Token::default().total_supply();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
-}
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -197,8 +185,6 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("name", String::cl_type()),
             Parameter::new("symbol", String::cl_type()),
-            Parameter::new("decimals", u8::cl_type()),
-            Parameter::new("initial_supply", U256::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
         ],
         <()>::cl_type(),
@@ -254,17 +240,10 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "total_supply",
-        vec![],
-        U256::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
         "deposit",
         vec![
             Parameter::new("to", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -274,7 +253,7 @@ fn get_entry_points() -> EntryPoints {
         "withdraw",
         vec![
             Parameter::new("from", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
+            Parameter::new("amount", U512::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -306,15 +285,11 @@ fn call() {
 
     let name: String = runtime::get_named_arg("name");
     let symbol: String = runtime::get_named_arg("symbol");
-    let decimals: u8 = runtime::get_named_arg("decimals");
-    let initial_supply: U256 = runtime::get_named_arg("initial_supply");
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "name" => name,
         "symbol" => symbol,
-        "decimals" => decimals,
-        "initial_supply" => initial_supply,
         "contract_hash" => contract_hash
     };
 
