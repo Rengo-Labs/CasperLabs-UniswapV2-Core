@@ -321,8 +321,6 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -411,7 +409,7 @@ Following is the table of parameters.
 Parameter Name | Type
 ---|---
 to | Key
-amount | U256
+purse | URef
 
 This method **returns** nothing.
 
@@ -423,7 +421,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key
+from | Key
 amount | U256
 
 This method **returns** nothing.
@@ -969,8 +967,6 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
