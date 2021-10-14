@@ -715,7 +715,7 @@ This method **returns** U256.
 
 - #### set_treasury_fee_percent <a id="pair-treasury-fee-percent"></a>
 sets the treasury fee for a pair.
-<br>**Note:** treasury_fee_percent Cannot be more than `30`. If it’s more than `30` it will set it as `30`.
+<br>**Note:** treasury_fee_percent Cannot be more than `30` and less than 3. If it’s more than `30` it will set it as `30` and if it's less than 3 it will set it as '3'.
 
 Following is the table of parameters.
 
