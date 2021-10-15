@@ -40,10 +40,11 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         self.make_transfer(owner, recipient, amount);
     }
 
-    fn deposit(&mut self, to: Key, amount_to_transfer: U512, purse: URef) 
+    fn deposit(&mut self, amount_to_transfer: U512, purse: URef) 
     {
         let cspr_amount: U512 = system::get_purse_balance(purse).unwrap_or_revert();            // get amount of cspr from purse received
-        let cspr_amount_u256: U256 = U256::from(cspr_amount.as_u128());                         // convert amount to U256
+        let _cspr_amount_u256: U256 = U256::from(cspr_amount.as_u128());                        // convert amount to U256
+        let amount_to_transfer_u256: U256 = U256::from(amount_to_transfer.as_u128());           // convert amount_to_transfer to U256
         let contract_main_purse: URef = data::get_main_purse();                                 // get this contract's purse
 
         if cspr_amount >= amount_to_transfer
@@ -51,10 +52,11 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             // save received cspr
             let _ = system::transfer_from_purse_to_purse(purse, contract_main_purse, amount_to_transfer, None);    // transfers native cspr from source purse to destination purse
         
-            // mint wcspr for the 'to' account
+            // mint wcspr for the caller
+            let caller = self.get_caller();
             let balances = Balances::instance();
-            let balance = balances.get(&to);
-            balances.set(&to, balance + amount_to_transfer);
+            let balance = balances.get(&caller);
+            balances.set(&caller, balance + amount_to_transfer_u256);
         }
         else
         {
@@ -64,8 +66,9 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn withdraw(&mut self, recipient: Key, amount: U512) {
 
+        let caller = self.get_caller();
         let balances = Balances::instance();
-        let balance = balances.get(&recipient);                         // get balance of the receipent
+        let balance = balances.get(&caller);                            // get balance of the caller
         let cspr_amount_u256: U256 = U256::from(amount.as_u128());      // convert U512 to U256
 
         let contract_main_purse = data::get_main_purse();
@@ -80,7 +83,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                 None
             ).unwrap_or_revert();
 
-            balances.set(&recipient, balance - cspr_amount_u256)
+            balances.set(&caller, balance - cspr_amount_u256)
         }
     }
 
