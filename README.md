@@ -321,8 +321,6 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -411,7 +409,7 @@ Following is the table of parameters.
 Parameter Name | Type
 ---|---
 to | Key 
-amount | U256
+purse | URef
 
 This method **returns** nothing.
 
@@ -423,7 +421,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+from | Key 
 amount | U256
 
 This method **returns** nothing.
@@ -715,7 +713,7 @@ This method **returns** U256.
 
 - #### set_treasury_fee_percent <a id="pair-treasury-fee-percent"></a>
 sets the treasury fee for a pair.
-<br>**Note:** treasury_fee_percent Cannot be more than `30`. If it’s more than `30` it will set it as `30`.
+<br>**Note:** treasury_fee_percent Cannot be more than `30` and less than 3. If it’s more than `30` it will set it as `30` and if it's less than 3 it will set it as '3'.
 
 Following is the table of parameters.
 
@@ -969,8 +967,6 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
