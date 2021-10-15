@@ -108,8 +108,9 @@ fn approve() {
 fn deposit() 
 {
     let to: Key = runtime::get_named_arg("to");
+    let amount: U512 = runtime::get_named_arg("amount");
     let purse: URef = runtime::get_named_arg("purse");
-    Token::default().deposit(to, purse);
+    Token::default().deposit(to, amount, purse);
 }
 
 /// This function is to withdraw token against the address that user provided
@@ -243,6 +244,7 @@ fn get_entry_points() -> EntryPoints {
         "deposit",
         vec![
             Parameter::new("to", Key::cl_type()),
+            Parameter::new("amount", U512::cl_type()),
             Parameter::new("purse", URef::cl_type()),
         ],
         <()>::cl_type(),

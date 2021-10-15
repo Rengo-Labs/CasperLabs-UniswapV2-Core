@@ -1,7 +1,8 @@
 use crate::data::{self, Allowances, Balances};
 use alloc::string::String;
-use casper_contract::{contract_api::{system}, unwrap_or_revert::UnwrapOrRevert};
+use casper_contract::{contract_api::{runtime, system}, unwrap_or_revert::UnwrapOrRevert};
 use casper_types::{Key, U256, U512, URef};
+use casper_types::system::mint::Error as MintError;
 use contract_utils::{ContractContext, ContractStorage};
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
@@ -39,19 +40,26 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         self.make_transfer(owner, recipient, amount);
     }
 
-    fn deposit(&mut self, to: Key, purse: URef) 
+    fn deposit(&mut self, to: Key, amount_to_transfer: U512, purse: URef) 
     {
         let cspr_amount: U512 = system::get_purse_balance(purse).unwrap_or_revert();            // get amount of cspr from purse received
         let cspr_amount_u256: U256 = U256::from(cspr_amount.as_u128());                         // convert amount to U256
         let contract_main_purse: URef = data::get_main_purse();                                 // get this contract's purse
 
-        // save received cspr
-        let _ = system::transfer_from_purse_to_purse(purse, contract_main_purse, cspr_amount, None);    // transfers native cspr from source purse to destination purse
-
-        // mint wcspr for the 'to' account
-        let balances = Balances::instance();
-        let balance = balances.get(&to);
-        balances.set(&to, balance + cspr_amount_u256);
+        if cspr_amount >= amount_to_transfer
+        {
+            // save received cspr
+            let _ = system::transfer_from_purse_to_purse(purse, contract_main_purse, amount_to_transfer, None);    // transfers native cspr from source purse to destination purse
+        
+            // mint wcspr for the 'to' account
+            let balances = Balances::instance();
+            let balance = balances.get(&to);
+            balances.set(&to, balance + amount_to_transfer);
+        }
+        else
+        {
+            runtime::revert(MintError::InsufficientFunds);
+        }
     }
 
     fn withdraw(&mut self, recipient: Key, amount: U512) {
