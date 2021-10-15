@@ -105,12 +105,11 @@ fn approve() {
 ///
 
 #[no_mangle]
-fn deposit() 
+fn deposit()
 {
-    let to: Key = runtime::get_named_arg("to");
     let amount: U512 = runtime::get_named_arg("amount");
     let purse: URef = runtime::get_named_arg("purse");
-    Token::default().deposit(to, amount, purse);
+    Token::default().deposit(amount, purse);
 }
 
 /// This function is to withdraw token against the address that user provided
@@ -124,9 +123,9 @@ fn deposit()
 
 #[no_mangle]
 fn withdraw() {
-    let from: Key = runtime::get_named_arg("from");
+    let to: Key = runtime::get_named_arg("to");
     let amount: U512 = runtime::get_named_arg("amount");
-    Token::default().withdraw(from, amount);
+    Token::default().withdraw(to, amount);
 }
 
 /// This function is to return the Balance of owner against the address that user provided
@@ -243,7 +242,6 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "deposit",
         vec![
-            Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U512::cl_type()),
             Parameter::new("purse", URef::cl_type()),
         ],
@@ -254,7 +252,7 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "withdraw",
         vec![
-            Parameter::new("from", Key::cl_type()),
+            Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U512::cl_type()),
         ],
         <()>::cl_type(),
