@@ -1,5 +1,5 @@
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::Key;
+use casper_types::{Key, URef};
 use contract_utils::{get_key, set_key};
 
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
@@ -10,6 +10,7 @@ pub const CSPR: &str = "cspr";
 pub const PERMISSIONED_PAIR_ADDRESS: &str = "permissioned_pair_address";
 pub const UNISWAP_V2_FACTROY: &str = "uniswap_v2_factory";
 pub const UNISWAP_V2_PAIR: &str = "uniswap_v2_pair";
+pub const SELF_PURSE: &str = "purse";
 
 pub fn set_wcspr(wcspr: Key) {
     set_key(WCSPR, wcspr);
@@ -65,4 +66,15 @@ pub fn set_hash(contract_hash: Key) {
 
 pub fn get_hash() -> Key {
     get_key(SELF_CONTRACT_HASH).unwrap_or_revert()
+}
+
+// contract purse
+pub fn set_self_purse(purse: URef) {
+    set_key(SELF_PURSE, Key::from(purse));
+}
+
+pub fn get_self_purse() -> URef {
+    let contract_main_purse_key: Key = get_key(SELF_PURSE).unwrap_or_revert();
+    let contract_main_purse = contract_main_purse_key.as_uref().unwrap_or_revert();
+    *contract_main_purse
 }

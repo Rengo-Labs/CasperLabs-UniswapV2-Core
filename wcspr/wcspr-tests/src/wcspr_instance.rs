@@ -14,8 +14,6 @@ impl WCSPRInstance {
         sender: Sender,
         name: &str,
         symbol: &str,
-        decimals: u8,
-        supply: U256,
     ) -> WCSPRInstance {
         WCSPRInstance(TestContract::new(
             env,
@@ -23,30 +21,19 @@ impl WCSPRInstance {
             contract_name,
             sender,
             runtime_args! {
-                "initial_supply" => supply,
                 "name" => name,
                 "symbol" => symbol,
-                "decimals" => decimals
             },
         ))
     }
 
-    pub fn constructor(
-        &self,
-        sender: Sender,
-        name: &str,
-        symbol: &str,
-        decimals: u8,
-        initial_supply: U256,
-    ) {
+    pub fn constructor(&self, sender: Sender, name: &str, symbol: &str) {
         self.0.call_contract(
             sender,
             "constructor",
             runtime_args! {
-                "initial_supply" => initial_supply,
                 "name" => name,
                 "symbol" => symbol,
-                "decimals" => decimals
             },
         );
     }
@@ -111,14 +98,6 @@ impl WCSPRInstance {
 
     pub fn symbol(&self) -> String {
         self.0.query_named_key(String::from("symbol"))
-    }
-
-    pub fn decimals(&self) -> u8 {
-        self.0.query_named_key(String::from("decimals"))
-    }
-
-    pub fn total_supply(&self) -> U256 {
-        self.0.query_named_key(String::from("total_supply"))
     }
 }
 
