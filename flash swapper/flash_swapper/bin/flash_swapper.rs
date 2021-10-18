@@ -78,8 +78,7 @@ fn uniswap_v2_call() {
     let amount0: U256 = runtime::get_named_arg("amount0");
     let amount1: U256 = runtime::get_named_arg("amount1");
     let data = runtime::get_named_arg("data");
-    let purse: Option<URef> = runtime::get_named_arg("purse");
-    Token::default().uniswap_v2_call(sender, amount0, amount1, data, purse);
+    Token::default().uniswap_v2_call(sender, amount0, amount1, data);
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -115,7 +114,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount0", U256::cl_type()),
             Parameter::new("amount1", U256::cl_type()),
             Parameter::new("data", String::cl_type()),
-            Parameter::new("purse", CLType::Option(Box::new(CLType::URef))),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,

@@ -92,14 +92,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    fn uniswap_v2_call(
-        &mut self,
-        _sender: Key,
-        _amount0: U256,
-        _amount1: U256,
-        _data: String,
-        purse: Option<URef>,
-    ) {
+    fn uniswap_v2_call(&mut self, _sender: Key, _amount0: U256, _amount1: U256, _data: String) {
         // access control
         let permissioned_pair_address = data::get_permissioned_pair_address();
         if self.get_caller() == permissioned_pair_address {
@@ -129,7 +122,6 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 _is_borrowing_cspr,
                 _is_paying_cspr,
                 _user_data.into(),
-                purse,
             );
         } else if _swap_type == "simple_swap" {
             self.simple_flash_swap_execute(
@@ -140,7 +132,6 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 _is_borrowing_cspr,
                 _is_paying_cspr,
                 _user_data.into(),
-                purse,
             );
         } else {
             self.traingular_flash_swap_execute(
@@ -254,7 +245,6 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         _is_borrowing_cspr: bool,
         _is_paying_cspr: bool,
         _user_data: String,
-        purse: Option<URef>,
     ) {
         let wcspr: Key = data::get_wcspr();
         let wcspr_hash_add_array = match wcspr {
@@ -296,12 +286,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // payback the loan
         // wrap the cspr if necessary
         if _is_paying_cspr {
-            let caller_purse: URef = {
-                match purse {
-                    Some(sender_purse) => sender_purse, // if a purse is sent in argument (purse will be passed in argument if the caller is contract) use that,
-                    None => account::get_main_purse(), // otherwise assume caller is an account and get caller's purse
-                }
-            };
+            let caller_purse: URef = account::get_main_purse();
             let () = call_contract(
                 wcspr_hash_add,
                 "deposit",
@@ -435,7 +420,6 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         is_borrowing_cspr: bool,
         is_paying_cspr: bool,
         _user_data: String,
-        purse: Option<URef>,
     ) {
         // unwrap wcspr if necessary
         let wcspr_address: Key = data::get_wcspr();
@@ -516,12 +500,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // payback loan
         // wrap cspr if necessary
         if is_paying_cspr == true {
-            let caller_purse: URef = {
-                match purse {
-                    Some(sender_purse) => sender_purse, // if a purse is sent in argument (purse will be passed in argument if the caller is contract) use that,
-                    None => account::get_main_purse(), // otherwise assume caller is an account and get caller's purse
-                }
-            };
+            let caller_purse: URef = account::get_main_purse();
             let _deposit_result: () = runtime::call_contract(
                 wcspr_contract_hash,
                 "deposit",
