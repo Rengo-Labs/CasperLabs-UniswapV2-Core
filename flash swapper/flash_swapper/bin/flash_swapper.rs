@@ -3,15 +3,15 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeSet, format, string::String, vec};
+use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
 
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLType, CLTyped, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use flash_swapper::{self, FLASHSWAPPER};
@@ -78,7 +78,8 @@ fn uniswap_v2_call() {
     let amount0: U256 = runtime::get_named_arg("amount0");
     let amount1: U256 = runtime::get_named_arg("amount1");
     let data = runtime::get_named_arg("data");
-    Token::default().uniswap_v2_call(sender, amount0, amount1, data);
+    let purse: Option<URef> = runtime::get_named_arg("purse");
+    Token::default().uniswap_v2_call(sender, amount0, amount1, data, purse);
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -114,6 +115,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount0", U256::cl_type()),
             Parameter::new("amount1", U256::cl_type()),
             Parameter::new("data", String::cl_type()),
+            Parameter::new("purse", CLType::Option(Box::new(CLType::URef))),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
