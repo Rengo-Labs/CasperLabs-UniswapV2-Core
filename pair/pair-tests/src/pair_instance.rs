@@ -2,7 +2,9 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U128, U256};
+use casper_types::{
+    bytesrepr::ToBytes, runtime_args, ContractPackageHash, Key, RuntimeArgs, U128, U256,
+};
 use test_env::{Sender, TestContract, TestEnv};
 
 pub struct PAIRInstance(TestContract);
@@ -271,6 +273,9 @@ impl PAIRInstance {
 
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
+    }
+    pub fn self_package_hash(&self) -> ContractPackageHash {
+        self.0.query_named_key(String::from("self_package_hash"))
     }
 }
 
