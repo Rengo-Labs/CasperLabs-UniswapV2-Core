@@ -10,8 +10,9 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
-    EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U128, U256,
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
+    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U128,
+    U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use hex::encode;
@@ -40,6 +41,7 @@ impl Pair {
         domain_separator: String,
         permit_type_hash: String,
         contract_hash: ContractHash,
+        package_hash: ContractPackageHash,
         reserve0: U128,
         reserve1: U128,
         block_timestamp_last: u64,
@@ -60,6 +62,7 @@ impl Pair {
             permit_type_hash,
             Key::from(contract_hash),
             factory_hash,
+            package_hash,
             reserve0,
             reserve1,
             block_timestamp_last,
@@ -85,6 +88,7 @@ fn constructor() {
     let domain_separator: String = runtime::get_named_arg("domain_separator");
     let permit_type_hash: String = runtime::get_named_arg("permit_type_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     let reserve0: U128 = runtime::get_named_arg("reserve0");
     let reserve1: U128 = runtime::get_named_arg("reserve1");
     let block_timestamp_last: u64 = runtime::get_named_arg("block_timestamp_last");
@@ -104,6 +108,7 @@ fn constructor() {
         domain_separator,
         permit_type_hash,
         contract_hash,
+        package_hash,
         reserve0,
         reserve1,
         block_timestamp_last,
@@ -385,6 +390,16 @@ pub extern "C" fn set_treasury_fee_percent() {
     Pair::default().set_treasury_fee_percent(treasury_fee);
 }
 
+/// This function is to fetch a Contract Package Hash
+///
+
+#[no_mangle]
+
+fn package_hash() {
+    let ret: ContractPackageHash = Pair::default().get_package_hash();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -558,6 +573,14 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "package_hash",
+        vec![],
+        ContractPackageHash::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+
+    entry_points.add_entry_point(EntryPoint::new(
         "initialize",
         vec![
             Parameter::new("token0", Key::cl_type()),
@@ -643,6 +666,7 @@ fn call() {
         "domain_separator" => domain_separator,
         "permit_type_hash" => permit_type_hash,
         "contract_hash" => contract_hash,
+        "package_hash"=>package_hash,
         "reserve0" => reserve0,
         "reserve1" => reserve1,
         "block_timestamp_last" => block_timestamp_last,
