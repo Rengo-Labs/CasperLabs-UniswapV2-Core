@@ -6,14 +6,16 @@ use casper_types::system::mint::Error as MintError;
 use contract_utils::{ContractContext, ContractStorage};
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
-    fn init(&mut self, name: String, symbol: String, contract_hash: Key) {
+    fn init(&mut self, name: String, symbol: String, decimals: u8, contract_hash: Key) {
         data::set_name(name);
         data::set_symbol(symbol);
         data::set_hash(contract_hash);
+        data::set_decimals(decimals);
+        
         Balances::init();
         Allowances::init();
 
-        data::set_main_purse(system::create_purse());
+        data::set_self_purse(system::create_purse());
     }
 
     fn balance_of(&mut self, owner: Key) -> U256 {
@@ -45,12 +47,12 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let cspr_amount: U512 = system::get_purse_balance(purse).unwrap_or_revert();            // get amount of cspr from purse received
         let _cspr_amount_u256: U256 = U256::from(cspr_amount.as_u128());                        // convert amount to U256
         let amount_to_transfer_u256: U256 = U256::from(amount_to_transfer.as_u128());           // convert amount_to_transfer to U256
-        let contract_main_purse: URef = data::get_main_purse();                                 // get this contract's purse
+        let contract_self_purse: URef = data::get_self_purse();                                 // get this contract's purse
 
         if cspr_amount >= amount_to_transfer
         {
             // save received cspr
-            let _ = system::transfer_from_purse_to_purse(purse, contract_main_purse, amount_to_transfer, None);    // transfers native cspr from source purse to destination purse
+            let _ = system::transfer_from_purse_to_purse(purse, contract_self_purse, amount_to_transfer, None);    // transfers native cspr from source purse to destination purse
         
             // mint wcspr for the caller
             let caller = self.get_caller();
@@ -71,7 +73,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let balance = balances.get(&caller);                            // get balance of the caller
         let cspr_amount_u256: U256 = U256::from(amount.as_u128());      // convert U512 to U256
 
-        let contract_main_purse = data::get_main_purse();
+        let contract_main_purse = data::get_self_purse();
         let main_purse_balance : U512 = system::get_purse_balance(contract_main_purse).unwrap_or_revert();
 
 

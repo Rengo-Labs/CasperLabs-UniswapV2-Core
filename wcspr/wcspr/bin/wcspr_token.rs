@@ -30,9 +30,10 @@ impl Token {
         &mut self,
         name: String,
         symbol: String,
+        decimals: u8,
         contract_hash: ContractHash,
     ) {
-        WCSPR::init(self, name, symbol, Key::from(contract_hash));
+        WCSPR::init(self, name, symbol, decimals, Key::from(contract_hash));
     }
 }
 
@@ -40,8 +41,10 @@ impl Token {
 fn constructor() {
     let name: String = runtime::get_named_arg("name");
     let symbol: String = runtime::get_named_arg("symbol");
+    let decimals: u8 = runtime::get_named_arg("decimals");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Token::default().constructor(name, symbol, contract_hash);
+
+    Token::default().constructor(name, symbol, decimals, contract_hash);
 }
 
 /// This function is to transfer tokens against the address that user provided
@@ -185,7 +188,8 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("name", String::cl_type()),
             Parameter::new("symbol", String::cl_type()),
-            Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("decimals", u8::cl_type()),
+            Parameter::new("contract_hash", ContractHash::cl_type())
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -285,11 +289,13 @@ fn call() {
 
     let name: String = runtime::get_named_arg("name");
     let symbol: String = runtime::get_named_arg("symbol");
+    let decimals: u8 = runtime::get_named_arg("decimals");
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "name" => name,
         "symbol" => symbol,
+        "decimals" => decimals,
         "contract_hash" => contract_hash
     };
 

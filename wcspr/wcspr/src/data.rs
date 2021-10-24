@@ -1,7 +1,8 @@
 use alloc::string::String;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, U256, URef};
+use casper_types::{Key, U256, URef, ApiError};
 use contract_utils::{get_key, set_key, Dict};
+use casper_contract::{contract_api::{runtime}};
 //use casper_contract::{value::account::PurseId ,contract_api::{runtime,system}, unwrap_or_revert::UnwrapOrRevert};
 
 pub const BALANCES_DICT: &str = "balances";
@@ -9,7 +10,13 @@ pub const ALLOWANCES_DICT: &str = "allowances";
 pub const NAME: &str = "name";
 pub const SYMBOL: &str = "symbol";
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
-pub const MAIN_PURSE: &str = "main_purse";
+pub const SELF_PURSE: &str = "self_purse";
+pub const DECIMALS: &str = "decimals";
+
+#[repr(u16)]
+pub enum ErrorCodes {
+    Abort = 35,
+}
 
 pub struct Balances {
     dict: Dict,
@@ -75,6 +82,14 @@ pub fn set_symbol(symbol: String) {
     set_key(SYMBOL, symbol);
 }
 
+pub fn decimals() -> u8 {
+    get_key(DECIMALS).unwrap_or_revert()
+}
+
+pub fn set_decimals(decimals: u8) {
+    set_key(DECIMALS, decimals);
+}
+
 pub fn set_hash(contract_hash: Key) {
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
@@ -83,13 +98,16 @@ pub fn get_hash() -> Key {
     get_key(SELF_CONTRACT_HASH).unwrap_or_revert()
 }
 
-pub fn set_main_purse(purse: URef) {
-    set_key(MAIN_PURSE, Key::from(purse));
+pub fn set_self_purse(purse: URef) {
+    runtime::put_key(&SELF_PURSE, purse.into());
 }
 
 
-pub fn get_main_purse() -> URef {
-    let contract_main_purse_key: Key = get_key(MAIN_PURSE).unwrap_or_revert();
-    let contract_main_purse = contract_main_purse_key.as_uref().unwrap_or_revert();
-    *contract_main_purse
+pub fn get_self_purse() -> URef {
+    let destination_purse_key = runtime::get_key(&SELF_PURSE).unwrap_or_revert();
+
+    match destination_purse_key.as_uref() {
+        Some(uref) => *uref,
+        None => runtime::revert(ApiError::User(ErrorCodes::Abort  as u16))
+    }
 }
