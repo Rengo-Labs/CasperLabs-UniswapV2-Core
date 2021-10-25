@@ -114,30 +114,6 @@ fn test_start_swap_with_simple_flash_loan() {
         Key::Hash(pair.contract_hash()),
         Key::Hash(factory.contract_hash()),
     );
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(pair.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(dai.contract_hash()),
-        Key::Hash(pair.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(wcspr.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(dai.contract_hash()),
-        Key::Hash(dai.contract_hash()),
-        amount,
-    ); //500
     test.token0(Sender(owner), Key::Hash(pair.contract_hash()));
     test.token1(Sender(owner), Key::Hash(pair.contract_hash()));
     test.pair_mint(
@@ -174,30 +150,6 @@ fn test_start_swap_with_simple_flash_swap() {
         Key::Hash(factory.contract_hash()),
     );
     let amount: U256 = 500.into();
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(pair.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(dai.contract_hash()),
-        Key::Hash(pair.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(wcspr.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(dai.contract_hash()),
-        Key::Hash(dai.contract_hash()),
-        amount,
-    ); //500
     test.token0(Sender(owner), Key::Hash(pair.contract_hash()));
     test.token1(Sender(owner), Key::Hash(pair.contract_hash()));
     test.pair_mint(
@@ -302,42 +254,6 @@ fn test_start_swap_with_traingular_flash_swap() {
         Key::Hash(wcspr.contract_hash()),
         amount,
     );
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(pair.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(dai.contract_hash()),
-        Key::Hash(pair.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(btc.contract_hash()),
-        Key::Hash(pair.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(wcspr.contract_hash()),
-        Key::Hash(wcspr.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(dai.contract_hash()),
-        Key::Hash(dai.contract_hash()),
-        amount,
-    ); //500
-    test.mint_with_caller(
-        Sender(owner),
-        Key::Hash(btc.contract_hash()),
-        Key::Hash(btc.contract_hash()),
-        amount,
-    ); //500
     test.sync(Sender(owner), Key::Hash(pair.contract_hash()));
     flash_swapper.start_swap(
         Sender(owner),

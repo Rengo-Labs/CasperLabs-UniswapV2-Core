@@ -1,8 +1,9 @@
 [workspace]
 
 members = [
-    "flash_swapper",
-    "flash_swapper-tests"
+  "flash_swapper",
+  "test-contract",
+  "flash_swapper-tests",
 ]
 
 [profile.release]

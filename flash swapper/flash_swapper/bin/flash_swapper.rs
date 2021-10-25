@@ -3,15 +3,15 @@
 
 extern crate alloc;
 
-use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
+use alloc::{collections::BTreeSet, format, string::String, vec};
 
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLType, CLTyped, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLTyped, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use flash_swapper::{self, FLASHSWAPPER};
