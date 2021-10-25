@@ -14,6 +14,7 @@ impl WCSPRInstance {
         sender: Sender,
         name: &str,
         symbol: &str,
+        decimals: u8,
     ) -> WCSPRInstance {
         WCSPRInstance(TestContract::new(
             env,
@@ -23,6 +24,7 @@ impl WCSPRInstance {
             runtime_args! {
                 "name" => name,
                 "symbol" => symbol,
+                "decimals"=>decimals
             },
         ))
     }

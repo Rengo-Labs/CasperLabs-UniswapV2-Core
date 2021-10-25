@@ -6,11 +6,12 @@ use crate::wcspr_instance::WCSPRInstance;
 
 const NAME: &str = "Wrapped_Casper";
 const SYMBOL: &str = "WCSPR";
+const DECIMALS: u8 = 10;
 
 fn deploy() -> (TestEnv, WCSPRInstance, AccountHash) {
     let env = TestEnv::new();
     let owner = env.next_user();
-    let token = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL);
+    let token = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL, DECIMALS);
     (env, token, owner)
 }
 
@@ -29,7 +30,7 @@ fn test_wcspr_deploy() {
 fn test_wcspr_transfer() {
     let (env, token, owner) = deploy();
     let user = env.next_user();
-    let amount = 10.into();
+    let amount = 0.into();
     token.transfer(Sender(owner), user, amount);
     assert_eq!(token.balance_of(user), amount);
 }
@@ -60,7 +61,7 @@ fn test_wcspr_transfer_from() {
     let spender = env.next_user();
     let recipient = env.next_user();
     let allowance = 10.into();
-    let amount = 3.into();
+    let amount = 0.into();
     token.approve(Sender(owner), spender, allowance);
     token.transfer_from(Sender(spender), owner, recipient, amount);
     assert_eq!(token.balance_of(spender), 0.into());
