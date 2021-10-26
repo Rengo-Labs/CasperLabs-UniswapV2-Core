@@ -88,7 +88,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 _user_data,
             );
         } else {
-            self.traingular_flash_swap(token_borrow, _amount, token_pay, _user_data);
+            self.triangular_flash_swap(token_borrow, _amount, token_pay, _user_data);
         }
     }
 
@@ -134,7 +134,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 _user_data.into(),
             );
         } else {
-            self.traingular_flash_swap_execute(
+            self.triangular_flash_swap_execute(
                 _token_borrow,
                 _amount,
                 _token_pay,
@@ -519,10 +519,10 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
     ///     _tokenPay/wcspr pairs, we do a triangular swap here. That is, we flash borrow wcspr from the _tokenPay/wcspr pair,
     ///     Then we swap that borrowed wcspr for the desired _tokenBorrow via the _tokenBorrow/wcspr pair. And finally,
     ///     we pay back the original flash-borrow using _tokenPay.
-    /// @dev This initiates the flash borrow. See `traingularFlashSwapExecute` for the code that executes after the borrow.
+    /// @dev This initiates the flash borrow. See `triangularFlashSwapExecute` for the code that executes after the borrow.
     ///
 
-    fn traingular_flash_swap(
+    fn triangular_flash_swap(
         &mut self,
         token_borrow: Key,
         amount: U256,
@@ -592,7 +592,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                         / (amount_997 * pair_balance_token_borrow_after))
                         + amount_1;
                     // using a helper function here to avoid "stack too deep" :(
-                    self.traingular_flash_swap_helper(
+                    self.triangular_flash_swap_helper(
                         token_borrow,
                         amount,
                         token_pay,
@@ -615,9 +615,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    /// @notice Helper function for `traingularFlashSwap` to avoid `stack too deep` errors
+    /// @notice Helper function for `triangularFlashSwap` to avoid `stack too deep` errors
     ///
-    fn traingular_flash_swap_helper(
+    fn triangular_flash_swap_helper(
         &mut self,
         token_borrow: Key,
         amount: U256,
@@ -698,10 +698,10 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         );
     }
 
-    /// @notice This is the code that is executed after `traingularFlashSwap` initiated the flash-borrow
+    /// @notice This is the code that is executed after `triangularFlashSwap` initiated the flash-borrow
     /// @dev When this code executes, this contract will hold the amount of wcspr we need in order to get _amount
     ///     _tokenBorrow from the _tokenBorrow/wcspr pair.
-    fn traingular_flash_swap_execute(
+    fn triangular_flash_swap_execute(
         &mut self,
         token_borrow: Key,
         amount: U256,

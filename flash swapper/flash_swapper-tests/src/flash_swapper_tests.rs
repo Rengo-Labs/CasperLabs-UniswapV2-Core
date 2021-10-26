@@ -190,7 +190,7 @@ fn test_start_swap_with_simple_flash_swap() {
 }
 
 #[test]
-fn test_start_swap_with_traingular_flash_swap() {
+fn test_start_swap_with_triangular_flash_swap() {
     let (env, flash_swapper, owner, factory, wcspr, dai, btc, test) = deploy_flash_swapper();
     let pair = deploy_pair(&env, &factory, flash_swapper.self_contract_hash());
     let amount: U256 = 500.into();
