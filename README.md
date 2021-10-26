@@ -113,15 +113,15 @@ All contracts have already being deployed. Inorder to interact with the specific
 
 Network| Contract Name | Account info contract hash | Contract owner
 ---|---|---|---
-Testnet| ERC20 | `hash-621dd1f5d73c70b43c9b85b6bf549326b65d3cd7fb2cd28067b378998ad3bf8d` | Casper 
+Testnet| ERC20 | `hash-279445c140615fd511759dfb96c610dee212769913f61a57b0f9dde42d6a8d10` | Casper 
 Association
-Testnet| WCSPR | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper 
+Testnet| WCSPR | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b` | Casper 
 Association
-Testnet| FLASHSWAPPER | ` hash-fbfeda8b97f056f526f20c2fc2b486d9bdbfb3e46b9a164527e57c0c86e68612` | Casper 
+Testnet| FLASHSWAPPER | ` hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` | Casper 
 Association
-Testnet| PAIR | `hash-8e6fbaae9f5ff3bb3cca7cb15723b2a47917d074922575187cb136e8d4b169a7` | Casper 
+Testnet| PAIR | `hash-de6ba94b699dad44e12bf98e35c1122eed7dba9eed8af6d8952875afaec8c7dd` | Casper 
 Association
-Testnet| FACTORY | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper 
+Testnet| FACTORY | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper 
 Association
 
 
@@ -476,8 +476,8 @@ Before deploying `PAIR Contract`, you would need to deploy other contracts first
 
 Name | Network | Account info contract hash | Contract owner
 ---|---|---|---
-Factory | Testnet | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper Association
-Flash Swapper | Testnet | ` hash-fbfeda8b97f056f526f20c2fc2b486d9bdbfb3e46b9a164527e57c0c86e68612` | Casper Association
+Factory | Testnet | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper Association
+Flash Swapper | Testnet | ` hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` | Casper Association
 
 
 
@@ -934,9 +934,9 @@ Before deploying `Flash Swapper Contract`, you would need to deploy other contra
 
 Name | Network | Account info contract hash | Contract owner
 ---|---|---|---
-Factory | Testnet | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper Association
-Wcspr | Testnet | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper Association
-Dai | Testnet | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper Association
+Factory | Testnet | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper Association
+Wcspr | Testnet | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b` | Casper Association
+Dai | Testnet | `hash-ffb8fa3073c7623484f76d79bc8baad110b24936b92d5ebc854d401895e88c95` | Casper Association
 
 
 ### Manual Deployment <a id="flash-swapper-manual-deployment"></a>

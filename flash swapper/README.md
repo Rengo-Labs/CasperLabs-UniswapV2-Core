@@ -47,6 +47,7 @@ Tests provide the `FLASHSWAPPERInstance` struct that can be reused in larger sma
 contract projects with multiple FLASH SWAPPERs and other smart contracts
 to interact with the instance of an FLASH SWAPPER.
 
+
 Tests are implemented in `flash_swapper-tests/src/flash_swapper_tests.rs`.
 
 ### Utils
@@ -55,6 +56,8 @@ The repository contains 2 utility crates:
 
 * `utils/test-env`
 * `utils/contract-utils`
+
+User needs to have Caspers in purse to run testcases successfully.
 
 The utility code after review and adoption should be moved to a separate repo
 and eventually be added to `casper-contract` and `casper-engine-test-support`.
