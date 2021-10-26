@@ -28,7 +28,7 @@ fn deploy_wcspr(env: &TestEnv) -> TestContract {
     let owner_wcspr = env.next_user();
     let wcspr = TestContract::new(
         &env,
-        "wcspr.wasm",
+        "wcspr-token.wasm",
         "wcspr",
         Sender(owner_wcspr),
         runtime_args! {

@@ -1,8 +1,4 @@
-<<<<<<< HEAD
 # Uniswap V2 Core - Casper Blockchain
->>>>>>> fix readme
-=======
-# Uniswap V2 Core for Casper Blockchain
 >>>>>>> fix readme
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
@@ -20,6 +16,7 @@ To run the Contracts make sure you are in the folder of your required contract.
 
 - [Interacting with the contract](#interacting-with-the-contract)
   - [Install the prerequisites](#install-the-prerequisites)
+  - [Testing](#testing)
   - [Known contract hashes](#known-contract-hashes)
 - [Deploying ERC20 contract manually](#deploying-erc20-contract-manually)
   - [Entry Point methods](#erc20-entry-point-methods)
@@ -110,6 +107,36 @@ sudo apt update
 
 # Install the Casper client software
 sudo apt install casper-client -y
+```
+
+### Testing <a name="testing"></a>
+
+Tests require that the CasperLabs-UniswapV2-core repository to be checked out
+into a sibling directory (one up from the current directory).
+
+```
+cd ..
+
+git clone git@github.com:Scytalelabs-official/CasperLabs-UniswapV2-core.git
+```
+
+To build the contracts and run the tests, first navigate back to this directory
+and run:
+
+```
+make build-contract
+```
+
+To run all the tests:
+
+```
+make test
+```
+
+To clean up:
+
+```
+make clean
 ```
 
 ### Known contract hashes
@@ -413,11 +440,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-<<<<<<< HEAD
-to | Key 
-=======
 to | Key
->>>>>>> main
 purse | URef
 
 This method **returns** nothing.
@@ -430,11 +453,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-<<<<<<< HEAD
-from | Key 
-=======
 from | Key
->>>>>>> main
 amount | U256
 
 This method **returns** nothing.
