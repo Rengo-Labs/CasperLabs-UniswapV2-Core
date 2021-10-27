@@ -168,12 +168,13 @@ It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
 available in your PATH to reduce the size of compiled Wasm.
 
 #### Build Smart Contract
+Run this command to build Smart Contract.
 ```
 make build-contract
 ```
 
 #### Test
-Test logic and smart contract.
+Run this command to run Test Cases.
 ```
 make test
 ```
