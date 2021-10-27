@@ -195,36 +195,6 @@ Run this command in main folder to run all contract's Test Cases.
 make test
 ```
 
-### Testing <a name="testing"></a>
-
-Tests require that the CasperLabs-UniswapV2-core repository to be checked out
-into a sibling directory (one up from the current directory).
-
-```
-cd ..
-
-git clone git@github.com:Scytalelabs-official/CasperLabs-UniswapV2-core.git
-```
-
-To build the contracts and run the tests, first navigate back to this directory
-and run:
-
-```
-make build-contract
-```
-
-To run all the tests:
-
-```
-make test
-```
-
-To clean up:
-
-```
-make clean
-```
-
 ### Known contract hashes
 
 All contracts have already being deployed. Inorder to interact with the specific contract you need to call it by its hash. The table below contains the contract hash (without the `hash-` prefix) for all the contracts on public Casper networks:
