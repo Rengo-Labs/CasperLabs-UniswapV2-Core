@@ -1,14 +1,18 @@
-uniswap_core_directory = .
+uniswap_core_directory = ./
 
-erc20_contract = ${uniswap_core_directory}/erc20/
-factory_contract = ${uniswap_core_directory}/factory/
-flash_swapper_contract = ${uniswap_core_directory}/flash\ swapper/
-pair_contract = ${uniswap_core_directory}/pair/
-wcspr_contract = ${uniswap_core_directory}/wcspr/
+erc20_contract = ${uniswap_core_directory}erc20/
+factory_contract = ${uniswap_core_directory}factory/
+flash_swapper_contract = ${uniswap_core_directory}flash\ swapper/
+pair_contract = ${uniswap_core_directory}pair/
+wcspr_contract = ${uniswap_core_directory}wcspr/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
+wasm_dest_factory_path = ${uniswap_core_directory}factory/factory-tests/wasm/
+wasm_dest_pair_path = ${uniswap_core_directory}pair/pair-tests/wasm/
+wasm_dest_flash_swapper_path = ${uniswap_core_directory}flash\ swapper//flash_swapper-tests/wasm/
 
-build-contract:
+
+all:
 	# Build erc20
 	cd ${erc20_contract} && make build-contract
 
@@ -43,34 +47,38 @@ clean:
 	cd ${wcspr_contract} && make clean
 
 
-# copy wasm to required directory with new names
+# copy wasm to required directory
 copy-wasm-file:
-	cp ${wcspr_contract}${wasm_src_path}*.wasm ${erc20_contract}erc20-tests/wasm/
-	cp ${wcspr_contract}${wasm_src_path}*.wasm ${pair_contract}pair-tests/wasm/
-	cp ${wcspr_contract}${wasm_src_path}*.wasm ${factory_contract}factory-tests/wasm/
-	cp ${wcspr_contract}${wasm_src_path}*.wasm ${flash_swapper_contract}flash_swapper-tests/wasm/
-	cp ${erc20_contract}${wasm_src_path}*.wasm ${pair_contract}pair-tests/wasm/
-	cp ${erc20_contract}${wasm_src_path}*.wasm ${factory_contract}factory-tests/wasm/
-	cp ${erc20_contract}${wasm_src_path}*.wasm ${flash_swapper_contract}flash_swapper-tests/wasm/
-	cp ${pair_contract}${wasm_src_path}*.wasm ${flash_swapper_contract}flash_swapper-tests/wasm/
-	cp ${pair_contract}${wasm_src_path}*.wasm ${factory_contract}factory-tests/wasm/
-	cp ${factory_contract}${wasm_src_path}*.wasm ${pair_contract}pair-tests/wasm/
-	cp ${factory_contract}${wasm_src_path}*.wasm ${flash_swapper_contract}flash_swapper-tests/wasm/
+	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_factory_path}
+	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_flash_swapper_path}
+	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_pair_path}
+	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_factory_path}
+	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_flash_swapper_path}
+	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_pair_path}
+
+	cp ${pair_contract}${wasm_src_path}*.wasm ${wasm_dest_factory_path}
+	cp ${pair_contract}${wasm_src_path}*.wasm ${wasm_dest_flash_swapper_path}
+
+	cp ${flash_swapper_contract}${wasm_src_path}*.wasm ${wasm_dest_factory_path}
+	cp ${flash_swapper_contract}${wasm_src_path}*.wasm ${wasm_dest_pair_path}
+
+	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_flash_swapper_path}
+	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_pair_path}
+
 
 # run all tests sequentially
 test:
-
-	# Test WCSPR
-	cd ${wcspr_contract} && make test
-
 	# Test ERC20
 	cd ${erc20_contract} && make test
 
-	# Test Flash Swapper
+	# Test Factory
+	cd ${factory_contract} && make test
+
+	# Test Flashswapper
 	cd ${flash_swapper_contract} && make test
 
 	# Test Pair
 	cd ${pair_contract} && make test
 
-	# Test Factory
-	cd ${factory_contract} && make test
+	# Test WCSPR
+	cd ${wcspr_contract} && make test

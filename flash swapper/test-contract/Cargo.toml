@@ -15,7 +15,7 @@ renvm-sig = "0.1.1"
 [[bin]]
 bench = false
 doctest = false
-name = "test-token"
+name = "test-contract"
 path = "bin/test_token.rs"
 test = false
 

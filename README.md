@@ -9,13 +9,17 @@ There are 5 contracts in this folder
 4) FLASH SWAPPER Contract
 5) WCSPR Contract
 
-To run the Contracts make sure you are in the folder of your required contract.
-
 ## Table of contents
 
 - [Interacting with the contract](#interacting-with-the-contract)
   - [Install the prerequisites](#install-the-prerequisites)
-  - [Testing](#testing)
+  - [Creating Keys](#creating-keys)
+  - [Usage](#usage)
+    - [Install](#install)
+    - [Build Individual Smart Contract](#build-individual-smart-contract)
+    - [Build All Smart Contracts](#build-all-smart-contracts)
+    - [Individual Test Cases](#individual-test-cases)
+    - [All Test Cases](#all-test-cases)
   - [Known contract hashes](#known-contract-hashes)
 - [Deploying ERC20 contract manually](#deploying-erc20-contract-manually)
   - [Entry Point methods](#erc20-entry-point-methods)
@@ -98,14 +102,97 @@ sudo apt update
 # Install the command-line JSON processor
 sudo apt install jq -y
 
+# Install rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+#Install the nightly version (by default stable toolchain is installed)
+rustup install nightly
+
+#Check that nightly toolchain version is installed(this will list stable and nightly versions)
+rustup toolchain list
+
+#Set rust nightly as default
+rustup default nightly
+
+# Install wasm32-unknown-unknown
+rustup target add wasm32-unknown-unknown
+
+#rust Version
+rustup --version
+
+#Install Cmake
+ sudo apt-get -y install cmake
+
+Note:https://cgold.readthedocs.io/en/latest/first-step/installation.html
+
+#cmake Version
+cmake --version
+
+#Installing the Casper Crates
+cargo install cargo-casper
+
 # Add Casper repository
 echo "deb https://repo.casperlabs.io/releases" bionic main | sudo tee -a /etc/apt/sources.list.d/casper.list
 curl -O https://repo.casperlabs.io/casper-repo-pubkey.asc
-sudo apt-key add casper-repo-pubkey.asc
+sudo apt-key add casper-repo-pubkey.ascr
 sudo apt update
 
 # Install the Casper client software
-sudo apt install casper-client -y
+Install Casper-client
+
+cargo +nightly install casper-client
+
+# To check Casper Client Version
+Casper-client --version
+
+# Commands for help
+casper-client --help
+
+casper-client <command> --help
+
+```
+### Creating Keys
+
+```bash
+# Create keys
+casper-client keygen <TARGET DIRECTORY>
+```
+
+### Usage
+To run the Contracts make sure you are in the folder of your required contract.
+#### Install
+Make sure `wasm32-unknown-unknown` is installed.
+```
+make prepare
+```
+
+It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
+available in your PATH to reduce the size of compiled Wasm.
+
+#### Build Individual Smart Contract
+Run this command to build Smart Contract.
+```
+make build-contract
+```
+<br>**Note:** User needs to be in the desired project folder to build contracts and User needs to run `make build-contract` in every project to make wasms to avoid errors
+
+#### Build All Smart Contracts
+Run this command in main folder to build all Smart Contract.
+```
+make all
+```
+
+#### Individual Test Cases
+Run this command to run Test Cases.
+```
+make test
+```
+<br>**Note:** User needs to be in the desired project folder to run test cases
+
+#### All Test Cases
+Run this command in main folder to run all contract's Test Cases.
+```
+make test
 ```
 
 ### Testing <a name="testing"></a>
@@ -144,15 +231,15 @@ All contracts have already being deployed. Inorder to interact with the specific
 
 Network| Contract Name | Account info contract hash | Contract owner
 ---|---|---|---
-Testnet| ERC20 | `hash-621dd1f5d73c70b43c9b85b6bf549326b65d3cd7fb2cd28067b378998ad3bf8d` | Casper
+Testnet| ERC20 | `hash-279445c140615fd511759dfb96c610dee212769913f61a57b0f9dde42d6a8d10` | Casper
 Association
-Testnet| WCSPR | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper
+Testnet| WCSPR | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b` | Casper
 Association
-Testnet| FLASHSWAPPER | ` hash-fbfeda8b97f056f526f20c2fc2b486d9bdbfb3e46b9a164527e57c0c86e68612` | Casper
+Testnet| FLASHSWAPPER | ` hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` | Casper
 Association
-Testnet| PAIR | `hash-8e6fbaae9f5ff3bb3cca7cb15723b2a47917d074922575187cb136e8d4b169a7` | Casper
+Testnet| PAIR | `hash-de6ba94b699dad44e12bf98e35c1122eed7dba9eed8af6d8952875afaec8c7dd` | Casper
 Association
-Testnet| FACTORY | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper
+Testnet| FACTORY | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper
 Association
 
 
@@ -311,7 +398,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key
+from | Key
 amount | U256
 
 This method **returns** nothing.
@@ -352,6 +439,7 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
+    --session-arg="decimals:u8='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -391,7 +479,6 @@ This method **returns** nothing.
 
 - #### approve <a id="wcspr-approve"></a>
 Lets `self.get_caller()` set their allowance for a spender.
-
 <br>user needs to call this `approve` method before calling the `transfer_from` method.
 
 Following is the table of parameters.
@@ -404,7 +491,7 @@ amount | U256
 This method **returns** nothing.
 
 - #### balance_of <a id="wcspr-balance-of"></a>
-This method will return the balance of owner in `ERC20 Contract` .
+This method will return the balance of owner in `WCSPR Contract` .
 
 Following is the table of parameters.
 
@@ -452,7 +539,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-from | Key
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -507,8 +594,8 @@ Before deploying `PAIR Contract`, you would need to deploy other contracts first
 
 Name | Network | Account info contract hash | Contract owner
 ---|---|---|---
-Factory | Testnet | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper Association
-Flash Swapper | Testnet | ` hash-fbfeda8b97f056f526f20c2fc2b486d9bdbfb3e46b9a164527e57c0c86e68612` | Casper Association
+Factory | Testnet | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper Association
+Flash Swapper | Testnet | ` hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` | Casper Association
 
 
 
@@ -538,10 +625,9 @@ sudo casper-client put-deploy \
     --session-path path_to_wasm_file \
     --payment-amount 10000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
-    --session-arg="name:string='token-name'" \
-    --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
+    --session-arg="uniswap_v2_factory:Key='Hash of factory Contract'" \
+    --session-arg="wcspr:Key='Hash of WCSPR Contract'" \
+    --session-arg="dai:Key='Hash of DAI Contract'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -580,7 +666,7 @@ This method **returns** nothing.
 
 - #### swap <a id="pair-swap"></a>
 Swaps tokens. For regular swaps, ` data.length ` must be ` 0 `.
-<br> **Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `pair contract` so they have some balance in them. To call the `swap` method the user needs to call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method.
+<br> **Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `swap` method the user needs to have some balance in `reserve0` and `reserve1`.
 
 Following is the table of parameters.
 
@@ -595,7 +681,7 @@ data | String
 This method **returns** nothing.
 
 - #### skim <a id="pair-skim"></a>
-<br>**Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. To call the `skim` method the user needs to call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `skim` method the user needs to have some balance in `reserve0` and `reserve1`.
 
 Following is the table of parameters.
 
@@ -608,7 +694,7 @@ This method **returns** nothing.
 
 
 - #### sync <a id="pair-sync"></a>
-<br>**Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. Then call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them.
 
 Following is the table of parameters.
 
@@ -706,7 +792,7 @@ This method **returns** U256.
 
 - #### mint <a id="pair-mint"></a>
 Creates pool tokens.
-<br>**Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. Then call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method. To call the mint user needs to do all the above steps so he can proceed flawlessly.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1`, To call the mint user needs to do all the above steps so he can proceed flawlessly.
 
 Following is the table of parameters.
 
@@ -718,7 +804,7 @@ This method **returns** U256.
 
 - #### burn <a id="pair-burn"></a>
 Destroys pool tokens.
-<br>**Note:** User needs to mint tokens before burning them. And user needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` method of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. Then call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method. To call the burn user needs to do all the above steps so he can proceed flawlessly.
+<br>**Note:** User needs to mint tokens before burning them. And user needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` method of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1`. To call the burn user needs to do all the above steps so he can proceed flawlessly.
 
 
 Following is the table of parameters.
@@ -965,9 +1051,9 @@ Before deploying `Flash Swapper Contract`, you would need to deploy other contra
 
 Name | Network | Account info contract hash | Contract owner
 ---|---|---|---
-Factory | Testnet | `hash-5028190b8a5b6addbf3d51ee2c6ae5b913f09223d65eff9bcf5985f74ae976ec` | Casper Association
-Wcspr | Testnet | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper Association
-Dai | Testnet | `hash-083756dee38a7e3a8a7190a17623cfbc8bc107511de206f03c3dbd1af5463a45` | Casper Association
+Factory | Testnet | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper Association
+Wcspr | Testnet | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b` | Casper Association
+Dai | Testnet | `hash-ffb8fa3073c7623484f76d79bc8baad110b24936b92d5ebc854d401895e88c95` | Casper Association
 
 
 ### Manual Deployment <a id="flash-swapper-manual-deployment"></a>
@@ -998,6 +1084,7 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
+    --session-arg="decimals:u8='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -1013,7 +1100,6 @@ sudo casper-client put-deploy \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
     --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
