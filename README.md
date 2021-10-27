@@ -112,6 +112,9 @@ rustup toolchain list
 #Set rust nightly as default
 rustup default nightly
 
+# Install wasm32-unknown-unknown
+rustup target add wasm32-unknown-unknown
+
 #rust Version
 rustup --version
 
