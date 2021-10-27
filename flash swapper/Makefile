@@ -1,10 +1,10 @@
 uniswap_core_directory = ../
 
-erc20_contract = ${uniswap_core_directory}/erc20/
-factory_contract = ${uniswap_core_directory}/factory/
-flash_swapper_contract = ${uniswap_core_directory}/flash\ swapper/
-pair_contract = ${uniswap_core_directory}/pair/
-wcspr_contract = ${uniswap_core_directory}/wcspr/
+erc20_contract = ${uniswap_core_directory}erc20/
+factory_contract = ${uniswap_core_directory}factory/
+flash_swapper_contract = ${uniswap_core_directory}flash\ swapper/
+pair_contract = ${uniswap_core_directory}pair/
+wcspr_contract = ${uniswap_core_directory}wcspr/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
 
@@ -18,7 +18,7 @@ build-contract:
 
 build-test-contract:
 	cargo build --release -p test --target wasm32-unknown-unknown
-	wasm-strip target/wasm32-unknown-unknown/release/test-token.wasm 2>/dev/null | true
+	wasm-strip target/wasm32-unknown-unknown/release/test-contract.wasm 2>/dev/null | true
 
 test-only:
 	cargo test -p flash_swapper-tests

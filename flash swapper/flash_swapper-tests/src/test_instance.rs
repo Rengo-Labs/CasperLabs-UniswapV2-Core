@@ -11,7 +11,7 @@ impl TESTInstance {
     pub fn new(env: &TestEnv, contract_name: &str, sender: Sender, name: &str) -> TESTInstance {
         TESTInstance(TestContract::new(
             env,
-            "test-token.wasm",
+            "test-contract.wasm",
             contract_name,
             sender,
             runtime_args! {
