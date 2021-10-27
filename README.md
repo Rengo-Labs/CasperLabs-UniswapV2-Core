@@ -1,8 +1,8 @@
-# Scytalelabs-UniswapV2Core
+# Uniswap V2 Core - Casper Blockchain
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
 ## Steps
-There are 5 contracts in this folder 
+There are 5 contracts in this folder
 1) ERC20 Token Contract
 2) Pair Contract
 3) Factory Contract
@@ -138,12 +138,12 @@ sudo apt-key add casper-repo-pubkey.ascr
 sudo apt update
 
 # Install the Casper client software
-Install Casper-client 
+Install Casper-client
 
 cargo +nightly install casper-client
 
 # To check Casper Client Version
-Casper-client --version 
+Casper-client --version
 
 # Commands for help
 casper-client --help
@@ -182,14 +182,14 @@ Run this command in main folder to build all Smart Contract.
 make all
 ```
 
-#### Individual Test Cases 
+#### Individual Test Cases
 Run this command to run Test Cases.
 ```
 make test
 ```
 <br>**Note:** User needs to be in the desired project folder to run test cases
 
-#### All Test Cases 
+#### All Test Cases
 Run this command in main folder to run all contract's Test Cases.
 ```
 make test
@@ -201,15 +201,15 @@ All contracts have already being deployed. Inorder to interact with the specific
 
 Network| Contract Name | Account info contract hash | Contract owner
 ---|---|---|---
-Testnet| ERC20 | `hash-279445c140615fd511759dfb96c610dee212769913f61a57b0f9dde42d6a8d10` | Casper 
+Testnet| ERC20 | `hash-279445c140615fd511759dfb96c610dee212769913f61a57b0f9dde42d6a8d10` | Casper
 Association
-Testnet| WCSPR | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b` | Casper 
+Testnet| WCSPR | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b` | Casper
 Association
-Testnet| FLASHSWAPPER | ` hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` | Casper 
+Testnet| FLASHSWAPPER | ` hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` | Casper
 Association
-Testnet| PAIR | `hash-de6ba94b699dad44e12bf98e35c1122eed7dba9eed8af6d8952875afaec8c7dd` | Casper 
+Testnet| PAIR | `hash-de6ba94b699dad44e12bf98e35c1122eed7dba9eed8af6d8952875afaec8c7dd` | Casper
 Association
-Testnet| FACTORY | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper 
+Testnet| FACTORY | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` | Casper
 Association
 
 
@@ -243,7 +243,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-recipient | Key 
+recipient | Key
 amount | U256
 
 
@@ -257,8 +257,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-recipient | Key 
+owner | Key
+recipient | Key
 amount | U256
 
 
@@ -272,7 +272,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-public | String 
+public | String
 signature | String
 owner | Key
 spender | Key
@@ -291,7 +291,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-spender | Key 
+spender | Key
 amount | U256
 
 This method **returns** nothing.
@@ -303,7 +303,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -316,7 +316,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -329,8 +329,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-spender | Key 
+owner | Key
+spender | Key
 
 
 This method **returns** U256.
@@ -355,7 +355,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -368,7 +368,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-from | Key 
+from | Key
 amount | U256
 
 This method **returns** nothing.
@@ -424,7 +424,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-recipient | Key 
+recipient | Key
 amount | U256
 
 
@@ -439,8 +439,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-recipient | Key 
+owner | Key
+recipient | Key
 amount | U256
 
 
@@ -455,7 +455,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-spender | Key 
+spender | Key
 amount | U256
 
 This method **returns** nothing.
@@ -467,7 +467,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 This method **returns** U256.
 
@@ -478,8 +478,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-spender | Key 
+owner | Key
+spender | Key
 
 This method **returns** U256.
 
@@ -496,7 +496,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 purse | URef
 
 This method **returns** nothing.
@@ -509,7 +509,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -612,7 +612,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-recipient | Key 
+recipient | Key
 amount | U256
 
 
@@ -627,8 +627,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-recipient | Key 
+owner | Key
+recipient | Key
 amount | U256
 
 
@@ -642,8 +642,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-amount0_out | U256 
-amount1_out | U256 
+amount0_out | U256
+amount1_out | U256
 to | Key
 data | String
 
@@ -682,7 +682,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-public | String 
+public | String
 signature | String
 owner | Key
 spender | Key
@@ -701,7 +701,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-spender | Key 
+spender | Key
 amount | U256
 
 
@@ -715,7 +715,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -728,7 +728,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
+owner | Key
 
 
 This method **returns** U256.
@@ -741,8 +741,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-owner | Key 
-spender | Key 
+owner | Key
+spender | Key
 
 
 This method **returns** U256.
@@ -781,7 +781,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 
 This method **returns** Tuple(U256, U256).
 
@@ -867,7 +867,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+to | Key
 amount | U256
 
 This method **returns** nothing.
@@ -900,9 +900,9 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-token_a | Key 
-token_b | Key 
-pair_hash | Key 
+token_a | Key
+token_b | Key
+pair_hash | Key
 
 
 This method **returns** nothing.
@@ -916,8 +916,8 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-token0 | Key 
-token1 | Key 
+token0 | Key
+token1 | Key
 
 
 This method **returns** Key.
@@ -1084,7 +1084,7 @@ This method will start swap.
 - simple_flash_loan
 This method will be invoked if both tokens (token_borrow and token_pay) are the same.
 - simple_flash_swap
-This method will be invoked if both tokens (token_borrow and token_pay) are not the same. one of them must be equal to 
+This method will be invoked if both tokens (token_borrow and token_pay) are not the same. one of them must be equal to
 “Hash-0000000000000000000000000000000000000000000000000000000000000000”
 - triangular_flash_swap
 This method will be invoked if both tokens (token_borrow and token_pay) are not the same.
@@ -1094,7 +1094,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-token_borrow | Key 
+token_borrow | Key
 amount | U256
 token_pay | Key
 user_data | String
@@ -1103,7 +1103,7 @@ This method **returns** nothing.
 
 
 - #### uniswap_v2_call <a id="flash-swapper-uniswap-v2-call"></a>
-This method is called by `swap` method of `pair contract`. 
+This method is called by `swap` method of `pair contract`.
 <br>the sender must be a `Flash Swapper Contract` hash if user data has some value.
 `Uniswap_v2_call` must be called from a contract. Users cannot directly invoke this method.
 
@@ -1112,7 +1112,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-sender | Key 
+sender | Key
 amount0 | U256
 amount1 | U256
 data | String
