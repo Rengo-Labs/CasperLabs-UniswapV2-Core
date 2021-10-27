@@ -16,8 +16,10 @@ There are 5 contracts in this folder
   - [Creating Keys](#creating-keys)
   - [Usage](#usage)
     - [Install](#install)
-    - [Build Smart Contract](#build-smart-contract)
-    - [Test](#test)
+    - [Build Individual Smart Contract](#build-individual-smart-contract)
+    - [Build All Smart Contracts](#build-all-smart-contracts)
+    - [Individual Test Cases](#individual-test-cases)
+    - [All Test Cases](#all-test-cases)
   - [Known contract hashes](#known-contract-hashes)
 - [Deploying ERC20 contract manually](#deploying-erc20-contract-manually)
   - [Entry Point methods](#erc20-entry-point-methods)
@@ -167,14 +169,28 @@ make prepare
 It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
 available in your PATH to reduce the size of compiled Wasm.
 
-#### Build Smart Contract
+#### Build Individual Smart Contract
 Run this command to build Smart Contract.
 ```
 make build-contract
 ```
+<br>**Note:** User needs to be in the desired project folder to build contracts and User needs to run `make build-contract` in every project to make wasms to avoid errors
 
-#### Test
+#### Build All Smart Contracts
+Run this command in main folder to build all Smart Contract.
+```
+make all
+```
+
+#### Individual Test Cases 
 Run this command to run Test Cases.
+```
+make test
+```
+<br>**Note:** User needs to be in the desired project folder to run test cases
+
+#### All Test Cases 
+Run this command in main folder to run all contract's Test Cases.
 ```
 make test
 ```
