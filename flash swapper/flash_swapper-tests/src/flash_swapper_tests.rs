@@ -41,27 +41,27 @@ fn deploy_wcspr(env: &TestEnv) -> TestContract {
     wcspr
 }
 
-fn deploy_pair(env: &TestEnv, factory: &TestContract, calle: Key) -> TestContract {
-    // deploy wcspr contract
-    let decimals: u8 = 18;
-    let init_total_supply: U256 = 1000.into();
-    let owner_pair = env.next_user();
-    let pair = TestContract::new(
-        &env,
-        "pair-token.wasm",
-        "pair",
-        Sender(owner_pair),
-        runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "ERC20",
-            "symbol" => "ERC",
-            "decimals" => decimals,
-            "callee_contract_hash" => calle,
-            "factory_hash" => Key::Hash(factory.contract_hash())
-        },
-    );
-    pair
-}
+// fn deploy_pair(env: &TestEnv, factory: &TestContract, calle: Key) -> TestContract {
+//     // deploy wcspr contract
+//     let decimals: u8 = 18;
+//     let init_total_supply: U256 = 1000.into();
+//     let owner_pair = env.next_user();
+//     let pair = TestContract::new(
+//         &env,
+//         "pair-token.wasm",
+//         "pair",
+//         Sender(owner_pair),
+//         runtime_args! {
+//             "initial_supply" => init_total_supply,
+//             "name" => "ERC20",
+//             "symbol" => "ERC",
+//             "decimals" => decimals,
+//             "callee_contract_hash" => calle,
+//             "factory_hash" => Key::Hash(factory.contract_hash())
+//         },
+//     );
+//     pair
+// }
 
 fn deploy_flash_swapper() -> (
     TestEnv,
