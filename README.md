@@ -280,7 +280,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-to | Key 
+from | Key 
 amount | U256
 
 This method **returns** nothing.
@@ -321,6 +321,7 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
+    --session-arg="decimals:u8='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -360,7 +361,6 @@ This method **returns** nothing.
 
 - #### approve <a id="wcspr-approve"></a>
 Lets `self.get_caller()` set their allowance for a spender.
-
 <br>user needs to call this `approve` method before calling the `transfer_from` method.
 
 Following is the table of parameters.
@@ -373,7 +373,7 @@ amount | U256
 This method **returns** nothing.
 
 - #### balance_of <a id="wcspr-balance-of"></a>
-This method will return the balance of owner in `ERC20 Contract` .
+This method will return the balance of owner in `WCSPR Contract` .
 
 Following is the table of parameters.
 
@@ -421,7 +421,7 @@ Following is the table of parameters.
 
 Parameter Name | Type
 ---|---
-from | Key 
+to | Key 
 amount | U256
 
 This method **returns** nothing.
@@ -507,10 +507,9 @@ sudo casper-client put-deploy \
     --session-path path_to_wasm_file \
     --payment-amount 10000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
-    --session-arg="name:string='token-name'" \
-    --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
+    --session-arg="uniswap_v2_factory:Key='Hash of factory Contract'" \
+    --session-arg="wcspr:Key='Hash of WCSPR Contract'" \
+    --session-arg="dai:Key='Hash of DAI Contract'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -549,7 +548,7 @@ This method **returns** nothing.
 
 - #### swap <a id="pair-swap"></a>
 Swaps tokens. For regular swaps, ` data.length ` must be ` 0 `.
-<br> **Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `pair contract` so they have some balance in them. To call the `swap` method the user needs to call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method.
+<br> **Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `swap` method the user needs to have some balance in `reserve0` and `reserve1`.
 
 Following is the table of parameters.
 
@@ -564,7 +563,7 @@ data | String
 This method **returns** nothing.
 
 - #### skim <a id="pair-skim"></a>
-<br>**Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. To call the `skim` method the user needs to call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `skim` method the user needs to have some balance in `reserve0` and `reserve1`.
 
 Following is the table of parameters.
 
@@ -577,7 +576,7 @@ This method **returns** nothing.
 
 
 - #### sync <a id="pair-sync"></a>
-<br>**Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. Then call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them.
 
 Following is the table of parameters.
 
@@ -675,7 +674,7 @@ This method **returns** U256.
 
 - #### mint <a id="pair-mint"></a>
 Creates pool tokens.
-<br>**Note:** User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. Then call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method. To call the mint user needs to do all the above steps so he can proceed flawlessly.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1`, To call the mint user needs to do all the above steps so he can proceed flawlessly.
 
 Following is the table of parameters.
 
@@ -687,7 +686,7 @@ This method **returns** U256.
 
 - #### burn <a id="pair-burn"></a>
 Destroys pool tokens.
-<br>**Note:** User needs to mint tokens before burning them. And user needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` method of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` so they have some balance in them. Then call the `sync` method which updates the `reserve0` and `reserve1` with the amount that was minted by the `erc20_mint` method. To call the burn user needs to do all the above steps so he can proceed flawlessly.
+<br>**Note:** User needs to mint tokens before burning them. And user needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` method of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1`. To call the burn user needs to do all the above steps so he can proceed flawlessly.
 
 
 Following is the table of parameters.
@@ -967,6 +966,7 @@ sudo casper-client put-deploy \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
+    --session-arg="decimals:u8='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -982,7 +982,6 @@ sudo casper-client put-deploy \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
     --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
     --session-arg="contract_name:string='contract_name'"
 ```
 
