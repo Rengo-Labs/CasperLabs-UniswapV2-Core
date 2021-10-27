@@ -9,12 +9,15 @@ There are 5 contracts in this folder
 4) FLASH SWAPPER Contract
 5) WCSPR Contract
 
-To run the Contracts make sure you are in the folder of your required contract.
-
 ## Table of contents
 
 - [Interacting with the contract](#interacting-with-the-contract)
   - [Install the prerequisites](#install-the-prerequisites)
+  - [Creating Keys](#creating-keys)
+  - [Usage](#usage)
+    - [Install](#install)
+    - [Build Smart Contract](#build-smart-contract)
+    - [Test](#test)
   - [Known contract hashes](#known-contract-hashes)
 - [Deploying ERC20 contract manually](#deploying-erc20-contract-manually)
   - [Entry Point methods](#erc20-entry-point-methods)
@@ -97,14 +100,79 @@ sudo apt update
 # Install the command-line JSON processor
 sudo apt install jq -y
 
+# Install rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+#Install the nightly version (by default stable toolchain is installed)
+rustup install nightly
+
+#Check that nightly toolchain version is installed(this will list stable and nightly versions)
+rustup toolchain list
+
+#Set rust nightly as default
+rustup default nightly
+
+#rust Version
+rustup --version
+
+#Install Cmake
+ sudo apt-get -y install cmake
+
+Note:https://cgold.readthedocs.io/en/latest/first-step/installation.html
+
+#cmake Version
+cmake --version
+
+#Installing the Casper Crates
+cargo install cargo-casper
+
 # Add Casper repository
 echo "deb https://repo.casperlabs.io/releases" bionic main | sudo tee -a /etc/apt/sources.list.d/casper.list
 curl -O https://repo.casperlabs.io/casper-repo-pubkey.asc
-sudo apt-key add casper-repo-pubkey.asc
+sudo apt-key add casper-repo-pubkey.ascr
 sudo apt update
 
 # Install the Casper client software
-sudo apt install casper-client -y
+Install Casper-client 
+
+cargo +nightly install casper-client
+
+# To check Casper Client Version
+Casper-client --version 
+
+# Commands for help
+casper-client --help
+
+casper-client <command> --help
+
+```
+### Creating Keys
+
+```bash
+# Create keys
+casper-client keygen <TARGET DIRECTORY>
+```
+
+### Usage
+To run the Contracts make sure you are in the folder of your required contract.
+#### Install
+Make sure `wasm32-unknown-unknown` is installed.
+```
+make prepare
+```
+
+It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
+available in your PATH to reduce the size of compiled Wasm.
+
+#### Build Smart Contract
+```
+make build-contract
+```
+
+#### Test
+Test logic and smart contract.
+```
+make test
 ```
 
 ### Known contract hashes
