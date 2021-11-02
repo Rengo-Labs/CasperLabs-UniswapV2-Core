@@ -36,6 +36,13 @@ fn test_wcspr_transfer() {
 }
 
 #[test]
+fn test_wcspr_transfer_with_same_sender_and_recipient() {
+    let (_env, token, owner) = deploy();
+    let amount = 10.into();
+    token.transfer(Sender(owner), owner, amount);
+}
+
+#[test]
 #[should_panic]
 fn test_wcspr_transfer_too_much() {
     let (env, token, owner) = deploy();

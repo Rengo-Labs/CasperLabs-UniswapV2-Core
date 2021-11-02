@@ -163,6 +163,14 @@ fn test_pair_transfer() {
 }
 
 #[test]
+fn test_pair_transfer_with_same_sender_and_recipient() {
+    let (_env, token, owner, _factory_hash, _test) = deploy();
+    let amount = 10.into();
+    token.transfer(Sender(owner), owner, amount);
+    assert_eq!(token.balance_of(owner), U256::from(INIT_TOTAL_SUPPLY));
+}
+
+#[test]
 #[should_panic]
 fn test_pair_transfer_too_much() {
     let (env, token, owner, _factory_hash, _test) = deploy();

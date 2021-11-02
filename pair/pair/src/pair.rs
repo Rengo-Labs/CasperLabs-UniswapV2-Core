@@ -436,11 +436,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) {
-        let balances = Balances::instance();
-        let sender_balance = balances.get(&sender);
-        let recipient_balance = balances.get(&recipient);
-        balances.set(&sender, sender_balance - amount);
-        balances.set(&recipient, recipient_balance + amount);
+        if sender != recipient && amount != 0.into() {
+            let balances: Balances = Balances::instance();
+            let sender_balance: U256 = balances.get(&sender);
+            let recipient_balance: U256 = balances.get(&recipient);
+            balances.set(&sender, sender_balance - amount);
+            balances.set(&recipient, recipient_balance + amount);
+        }
     }
 
     fn set_treasury_fee_percent(&mut self, treasury_fee: U256) {
