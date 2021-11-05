@@ -242,6 +242,19 @@ fn mint() {
     runtime::ret(CLValue::from_t(liquidity).unwrap_or_revert());
 }
 
+/// This function is to mint token against the address that user provided
+///
+/// # Parameters
+///
+/// * `to` - A Key that holds the account address of the user
+///  
+
+#[no_mangle]
+fn mint_js_client() {
+    let to: Key = runtime::get_named_arg("to");
+    let _liquidity: U256 = Pair::default().mint_helper(to);
+}
+
 /// This function is to mint token against the address that user provided with the amount
 ///
 /// # Parameters
@@ -270,6 +283,19 @@ fn burn() {
     let to: Key = runtime::get_named_arg("to");
     let (amount0, amount1): (U256, U256) = Pair::default().burn_helper(to);
     runtime::ret(CLValue::from_t((amount0, amount1)).unwrap_or_revert());
+}
+
+/// This function is to burn token against the address that user provided
+///
+/// # Parameters
+///
+/// * `from` - A Key that holds the account address of the user
+///
+
+#[no_mangle]
+fn burn_js_client() {
+    let to: Key = runtime::get_named_arg("to");
+    let (_amount0, _amount1): (U256, U256) = Pair::default().burn_helper(to);
 }
 
 /// This function is to get a balance of a owner provided by user
@@ -538,9 +564,23 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "mint_js_client",
+        vec![Parameter::new("to", Key::cl_type())],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "burn",
         vec![Parameter::new("to", Key::cl_type())],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "burn_js_client",
+        vec![Parameter::new("to", Key::cl_type())],
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -647,7 +687,8 @@ fn call() {
     let permit_type_hash = keccak256(permit_type.as_bytes()); // to take a byte hash of Permit Type
     let domain_separator = encode(domain_separator);
     let permit_type_hash = encode(permit_type_hash);
-    let minimum_liquidity: U256 = (10 ^ 3).into();
+    let base: i32 = 10;
+    let minimum_liquidity: U256 = (base.pow(3)).into();
     let reserve0: U128 = 0.into();
     let reserve1: U128 = 0.into();
     let block_timestamp_last: u64 = 0;

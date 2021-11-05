@@ -169,6 +169,26 @@ impl PAIRInstance {
         );
     }
 
+    pub fn mint_js_client<T: Into<Key>>(&self, sender: Sender, to: T) {
+        self.0.call_contract(
+            sender,
+            "mint_js_client",
+            runtime_args! {
+                "to" => to.into(),
+            },
+        );
+    }
+
+    pub fn burn_js_client<T: Into<Key>>(&self, sender: Sender, to: T) {
+        self.0.call_contract(
+            sender,
+            "burn_js_client",
+            runtime_args! {
+                "to" => to.into(),
+            },
+        );
+    }
+
     pub fn swap<T: Into<Key>>(
         &self,
         sender: Sender,

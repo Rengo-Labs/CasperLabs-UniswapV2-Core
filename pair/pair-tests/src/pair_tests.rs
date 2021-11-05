@@ -9,6 +9,7 @@ const NAME: &str = "ERC20";
 const SYMBOL: &str = "ERC";
 const DECIMALS: u8 = 8;
 const INIT_TOTAL_SUPPLY: u64 = 1000;
+const INIT_TOTAL_SUPPLY_ZERO: u64 = 0;
 
 fn deploy_wcspr(env: &TestEnv) -> TestContract {
     // deploy wcspr contract
@@ -86,6 +87,49 @@ fn deploy() -> (
         SYMBOL,
         DECIMALS,
         INIT_TOTAL_SUPPLY.into(),
+        Key::Hash(callee_contract.contract_hash()),
+        Key::Hash(factory_contract.contract_hash()),
+    );
+    let test = TESTInstance::new(&env, "TEST", Sender(owner), "TEST");
+    (env, token, owner, factory_contract, test)
+}
+fn deploy1() -> (
+    TestEnv,
+    PAIRInstance,
+    AccountHash,
+    TestContract,
+    TESTInstance,
+) {
+    let env = TestEnv::new();
+    let owner = env.next_user();
+
+    // deploy factory contract
+    let _env_factory = TestEnv::new();
+    // let owner_factory = env.next_user();
+
+    let factory_contract = deploy_factory(&env, owner);
+    let wcspr = deploy_wcspr(&env);
+    let dai = deploy_wcspr(&env);
+    let callee_contract = TestContract::new(
+        //&env_factory,
+        &env,
+        "flash-swapper.wasm",
+        "flash_swapper",
+        Sender(owner),
+        runtime_args! {
+            "wcspr" => Key::Hash(wcspr.contract_hash()),
+            "dai" => Key::Hash(dai.contract_hash()),
+            "uniswap_v2_factory" => Key::Hash(factory_contract.contract_hash())
+        },
+    );
+    let token = PAIRInstance::new(
+        &env,
+        NAME,
+        Sender(owner),
+        NAME,
+        SYMBOL,
+        DECIMALS,
+        INIT_TOTAL_SUPPLY_ZERO.into(),
         Key::Hash(callee_contract.contract_hash()),
         Key::Hash(factory_contract.contract_hash()),
     );
@@ -255,6 +299,76 @@ fn test_pair_skim() {
     );
     token.skim(Sender(owner), user);
 }
+
+#[test]
+fn test_pair_mint() {
+    let (env, token, owner, factory_hash, test) = deploy1();
+    let user = env.next_user();
+    let token0 = deploy_token0(&env);
+    let token1 = deploy_token1(&env);
+    let token0 = Key::Hash(token0.contract_hash());
+    let token1 = Key::Hash(token1.contract_hash());
+    let factory_hash = Key::Hash(factory_hash.contract_hash());
+    let amount0: U256 = 1000.into();
+    let amount1: U256 = 1000.into();
+
+    token.initialize(Sender(owner), token0, token1, factory_hash);
+    assert_eq!(token.token0(), token0);
+    assert_eq!(token.token1(), token1);
+    assert_eq!(token.factory_hash(), factory_hash);
+
+    test.mint_with_caller(
+        Sender(owner),
+        token0,
+        Key::from(token.self_package_hash()),
+        amount0,
+    );
+    test.mint_with_caller(
+        Sender(owner),
+        token1,
+        Key::from(token.self_package_hash()),
+        amount1,
+    );
+    // token.erc20_mint(Sender(owner), user, amount0);
+    // token.erc20_mint(Sender(owner), user, amount1);
+    token.mint_js_client(Sender(owner), user);
+    // token.mint_js_client(Sender(owner), user);
+}
+
+#[test]
+fn test_pair_burn() {
+    let (env, token, owner, factory_hash, test) = deploy1();
+    let user = env.next_user();
+    let token0 = deploy_token0(&env);
+    let token1 = deploy_token1(&env);
+    let token0 = Key::Hash(token0.contract_hash());
+    let token1 = Key::Hash(token1.contract_hash());
+    let factory_hash = Key::Hash(factory_hash.contract_hash());
+    let amount0: U256 = 1000.into();
+    let amount1: U256 = 1000.into();
+
+    token.initialize(Sender(owner), token0, token1, factory_hash);
+    assert_eq!(token.token0(), token0);
+    assert_eq!(token.token1(), token1);
+    assert_eq!(token.factory_hash(), factory_hash);
+
+    test.mint_with_caller(
+        Sender(owner),
+        token0,
+        Key::from(token.self_package_hash()),
+        amount0,
+    );
+    test.mint_with_caller(
+        Sender(owner),
+        token1,
+        Key::from(token.self_package_hash()),
+        amount1,
+    );
+    token.mint_js_client(Sender(owner), Key::from(token.self_package_hash()));
+    // assert_eq!(token.minimum_liquidity(), 0.into());
+    token.burn_js_client(Sender(owner), user);
+}
+
 #[test]
 fn test_pair_sync() {
     let (env, token, owner, factory_hash, test) = deploy();
@@ -337,10 +451,6 @@ fn test_pair_swap() {
         Key::from(token.self_package_hash()),
         amount,
     );
-    // token.erc20_mint(Sender(owner), token0, amount);
-    // token.erc20_mint(Sender(owner), token1, amount);
-    // assert_eq!(token.balance_of(token0), 100.into());
-    // assert_eq!(token.balance_of(token1), 100.into());
     token.swap(Sender(owner), amount2, amount3, user, data);
 }
 
