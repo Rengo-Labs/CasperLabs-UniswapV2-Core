@@ -5,9 +5,17 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::system::mint::Error as MintError;
-use casper_types::{Key, URef, U256, U512};
+use casper_types::{ApiError, Key, URef, U256, U512};
 use contract_utils::{ContractContext, ContractStorage};
 
+/// Enum for FailureCode, It represents codes for different smart contract errors.
+#[repr(u16)]
+pub enum FailureCode {
+    /// 65,536 for (UniswapV2: OVERFLOW)
+    Zero = 0,
+    /// 65,537 for (UniswapV2: UNDERFLOW)
+    One,
+}
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     fn init(&mut self, name: String, symbol: String, decimals: u8, contract_hash: Key) {
         data::set_name(name);
@@ -41,7 +49,14 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let allowances = Allowances::instance();
         let spender = self.get_caller();
         let spender_allowance = allowances.get(&owner, &spender);
-        allowances.set(&owner, &spender, spender_allowance - amount);
+        allowances.set(
+            &owner,
+            &spender,
+            spender_allowance
+                .checked_sub(amount)
+                .ok_or(ApiError::User(FailureCode::One as u16))
+                .unwrap_or_revert(),
+        );
         self.make_transfer(owner, recipient, amount);
     }
 
@@ -64,7 +79,13 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             let caller = self.get_caller();
             let balances = Balances::instance();
             let balance = balances.get(&caller);
-            balances.set(&caller, balance + amount_to_transfer_u256);
+            balances.set(
+                &caller,
+                balance
+                    .checked_add(amount_to_transfer_u256)
+                    .ok_or(ApiError::User(FailureCode::Zero as u16))
+                    .unwrap_or_revert(),
+            );
         } else {
             runtime::revert(MintError::InsufficientFunds);
         }
@@ -90,7 +111,13 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             )
             .unwrap_or_revert();
 
-            balances.set(&caller, balance - cspr_amount_u256)
+            balances.set(
+                &caller,
+                balance
+                    .checked_sub(cspr_amount_u256)
+                    .ok_or(ApiError::User(FailureCode::One as u16))
+                    .unwrap_or_revert(),
+            )
         }
     }
 
@@ -99,8 +126,20 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             let balances: Balances = Balances::instance();
             let sender_balance: U256 = balances.get(&sender);
             let recipient_balance: U256 = balances.get(&recipient);
-            balances.set(&sender, sender_balance - amount);
-            balances.set(&recipient, recipient_balance + amount);
+            balances.set(
+                &sender,
+                sender_balance
+                    .checked_sub(amount)
+                    .ok_or(ApiError::User(FailureCode::One as u16))
+                    .unwrap_or_revert(),
+            );
+            balances.set(
+                &recipient,
+                recipient_balance
+                    .checked_add(amount)
+                    .ok_or(ApiError::User(FailureCode::Zero as u16))
+                    .unwrap_or_revert(),
+            );
         }
     }
 

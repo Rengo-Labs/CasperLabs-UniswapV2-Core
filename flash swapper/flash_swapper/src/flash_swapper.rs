@@ -2,6 +2,7 @@ use alloc::{format, string::String, vec::Vec};
 
 use casper_contract::contract_api::account;
 use casper_contract::contract_api::runtime::{self, call_contract};
+use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::{runtime_args, ApiError, ContractHash, Key, RuntimeArgs, URef, U256, U512};
 use contract_utils::{ContractContext, ContractStorage};
 
@@ -18,6 +19,10 @@ enum FailureCode {
     Two,
     //  65,539 for (_amount is too big)
     Three,
+    /// 65,540 for (UniswapV2: OVERFLOW)
+    Four,
+    /// 65,541 for (UniswapV2: UNDERFLOW)
+    Five,
 }
 
 #[repr(u16)]
@@ -261,8 +266,14 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 runtime_args! {"to" => data::get_hash(), "amount" => U512::from(_amount.as_u128())},
             );
         }
-        let fee: U256 = ((_amount * 3) / 997) + 1;
-        let amount_to_repay: U256 = _amount + fee;
+        let fee: U256 = U256::from((_amount * 3) / 997)
+            .checked_add(U256::from(1))
+            .ok_or(ApiError::User(FailureCode::Four as u16))
+            .unwrap_or_revert();
+        let amount_to_repay: U256 = _amount
+            .checked_add(fee)
+            .ok_or(ApiError::User(FailureCode::Four as u16))
+            .unwrap_or_revert();
         let token_borrowed: Key;
         let token_to_repay: Key;
         if _is_borrowing_cspr {
@@ -468,7 +479,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let amount_1: U256 = 1.into();
         let amount_to_repay: U256 = ((amount_1000 * pair_balance_token_pay * amount)
             / (amount_997 * pair_balance_token_borrow))
-            + amount_1;
+            .checked_add(amount_1)
+            .ok_or(ApiError::User(FailureCode::Four as u16))
+            .unwrap_or_revert();
         // get the orignal tokens the user requested
         let mut _token_borrowed: Key = Key::from_formatted_str(
             "hash-0000000000000000000000000000000000000000000000000000000000000000",
@@ -571,8 +584,10 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 );
 
                 if pair_balance_token_borrow_before >= amount {
-                    let pair_balance_token_borrow_after: U256 =
-                        pair_balance_token_borrow_before - amount;
+                    let pair_balance_token_borrow_after: U256 = pair_balance_token_borrow_before
+                        .checked_sub(amount)
+                        .ok_or(ApiError::User(FailureCode::Five as u16))
+                        .unwrap_or_revert();
                     //convert Key to ContractHash
                     let wcspr_address_hash_add_array = match wcspr {
                         Key::Hash(package) => package,

@@ -1,6 +1,7 @@
 use crate::data::{self, Allowances, Balances, Nonces};
 use alloc::{format, string::String, vec::Vec};
 use casper_contract::contract_api::runtime;
+use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::system::mint::Error as MintError;
 use casper_types::{ApiError, BlockTime, ContractHash, Key, U256};
 use contract_utils::set_key;
@@ -17,6 +18,10 @@ pub enum FailureCode {
     Zero = 0,
     /// 65,537 for (signature verification failed)
     One,
+    /// 65,538 for (UniswapV2: OVERFLOW)
+    Two,
+    /// 65,539 for (UniswapV2: UNDERFLOW)
+    Three,
 }
 
 pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
@@ -65,7 +70,14 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         let allowances: Allowances = Allowances::instance();
         let spender: Key = self.get_caller();
         let spender_allowance: U256 = allowances.get(&owner, &spender);
-        allowances.set(&owner, &spender, spender_allowance - amount);
+        allowances.set(
+            &owner,
+            &spender,
+            spender_allowance
+                .checked_sub(amount)
+                .ok_or(ApiError::User(FailureCode::Three as u16))
+                .unwrap_or_revert(),
+        );
         self.make_transfer(owner, recipient, amount);
     }
 
@@ -174,7 +186,13 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     fn mint(&mut self, recipient: Key, amount: U256) {
         let balances: Balances = Balances::instance();
         let balance: U256 = balances.get(&recipient);
-        balances.set(&recipient, balance + amount);
+        balances.set(
+            &recipient,
+            balance
+                .checked_add(amount)
+                .ok_or(ApiError::User(FailureCode::Two as u16))
+                .unwrap_or_revert(),
+        );
         data::set_total_supply(data::total_supply() + amount);
     }
 
@@ -182,8 +200,19 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         let balances: Balances = Balances::instance();
         let balance: U256 = balances.get(&recipient);
         if balance >= amount {
-            balances.set(&recipient, balance - amount);
-            data::set_total_supply(data::total_supply() - amount);
+            balances.set(
+                &recipient,
+                balance
+                    .checked_sub(amount)
+                    .ok_or(ApiError::User(FailureCode::Three as u16))
+                    .unwrap_or_revert(),
+            );
+            data::set_total_supply(
+                data::total_supply()
+                    .checked_sub(amount)
+                    .ok_or(ApiError::User(FailureCode::Three as u16))
+                    .unwrap_or_revert(),
+            );
         } else {
             // PosError::InsufficientPaymentForAmountSpent
             runtime::revert(MintError::InsufficientFunds)
@@ -197,12 +226,24 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) {
-        if sender != recipient && amount != 0.into(){
-        let balances: Balances = Balances::instance();
-        let sender_balance: U256 = balances.get(&sender);
-        let recipient_balance: U256 = balances.get(&recipient);
-        balances.set(&sender, sender_balance - amount);
-        balances.set(&recipient, recipient_balance + amount);
+        if sender != recipient && amount != 0.into() {
+            let balances: Balances = Balances::instance();
+            let sender_balance: U256 = balances.get(&sender);
+            let recipient_balance: U256 = balances.get(&recipient);
+            balances.set(
+                &sender,
+                sender_balance
+                    .checked_sub(amount)
+                    .ok_or(ApiError::User(FailureCode::Three as u16))
+                    .unwrap_or_revert(),
+            );
+            balances.set(
+                &recipient,
+                recipient_balance
+                    .checked_add(amount)
+                    .ok_or(ApiError::User(FailureCode::Two as u16))
+                    .unwrap_or_revert(),
+            );
         }
     }
 
