@@ -100,7 +100,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
     fn uniswap_v2_call(&mut self, _sender: Key, _amount0: U256, _amount1: U256, _data: String) {
         // access control
         let permissioned_pair_address = data::get_permissioned_pair_address();
-        if self.get_caller() == permissioned_pair_address {
+        if self.get_caller() != permissioned_pair_address {
             runtime::revert(Error::UniswapV2PermissionedPairAccess);
         }
         if _sender != data::get_hash() {
