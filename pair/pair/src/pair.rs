@@ -688,7 +688,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let fee_to: Key = runtime::call_contract(factory_hash_add, "fee_to", runtime_args! {});
         let mut fee_on: bool = false;
         if fee_to
-            == Key::from_formatted_str(
+            != Key::from_formatted_str(
                 "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
             )
             .unwrap()
