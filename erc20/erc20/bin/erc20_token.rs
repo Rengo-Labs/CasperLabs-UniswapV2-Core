@@ -32,7 +32,6 @@ impl Token {
         symbol: String,
         decimals: u8,
         initial_supply: U256,
-        nonce: U256,
         domain_separator: String,
         permit_type_hash: String,
         contract_hash: ContractHash,
@@ -47,7 +46,6 @@ impl Token {
             Key::from(contract_hash),
         );
         ERC20::mint(self, self.get_caller(), initial_supply);
-        ERC20::set_nonce(self, self.get_caller(), nonce);
     }
 }
 
@@ -57,7 +55,6 @@ fn constructor() {
     let symbol: String = runtime::get_named_arg("symbol");
     let decimals: u8 = runtime::get_named_arg("decimals");
     let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-    let nonce: U256 = runtime::get_named_arg("nonce");
     let domain_separator: String = runtime::get_named_arg("domain_separator");
     let permit_type_hash: String = runtime::get_named_arg("permit_type_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
@@ -66,7 +63,6 @@ fn constructor() {
         symbol,
         decimals,
         initial_supply,
-        nonce,
         domain_separator,
         permit_type_hash,
         contract_hash,
@@ -266,7 +262,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("symbol", String::cl_type()),
             Parameter::new("decimals", u8::cl_type()),
             Parameter::new("initial_supply", U256::cl_type()),
-            Parameter::new("nonce", U256::cl_type()),
             Parameter::new("domain_separator", String::cl_type()),
             Parameter::new("permit_type_hash", String::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
@@ -401,8 +396,6 @@ fn call() {
     let decimals: u8 = runtime::get_named_arg("decimals");
     let initial_supply: U256 = runtime::get_named_arg("initial_supply");
 
-    let nonce: U256 = 0.into();
-
     let (domain_separator, permit_type_hash) =
         Token::default().get_permit_type_and_domain_separator(&name, contract_hash);
 
@@ -412,7 +405,6 @@ fn call() {
         "symbol" => symbol,
         "decimals" => decimals,
         "initial_supply" => initial_supply,
-        "nonce" => nonce,
         "domain_separator" => domain_separator,
         "permit_type_hash" => permit_type_hash,
         "contract_hash" => contract_hash

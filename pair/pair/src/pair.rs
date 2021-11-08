@@ -43,6 +43,8 @@ pub enum FailureCode {
     Eleven,
     /// 65,548 for (UniswapV2: UNDERFLOW)
     Twelve,
+    /// 65,549 for (//UniswapV2: DENOMINATOR IS ZERO)
+    Thirteen,
 }
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
@@ -84,7 +86,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_minimum_liquidity(minimum_liquidity);
         data::set_callee_contract_hash(callee_contract_hash);
         Nonces::init();
-        self.set_nonce(Key::from(self.get_caller()), 0.into());
+        let nonces = Nonces::instance();
+        nonces.set(&Key::from(self.get_caller()), U256::from(0));
         Balances::init();
         Allowances::init();
     }
@@ -408,7 +411,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             let digest_string: String = hex::encode(digest);
             let digest_key: String = format!("{}{}", "digest_", owner);
             set_key(&digest_key, digest_string);
-            self.set_nonce(Key::from(self.get_caller()), 1.into());
+            self.set_nonce(Key::from(self.get_caller()));
             let result: bool =
                 self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
             if result == true {
@@ -463,10 +466,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    fn set_nonce(&mut self, recipient: Key, amount: U256) {
+    fn set_nonce(&mut self, recipient: Key) {
         let nonces = Nonces::instance();
         let nonce = nonces.get(&recipient);
-        nonces.set(&recipient, nonce + amount);
+        nonces.set(&recipient, nonce + U256::from(1));
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) {
@@ -703,9 +706,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                     let subtracted_root_k: U256 = root_k - root_k_last;
                     let numerator: U256 = self.total_supply() * subtracted_root_k;
                     let denominator: U256 = (root_k * treasury_fee) + root_k_last;
-                    let liquidity: U256 = numerator / denominator;
-                    if liquidity > 0.into() {
-                        self.mint(fee_to, liquidity)
+                    if denominator > U256::from(0) {
+                        let liquidity: U256 = numerator / denominator;
+                        if liquidity > 0.into() {
+                            self.mint(fee_to, liquidity)
+                        }
+                    } else {
+                        //UniswapV2: DENOMINATOR IS ZERO
+                        runtime::revert(ApiError::User(FailureCode::Thirteen as u16));
                     }
                 }
             }

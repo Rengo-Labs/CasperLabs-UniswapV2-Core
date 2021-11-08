@@ -53,7 +53,6 @@ impl Pair {
     fn constructor(&mut self, name: String, symbol: String, decimals: u8, initial_supply: U256, nonce:U256, domain_separator: String, permit_type_hash: String, contract_hash: ContractHash) {
         PAIR::init(self, name, symbol, decimals, domain_separator, permit_type_hash, Key::from(contract_hash));
         PAIR::mint(self, self.get_caller(), initial_supply);
-        PAIR::set_nonce(self, self.get_caller(), nonce);
     }
 }
 ```

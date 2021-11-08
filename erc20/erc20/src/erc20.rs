@@ -41,9 +41,10 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_permit_type_hash(permit_type_hash);
         data::set_hash(contract_hash);
         Nonces::init();
+        let nonces = Nonces::instance();
+        nonces.set(&Key::from(self.get_caller()), U256::from(0));
         Balances::init();
         Allowances::init();
-        self.set_nonce(Key::from(self.get_caller()), 0.into());
     }
 
     fn balance_of(&mut self, owner: Key) -> U256 {
@@ -168,7 +169,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
             let digest_string: String = hex::encode(digest);
             let digest_key: String = format!("{}{}", "digest_", owner);
             set_key(&digest_key, digest_string);
-            self.set_nonce(Key::from(self.get_caller()), 1.into());
+            self.set_nonce(Key::from(self.get_caller()));
             let result: bool =
                 self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
             if result == true {
@@ -219,10 +220,10 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    fn set_nonce(&mut self, recipient: Key, amount: U256) {
+    fn set_nonce(&mut self, recipient: Key) {
         let nonces: Nonces = Nonces::instance();
         let nonce: U256 = nonces.get(&recipient);
-        nonces.set(&recipient, nonce + amount);
+        nonces.set(&recipient, nonce + U256::from(1));
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) {

@@ -118,6 +118,9 @@ fn test_erc20_transfer_from() {
         token.balance_of(owner),
         U256::from(INIT_TOTAL_SUPPLY) - amount
     );
+    assert_eq!(token.nonce(owner), 0.into());
+    assert_eq!(token.nonce(spender), 0.into());
+    assert_eq!(token.nonce(recipient), 0.into());
     assert_eq!(token.balance_of(spender), 0.into());
     assert_eq!(token.balance_of(recipient), amount);
     assert_eq!(token.allowance(owner, spender), allowance - amount);
