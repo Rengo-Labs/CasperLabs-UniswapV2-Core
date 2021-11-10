@@ -43,8 +43,10 @@ pub enum FailureCode {
     Eleven,
     /// 65,548 for (UniswapV2: UNDERFLOW)
     Twelve,
-    /// 65,549 for (//UniswapV2: DENOMINATOR IS ZERO)
+    /// 65,549 for (UniswapV2: DENOMINATOR IS ZERO)
     Thirteen,
+    /// 65,550 for (UniswapV2: LOCKED)
+    Fourteen,
 }
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
@@ -67,6 +69,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         treasury_fee: U256,
         minimum_liquidity: U256,
         callee_contract_hash: Key,
+        lock: u64,
     ) {
         data::set_name(name);
         data::set_symbol(symbol);
@@ -85,6 +88,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_treasury_fee(treasury_fee);
         data::set_minimum_liquidity(minimum_liquidity);
         data::set_callee_contract_hash(callee_contract_hash);
+        data::set_lock(lock);
         Nonces::init();
         let nonces = Nonces::instance();
         nonces.set(&Key::from(self.get_caller()), U256::from(0));
@@ -128,6 +132,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn skim(&mut self, to: Key) {
+        let lock = data::get_lock();
+        if lock != 0 {
+            //UniswapV2: Locked
+            runtime::revert(ApiError::User(FailureCode::Fourteen as u16));
+        }
+        data::set_lock(1);
         let token0: Key = self.get_token0();
         let token1: Key = self.get_token1();
         let reserve0: U128 = data::get_reserve0();
@@ -170,9 +180,16 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             "transfer",
             runtime_args! {"recipient" => to,"amount" => U256::from((balance1_conversion - reserve1).as_u128()), },
         );
+        data::set_lock(0);
     }
 
     fn sync(&mut self) {
+        let lock = data::get_lock();
+        if lock != 0 {
+            //UniswapV2: Locked
+            runtime::revert(ApiError::User(FailureCode::Fourteen as u16));
+        }
+        data::set_lock(1);
         let token0: Key = self.get_token0();
         let token1: Key = self.get_token1();
         let reserve0: U128 = data::get_reserve0();
@@ -201,6 +218,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             runtime_args! {"owner" => pair_address},
         );
         self.update(balance0, balance1, reserve0, reserve1);
+        data::set_lock(0);
     }
 
     fn swap(&mut self, amount0_out: U256, amount1_out: U256, to: Key, data: String) {

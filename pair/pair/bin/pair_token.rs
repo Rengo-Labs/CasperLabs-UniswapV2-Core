@@ -51,6 +51,7 @@ impl Pair {
         minimum_liquidity: U256,
         callee_contract_hash: Key,
         factory_hash: Key,
+        lock: u64,
     ) {
         PAIR::init(
             self,
@@ -71,6 +72,7 @@ impl Pair {
             treasury_fee,
             minimum_liquidity,
             callee_contract_hash,
+            lock,
         );
         PAIR::mint(self, self.get_caller(), initial_supply);
     }
@@ -96,6 +98,7 @@ fn constructor() {
     let minimum_liquidity: U256 = runtime::get_named_arg("minimum_liquidity");
     let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    let lock: u64 = runtime::get_named_arg("lock");
     Pair::default().constructor(
         name,
         symbol,
@@ -115,6 +118,7 @@ fn constructor() {
         minimum_liquidity,
         callee_contract_hash,
         factory_hash,
+        lock,
     );
 }
 
@@ -444,6 +448,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("minimum_liquidity", U256::cl_type()),
             Parameter::new("callee_contract_hash", Key::cl_type()),
             Parameter::new("factory_hash", Key::cl_type()),
+            Parameter::new("lock", u64::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -690,7 +695,7 @@ fn call() {
     let price1_cumulative_last: U256 = 0.into();
     let k_last: U256 = 0.into(); // reserve0 * reserve1, as of immediately after the most recent liquidity event
     let treasury_fee: U256 = 3.into();
-
+    let lock: u64 = 0;
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "name" => name,
@@ -710,7 +715,8 @@ fn call() {
         "treasury_fee" => treasury_fee,
         "minimum_liquidity" => minimum_liquidity,
         "callee_contract_hash" => callee_contract_hash,
-        "factory_hash" => factory_hash
+        "factory_hash" => factory_hash,
+        "lock"=>lock
     };
 
     // Add the constructor group to the package hash with a single URef.
