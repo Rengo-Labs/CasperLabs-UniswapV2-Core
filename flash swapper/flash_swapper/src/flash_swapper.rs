@@ -296,24 +296,31 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         );
         // payback the loan
         // wrap the cspr if necessary
+        
         if _is_paying_cspr {
             let caller_purse: URef = account::get_main_purse();
-            let () = call_contract(
+            let res: Result<(), u32> = call_contract(
                 wcspr_hash_add,
                 "deposit",
                 runtime_args! { "purse" => caller_purse, "amount" => U512::from(amount_to_repay.as_u128())},
             );
+            if res.is_err(){
+                runtime::revert(ApiError::User(res.err().unwrap() as u16))
+            }
         }
         let _token_borrow_hash_add_array = match _token_borrow {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let _token_borrow_hash_add: ContractHash = ContractHash::new(_token_borrow_hash_add_array);
-        let () = call_contract(
+        let res: Result<(), u32>= call_contract(
             _token_borrow_hash_add,
             "transfer",
             runtime_args! {"recipient"=>_pair_address , "amount" => amount_to_repay},
         );
+        if res.is_err(){
+            runtime::revert(ApiError::User(res.err().unwrap() as u16))
+        }
     }
 
     /// @notice This function is used when either the _tokenBorrow or _tokenPay is wcspr or cspr
@@ -519,12 +526,19 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 "deposit",
                 runtime_args! { "purse" => caller_purse, "amount" => U512::from(amount_to_repay.as_u128())},
             );
+
+            
+            
         }
-        let () = runtime::call_contract(
+        let res: Result<(), u32> = runtime::call_contract(
             token_pay_contract_hash,
             "transfer",
             runtime_args! {"recipient" => _pair_address, "amount" => amount_to_repay},
         );
+
+        if res.is_err(){
+                runtime::revert(ApiError::User(res.err().unwrap() as u16))
+            }
     }
 
     /// @notice This function is used when neither the _tokenBorrow nor the _tokenPay is wcspr
@@ -763,11 +777,15 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let wcspr_contract_hash: ContractHash = ContractHash::new(wcspr_address_hash_add_array);
-        let () = runtime::call_contract(
+        let res: Result<(), u32> = runtime::call_contract(
             wcspr_contract_hash,
             "transfer",
             runtime_args! {"recipient" => borrow_pair_address, "amount" => amount_of_wcspr},
         );
+        if res.is_err(){
+            runtime::revert(ApiError::User(res.err().unwrap() as u16))
+        }
+
         let flash_swapper_address: Key = data::get_hash();
         let _result: () = runtime::call_contract(
             borrow_pair_contract_hash,
@@ -802,11 +820,14 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // Step 4: Do whatever the user wants (arb, liqudiation, etc)
         self.execute(token_borrow, amount, token_pay, amount_to_repay, user_data);
         // Step 5: Pay back the flash-borrow to the _tokenPay/wcspr pool
-        let () = runtime::call_contract(
+        let res: Result<(), u32>  = runtime::call_contract(
             token_pay_contract_hash,
             "transfer",
             runtime_args! {"recipient" => pay_pair_address, "amount" => amount_to_repay},
         );
+        if res.is_err(){
+            runtime::revert(ApiError::User(res.err().unwrap() as u16))
+        }
     }
 
     // @notice This is where the user's custom logic goes
