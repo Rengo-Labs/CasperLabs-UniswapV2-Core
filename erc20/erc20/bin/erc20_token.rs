@@ -75,7 +75,7 @@ fn constructor() {
 ///
 /// * `recipient` - A Key that holds the account address of the user
 ///
-/// * `amount` - A U256 that holds the amount for approve
+/// * `amount` - A U256 that holds the amount for transfer
 ///  
 
 #[no_mangle]
@@ -93,8 +93,19 @@ fn transfer() {
 ///  
 /// * `recipient` - A Key that holds the account address of the user
 ///
-/// * `amount` - A U256 that holds the amount for approve
-///  
+/// * `amount` - A U256 that holds the amount for transfer
+///
+/// **Recommendation:**
+///
+/// The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`.
+///
+/// Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+///
+/// should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+///
+/// **Note:**  Teams who decide to wait for such a standard should make these
+///
+/// recommendations to app developers who work with their token contract.
 
 #[no_mangle]
 fn transfer_from() {
@@ -140,7 +151,18 @@ fn permit() {
 /// * `spender` - A Key that holds the account address of the user
 ///
 /// * `amount` - A U256 that holds the amount for approve
-///  
+///
+/// **Recommendation:**
+///
+/// The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`.
+///
+/// Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+///
+/// should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+///
+/// **Note:**  Teams who decide to wait for such a standard should make these
+///
+/// recommendations to app developers who work with their token contract.
 
 #[no_mangle]
 fn approve() {

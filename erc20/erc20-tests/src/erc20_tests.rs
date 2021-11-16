@@ -42,7 +42,7 @@ fn test_erc20_deploy() {
 fn test_erc20_transfer() {
     let (env, token, owner) = deploy();
     let user = env.next_user();
-    let amount = 10.into();
+    let amount = 1000.into();
     token.transfer(Sender(owner), user, amount);
     assert_eq!(
         token.balance_of(owner),

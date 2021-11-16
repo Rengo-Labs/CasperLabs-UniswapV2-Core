@@ -263,7 +263,12 @@ amount | U256
 
 
 This method **returns** nothing.
-
+<br>**Recommendation:** 
+The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`,
+Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+<br>**Note:**  Teams who decide to wait for such a standard should make these
+recommendations to app developers who work with their token contract.
 
 - #### permit <a id="erc20-permit"></a>
 Sets the allowance for a spender where approval is granted via a signature.
@@ -295,6 +300,12 @@ spender | Key
 amount | U256
 
 This method **returns** nothing.
+<br>**Recommendation:** 
+The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`,
+Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+<br>**Note:**  Teams who decide to wait for such a standard should make these
+recommendations to app developers who work with their token contract.
 
 - #### balance_of <a id="erc20-balance-of"></a>
 This method will return the balance of owner in `ERC20 Contract`.
@@ -445,6 +456,12 @@ amount | U256
 
 
 This method **returns** nothing.
+<br>**Recommendation:** 
+The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`,
+Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+<br>**Note:**  Teams who decide to wait for such a standard should make these
+recommendations to app developers who work with their token contract.
 
 
 - #### approve <a id="wcspr-approve"></a>
@@ -459,6 +476,12 @@ spender | Key
 amount | U256
 
 This method **returns** nothing.
+<br>**Recommendation:** 
+The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`,
+Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+<br>**Note:**  Teams who decide to wait for such a standard should make these
+recommendations to app developers who work with their token contract.
 
 - #### balance_of <a id="wcspr-balance-of"></a>
 This method will return the balance of owner in `WCSPR Contract` .
@@ -706,7 +729,12 @@ amount | U256
 
 
 This method **returns** nothing.
-
+<br>**Recommendation:** 
+The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`,
+Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+<br>**Note:**  Teams who decide to wait for such a standard should make these
+recommendations to app developers who work with their token contract.
 
 - #### balance_of <a id="pair-balance-of"></a>
 Returns the amount of pool tokens owned by a hash.
@@ -746,7 +774,12 @@ spender | Key
 
 
 This method **returns** U256.
-
+<br>**Recommendation:** 
+The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`,
+Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+<br>**Note:**  Teams who decide to wait for such a standard should make these
+recommendations to app developers who work with their token contract.
 
 - #### total_supply <a id="pair-total-supply"></a>
 Returns the total amount of pool tokens for a pair.
