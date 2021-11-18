@@ -2,14 +2,14 @@
 #![no_std]
 
 extern crate alloc;
-use alloc::{collections::BTreeSet, format, string::String, vec};
+use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
+    EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use erc20::{self, ERC20};
@@ -45,7 +45,7 @@ impl Token {
             permit_type_hash,
             Key::from(contract_hash),
         );
-        ERC20::mint(self, self.get_caller(), initial_supply);
+        let ret = ERC20::mint(self, self.get_caller(), initial_supply);
     }
 }
 
@@ -82,7 +82,8 @@ fn constructor() {
 fn transfer() {
     let recipient: Key = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer(recipient, amount);
+    let ret = Token::default().transfer(recipient, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to transfer tokens against the address that has been approved before by owner
@@ -112,7 +113,8 @@ fn transfer_from() {
     let owner: Key = runtime::get_named_arg("owner");
     let recipient: Key = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer_from(owner, recipient, amount);
+    let ret = Token::default().transfer_from(owner, recipient, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to get meta transaction signer and verify if it is equal
@@ -168,7 +170,8 @@ fn permit() {
 fn approve() {
     let spender: Key = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().approve(spender, amount);
+    let ret = Token::default().approve(spender, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to mint token against the address that user provided
@@ -184,7 +187,8 @@ fn approve() {
 fn mint() {
     let to: Key = runtime::get_named_arg("to");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().mint(to, amount);
+    let ret = Token::default().mint(to, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to burn token against the address that user provided
@@ -200,10 +204,11 @@ fn mint() {
 fn burn() {
     let from: Key = runtime::get_named_arg("from");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().burn(from, amount);
+    let ret = Token::default().burn(from, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
-/// This function is to return the Balance of owner against the address that user provided
+/// This function is to return the Balance  of owner against the address that user provided
 ///
 /// # Parameters
 ///
@@ -298,7 +303,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("recipient", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -309,7 +317,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("recipient", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -333,7 +344,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("spender", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -375,7 +389,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -385,7 +402,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("from", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

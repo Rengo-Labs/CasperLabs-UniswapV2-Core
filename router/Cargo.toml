@@ -1,0 +1,10 @@
+[workspace]
+
+members = [
+    "uniswap_v2_router",
+    "uniswap_v2_router_tests"
+]
+
+[profile.release]
+codegen-units = 1
+lto = true

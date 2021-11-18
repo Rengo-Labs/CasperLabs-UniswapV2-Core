@@ -135,7 +135,8 @@ fn constructor() {
 fn transfer() {
     let recipient: Key = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
-    Pair::default().transfer(recipient, amount);
+    let ret = Pair::default().transfer(recipient, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to transfer tokens against the address that has been approved before by owner
@@ -165,7 +166,8 @@ fn transfer_from() {
     let owner: Key = runtime::get_named_arg("owner");
     let recipient: Key = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
-    Pair::default().transfer_from(owner, recipient, amount);
+    let ret = Pair::default().transfer_from(owner, recipient, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// force balances to match reserves
@@ -247,7 +249,8 @@ fn permit() {
 fn approve() {
     let spender: Key = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
-    Pair::default().approve(spender, amount);
+    let ret = Pair::default().approve(spender, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to mint token against the address that user provided
@@ -482,7 +485,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("recipient", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -493,7 +499,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("recipient", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -543,7 +552,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("spender", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
