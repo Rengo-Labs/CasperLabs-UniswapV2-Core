@@ -1,5 +1,4 @@
 use crate::data::{self, Allowances, Balances};
-use crate::errors::{self, Error, FailureCode};
 use alloc::string::String;
 use casper_contract::{
     contract_api::{runtime, system},
@@ -8,6 +7,15 @@ use casper_contract::{
 use casper_types::system::mint::Error as MintError;
 use casper_types::{ApiError, Key, URef, U256, U512};
 use contract_utils::{ContractContext, ContractStorage};
+
+/// Enum for FailureCode, It represents codes for different smart contract errors.
+#[repr(u16)]
+pub enum FailureCode {
+    /// 65,536 for (UniswapV2: OVERFLOW)
+    Zero = 0,
+    /// 65,537 for (UniswapV2: UNDERFLOW)
+    One,
+}
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     fn init(&mut self, name: String, symbol: String, decimals: u8, contract_hash: Key) {
@@ -26,11 +34,11 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         Balances::instance().get(&owner)
     }
 
-    fn transfer(&mut self, recipient: Key, amount: U256) -> Result<(), Error>{
+    fn transfer(&mut self, recipient: Key, amount: U256) -> Result<(), u32>{
         self.make_transfer(self.get_caller(), recipient, amount)
     }
 
-    fn approve(&mut self, spender: Key, amount: U256) -> Result<(), Error>{
+    fn approve(&mut self, spender: Key, amount: U256) -> Result<(), u32>{
         Allowances::instance().set(&self.get_caller(), &spender, amount);
         Ok(())
     }
@@ -39,7 +47,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         Allowances::instance().get(&owner, &spender)
     }
 
-    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), Error>{
+    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32>{
         let allowances = Allowances::instance();
         let spender = self.get_caller();
         let spender_allowance = allowances.get(&owner, &spender);
@@ -57,7 +65,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         self.make_transfer(owner, recipient, amount)
     }
 
-    fn deposit(&mut self, amount_to_transfer: U512, purse: URef) -> Result<(), Error>{
+    fn deposit(&mut self, amount_to_transfer: U512, purse: URef) -> Result<(), u32>{
         let cspr_amount: U512 = system::get_purse_balance(purse).unwrap_or_revert(); // get amount of cspr from purse received
         let _cspr_amount_u256: U256 = U256::from(cspr_amount.as_u128()); // convert amount to U256
         let amount_to_transfer_u256: U256 = U256::from(amount_to_transfer.as_u128()); // convert amount_to_transfer to U256
@@ -95,7 +103,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         
     }
 
-    fn withdraw(&mut self, recipient: Key, amount: U512) -> Result<(), Error>{
+    fn withdraw(&mut self, recipient: Key, amount: U512) -> Result<(), u32>{
         let caller = self.get_caller();
         let balances = Balances::instance();
         let balance = balances.get(&caller); // get balance of the caller
@@ -130,7 +138,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         Ok(())
     }
 
-    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), Error>{
+    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32>{
         if sender != recipient && amount != 0.into() {
             let balances: Balances = Balances::instance();
             let sender_balance: U256 = balances.get(&sender);

@@ -2,7 +2,7 @@
 #![no_std]
 
 extern crate alloc;
-use alloc::{collections::BTreeSet, format, string::String, vec};
+use alloc::{collections::BTreeSet, format, string::String, vec, boxed::Box};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
@@ -60,7 +60,8 @@ fn constructor() {
 fn transfer() {
     let recipient: Key = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer(recipient, amount).unwrap_or_revert();
+    let ret = Token::default().transfer(recipient, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to transfer tokens against the address that has been approved before by owner
@@ -90,7 +91,8 @@ fn transfer_from() {
     let owner: Key = runtime::get_named_arg("owner");
     let recipient: Key = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer_from(owner, recipient, amount).unwrap_or_revert();
+    let ret = Token::default().transfer_from(owner, recipient, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to approve tokens against the address that user provided
@@ -117,7 +119,8 @@ fn transfer_from() {
 fn approve() {
     let spender: Key = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().approve(spender, amount).unwrap_or_revert();
+    let ret = Token::default().approve(spender, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to deposit token against the address that user provided
@@ -133,7 +136,8 @@ fn approve() {
 fn deposit() {
     let amount: U512 = runtime::get_named_arg("amount");
     let purse: URef = runtime::get_named_arg("purse");
-    Token::default().deposit(amount, purse).unwrap_or_revert();
+    let ret = Token::default().deposit(amount, purse);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to withdraw token against the address that user provided
@@ -149,7 +153,8 @@ fn deposit() {
 fn withdraw() {
     let to: Key = runtime::get_named_arg("to");
     let amount: U512 = runtime::get_named_arg("amount");
-    Token::default().withdraw(to, amount).unwrap_or_revert();
+    let ret = Token::default().withdraw(to, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
 /// This function is to return the Balance of owner against the address that user provided
@@ -221,7 +226,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("recipient", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        CLType::Unit,
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -232,7 +240,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("recipient", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        CLType::Unit,
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -242,7 +253,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("spender", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        CLType::Unit,
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -269,7 +283,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount", U512::cl_type()),
             Parameter::new("purse", URef::cl_type()),
         ],
-        CLType::Unit,
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -279,7 +296,10 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U512::cl_type()),
         ],
-        CLType::Unit,
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
