@@ -260,7 +260,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let cspr: Key = data::get_cspr();
         if _is_borrowing_cspr {
             // call withdraw from WCSPR and transfer cspr to 'to'
-            let res  = call_contract(
+            let res: Result<(), u32>  = call_contract(
                 wcspr_hash_add,
                 "withdraw",
                 runtime_args! {"to" => data::get_hash(), "amount" => U512::from(_amount.as_u128())},
@@ -455,7 +455,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let wcspr_contract_hash: ContractHash = ContractHash::new(wcspr_address_hash_add_array);
         if is_borrowing_cspr {
             // call withdraw from WCSPR and transfer cspr to 'to'
-            let res = call_contract(
+            let res: Result<(), u32> = call_contract(
                 wcspr_contract_hash,
                 "withdraw",
                 runtime_args! {"to" => data::get_hash(), "amount" => U512::from(amount.as_u128())},
@@ -531,8 +531,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // wrap cspr if necessary
         if is_paying_cspr == true {
             let caller_purse: URef = account::get_main_purse();
-            // TODO handle return value here
-            let _deposit_result: () = runtime::call_contract(
+            let _deposit_result: Result<(), u32> = runtime::call_contract(
                 wcspr_contract_hash,
                 "deposit",
                 runtime_args! { "purse" => caller_purse, "amount" => U512::from(amount_to_repay.as_u128())},
