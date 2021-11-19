@@ -20,8 +20,6 @@ pub enum FailureCode {
     Two,
     /// 65,539 for (UniswapV2: UNDERFLOW)
     Three,
-    /// 65,539 for (UniswapV2: ERC20 Error)
-    Four,
 }
 
 pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
@@ -59,9 +57,8 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         self.make_transfer(self.get_caller(), recipient, amount)
     }
 
-    fn approve(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
+    fn approve(&mut self, spender: Key, amount: U256) {
         Allowances::instance().set(&self.get_caller(), &spender, amount);
-        Ok(())
     }
 
     fn allowance(&mut self, owner: Key, spender: Key) -> U256 {
@@ -185,7 +182,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    fn mint(&mut self, recipient: Key, amount: U256) -> Result<(), u32> {
+    fn mint(&mut self, recipient: Key, amount: U256) {
         let balances: Balances = Balances::instance();
         let balance: U256 = balances.get(&recipient);
         balances.set(
@@ -196,10 +193,9 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 .unwrap_or_revert(),
         );
         data::set_total_supply(data::total_supply() + amount);
-        Ok(())
     }
 
-    fn burn(&mut self, recipient: Key, amount: U256) -> Result<(), u32> {
+    fn burn(&mut self, recipient: Key, amount: U256) {
         let balances: Balances = Balances::instance();
         let balance: U256 = balances.get(&recipient);
         if balance >= amount {
@@ -220,7 +216,6 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
             // PosError::InsufficientPaymentForAmountSpent
             runtime::revert(MintError::InsufficientFunds)
         }
-        Ok(())
     }
 
     fn set_nonce(&mut self, recipient: Key) {
@@ -230,8 +225,12 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32> {
-        if sender == recipient || amount.is_zero() {
-            return Ok(());
+        if sender == recipient {
+            return Err(4); // Same sender recipient error
+        }
+
+        if amount.is_zero() {
+            return Err(5); // Amount to transfer is 0
         }
 
         let balances: Balances = Balances::instance();

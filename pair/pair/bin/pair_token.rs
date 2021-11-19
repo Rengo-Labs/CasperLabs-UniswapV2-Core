@@ -552,10 +552,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("spender", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        CLType::Result {
-            ok: Box::new(CLType::Unit),
-            err: Box::new(CLType::U32),
-        },
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
