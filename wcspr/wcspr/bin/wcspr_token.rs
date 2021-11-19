@@ -119,8 +119,7 @@ fn transfer_from() {
 fn approve() {
     let spender: Key = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
-    let ret = Token::default().approve(spender, amount);
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    Token::default().approve(spender, amount);
 }
 
 /// This function is to deposit token against the address that user provided
@@ -253,10 +252,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("spender", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
-        CLType::Result {
-            ok: Box::new(CLType::Unit),
-            err: Box::new(CLType::U32),
-        },
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

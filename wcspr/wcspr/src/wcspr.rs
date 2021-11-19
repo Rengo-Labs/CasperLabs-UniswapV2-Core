@@ -38,9 +38,8 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         self.make_transfer(self.get_caller(), recipient, amount)
     }
 
-    fn approve(&mut self, spender: Key, amount: U256) -> Result<(), u32>{
+    fn approve(&mut self, spender: Key, amount: U256) -> {
         Allowances::instance().set(&self.get_caller(), &spender, amount);
-        Ok(())
     }
 
     fn allowance(&mut self, owner: Key, spender: Key) -> U256 {
