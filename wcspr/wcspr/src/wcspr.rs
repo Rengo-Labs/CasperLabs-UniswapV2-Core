@@ -138,7 +138,15 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32>{
-        if sender != recipient && amount != 0.into() {
+
+            if sender == recipient {
+                return Err(4); // Same sender recipient error
+            }
+    
+            if amount.is_zero() {
+                return Err(5); // Amount to transfer is 0
+            }
+
             let balances: Balances = Balances::instance();
             let sender_balance: U256 = balances.get(&sender);
             let recipient_balance: U256 = balances.get(&recipient);
@@ -156,7 +164,6 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                     .ok_or(ApiError::User(FailureCode::Zero as u16))
                     .unwrap_or_revert(),
             );
-        }
         Ok(())
     }
 

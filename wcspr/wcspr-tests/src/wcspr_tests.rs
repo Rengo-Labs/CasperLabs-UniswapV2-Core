@@ -20,6 +20,8 @@ fn deploy() -> (TestEnv, WCSPRInstance, WCSPRInstance, AccountHash) {
     let owner = env.next_user();
     let token: TestContract = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL, DECIMALS);
     let proxy: TestContract = WCSPRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
+    // let proxy: TestContract = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL, DECIMALS);
+
     (env,  WCSPRInstance::instance(token), WCSPRInstance::instance(proxy), owner)
 }
 
@@ -38,9 +40,9 @@ fn test_wcspr_deploy() {
 fn test_wcspr_transfer() {
     let (env, token, proxy, owner) = deploy();
     let package_hash = proxy.package_hash_result();
-    let proxy_balance = token.balance_of(package_hash);
+    let proxy_balance : U256= token.balance_of(package_hash);
     let user = env.next_user();
-    let amount = 0.into();
+    let amount: U256 = 0.into();
 
     proxy.transfer(Sender(owner), user, amount);
     assert_eq!(token.balance_of(user), amount);
@@ -51,12 +53,12 @@ fn test_wcspr_transfer() {
 fn test_wcspr_transfer_with_same_sender_and_recipient() {
     let (env, token, proxy, owner) = deploy();
     let package_hash = proxy.package_hash_result();
-    let amount = 10.into();
+    let amount : U256= 10.into();
 
 
     proxy.transfer(Sender(owner), package_hash, amount);
 
-    let ret: Result<(), u32> = proxy.transfer_from_result();
+    let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
         Ok(()) => println!("Passed"),
@@ -72,7 +74,7 @@ fn test_wcspr_transfer_too_much() {
     let amount = U256::one();
     token.transfer(Sender(owner), user, amount);
 
-    let ret: Result<(), u32> = proxy.transfer_from_result();
+    let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
         Ok(()) => println!("Passed"),
@@ -99,13 +101,12 @@ fn test_wcspr_transfer_from() {
     let owner_balance = token.balance_of(owner);
 
     let recipient = env.next_user();
-    let allowance = 10.into();
-    let amount = 0.into();
+    let allowance :U256= 10.into();
+    let amount:U256 = 0.into();
 
     token.approve(Sender(owner), package_hash, allowance);
     proxy.transfer_from(Sender(owner), owner.into(), recipient, amount);
 
-    //assert_eq!(token.balance_of(spender), 0.into());
     assert_eq!(token.balance_of(recipient), amount);
     // assert_eq!(token.allowance(owner, package_hash), allowance - amount.into());
     assert_eq!(token.balance_of(owner), owner_balance - amount);

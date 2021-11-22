@@ -60,7 +60,7 @@ fn withdraw() {
 #[no_mangle]
 fn transfer() {
     let recipient: Key = runtime::get_named_arg(RECIPIENT_RUNTIME_ARG_NAME);
-    let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG_NAME);
+    let amount: U256 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG_NAME);
     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
 
     let res: Result<(), u32> = runtime::call_contract(
@@ -78,7 +78,7 @@ fn transfer() {
 fn transfer_from() {
     let owner: Key = runtime::get_named_arg(OWNER_RUNTIME_ARG_NAME);
     let recipient: Key = runtime::get_named_arg(RECIPIENT_RUNTIME_ARG_NAME);
-    let amount: U512 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG_NAME);
+    let amount: U256 = runtime::get_named_arg(AMOUNT_RUNTIME_ARG_NAME);
     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
 
     let res: Result<(), u32> = runtime::call_contract(
@@ -93,53 +93,53 @@ fn transfer_from() {
     set_key(TRANSFER_FROM_TEST_RESULT_KEY_NAME, res);
 }
 
-#[no_mangle]
-fn approve() {
-    let spender: Key = runtime::get_named_arg(SPENDER_RUNTIME_ARG_NAME);
-    let amount: Key = runtime::get_named_arg(AMOUNT_RUNTIME_ARG_NAME);
-    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+// #[no_mangle]
+// fn approve() {
+//     let spender: Key = runtime::get_named_arg(SPENDER_RUNTIME_ARG_NAME);
+//     let amount: Key = runtime::get_named_arg(AMOUNT_RUNTIME_ARG_NAME);
+//     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
 
-    let () = runtime::call_contract(
-        wcspr_hash,
-        APPROVE_ENTRY_POINT_NAME,
-        runtime_args! {
-            SPENDER_RUNTIME_ARG_NAME => spender,
-            AMOUNT_RUNTIME_ARG_NAME=>amount
-        },
-    );
-}
+//     let () = runtime::call_contract(
+//         wcspr_hash,
+//         APPROVE_ENTRY_POINT_NAME,
+//         runtime_args! {
+//             SPENDER_RUNTIME_ARG_NAME => spender,
+//             AMOUNT_RUNTIME_ARG_NAME=>amount
+//         },
+//     );
+// }
 
-#[no_mangle]
-fn allowance() {
-    let owner: Key = runtime::get_named_arg(OWNER_RUNTIME_ARG_NAME);
-    let spender: Key = runtime::get_named_arg(RECIPIENT_RUNTIME_ARG_NAME);
-    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+// #[no_mangle]
+// fn allowance() {
+//     let owner: Key = runtime::get_named_arg(OWNER_RUNTIME_ARG_NAME);
+//     let spender: Key = runtime::get_named_arg(RECIPIENT_RUNTIME_ARG_NAME);
+//     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
 
-    let res: U256 = runtime::call_contract(
-        wcspr_hash,
-        ALLOWANCE_ENTRY_POINT_NAME,
-        runtime_args! {
-            OWNER_RUNTIME_ARG_NAME=>owner,
-            SPENDER_RUNTIME_ARG_NAME=>spender
-        },
-    );
-    set_key(ALLOWANCE_KEY_NAME, res);
-}
+//     let res: U256 = runtime::call_contract(
+//         wcspr_hash,
+//         ALLOWANCE_ENTRY_POINT_NAME,
+//         runtime_args! {
+//             OWNER_RUNTIME_ARG_NAME=>owner,
+//             SPENDER_RUNTIME_ARG_NAME=>spender
+//         },
+//     );
+//     set_key(ALLOWANCE_KEY_NAME, res);
+// }
 
-#[no_mangle]
-fn balance_of() {
-    let owner: Key = runtime::get_named_arg(OWNER_RUNTIME_ARG_NAME);
-    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+// #[no_mangle]
+// fn balance_of() {
+//     let owner: Key = runtime::get_named_arg(OWNER_RUNTIME_ARG_NAME);
+//     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
 
-    let res: U256 = runtime::call_contract(
-        wcspr_hash,
-        BALANCE_OF_ENTRY_POINT_NAME,
-        runtime_args! {
-            OWNER_RUNTIME_ARG_NAME=>owner
-        },
-    );
-    set_key(BALANCE_OF_KEY_NAME, res);
-}
+//     let res: U256 = runtime::call_contract(
+//         wcspr_hash,
+//         BALANCE_OF_ENTRY_POINT_NAME,
+//         runtime_args! {
+//             OWNER_RUNTIME_ARG_NAME=>owner
+//         },
+//     );
+//     set_key(BALANCE_OF_KEY_NAME, res);
+// }
 // ================================== Helper functions ============================ //
 fn _create_hash_from_key(key: Key) -> ContractHash {
     ContractHash::from(key.into_hash().unwrap_or_default())
@@ -180,53 +180,53 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "approve",
-        vec![
-            Parameter::new("spender", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "balance_of",
-        vec![Parameter::new("owner", Key::cl_type())],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "allowance",
-        vec![
-            Parameter::new("owner", Key::cl_type()),
-            Parameter::new("spender", Key::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "deposit",
-        vec![
-            Parameter::new("amount", U512::cl_type()),
-            Parameter::new("purse", URef::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "withdraw",
-        vec![
-            Parameter::new("to", Key::cl_type()),
-            Parameter::new("amount", U512::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
+    // entry_points.add_entry_point(EntryPoint::new(
+    //     "approve",
+    //     vec![
+    //         Parameter::new("spender", Key::cl_type()),
+    //         Parameter::new("amount", U256::cl_type()),
+    //     ],
+    //     <()>::cl_type(),
+    //     EntryPointAccess::Public,
+    //     EntryPointType::Contract,
+    // ));
+    // entry_points.add_entry_point(EntryPoint::new(
+    //     "balance_of",
+    //     vec![Parameter::new("owner", Key::cl_type())],
+    //     <()>::cl_type(),
+    //     EntryPointAccess::Public,
+    //     EntryPointType::Contract,
+    // ));
+    // entry_points.add_entry_point(EntryPoint::new(
+    //     "allowance",
+    //     vec![
+    //         Parameter::new("owner", Key::cl_type()),
+    //         Parameter::new("spender", Key::cl_type()),
+    //     ],
+    //     <()>::cl_type(),
+    //     EntryPointAccess::Public,
+    //     EntryPointType::Contract,
+    // ));
+    // entry_points.add_entry_point(EntryPoint::new(
+    //     "deposit",
+    //     vec![
+    //         Parameter::new("amount", U512::cl_type()),
+    //         Parameter::new("purse", URef::cl_type()),
+    //     ],
+    //     <()>::cl_type(),
+    //     EntryPointAccess::Public,
+    //     EntryPointType::Contract,
+    // ));
+    // entry_points.add_entry_point(EntryPoint::new(
+    //     "withdraw",
+    //     vec![
+    //         Parameter::new("to", Key::cl_type()),
+    //         Parameter::new("amount", U512::cl_type()),
+    //     ],
+    //     <()>::cl_type(),
+    //     EntryPointAccess::Public,
+    //     EntryPointType::Contract,
+    // ));
     entry_points
 }
 
@@ -234,7 +234,7 @@ fn get_entry_points() -> EntryPoints {
 fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
-    let wcspr_hash: Key = runtime::get_named_arg(WCSPR_HASH_RUNTIME_ARG_NAME);
+    let wcspr_hash: Key = runtime::get_named_arg("wcspr");
     set_key(
         &WCSPR_HASH_KEY_NAME,
         ContractHash::from(wcspr_hash.into_hash().unwrap_or_default()),
@@ -251,14 +251,14 @@ pub extern "C" fn call() {
     let (contract_hash, _): (ContractHash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
-    let wcspr_hash: Key = runtime::get_named_arg(WCSPR_HASH_RUNTIME_ARG_NAME);
+    let wcspr_hash: Key = runtime::get_named_arg("wcspr");
 
     // Get parameters and pass it to the constructors
     // Prepare constructor args
     let constructor_args = runtime_args! {
-        CONTRACT_HASH_KEY_NAME => contract_hash,
-        PACKAGE_HASH_KEY_NAME => package_hash,
-        WCSPR_HASH_KEY_NAME => wcspr_hash,
+        CONTRACT_HASH_RUNTIME_ARG_NAME => contract_hash,
+        PACKAGE_HASH_RUNTIME_ARG_NAME => package_hash,
+        WCSPR_HASH_RUNTIME_ARG_NAME => wcspr_hash,
     };
 
     // Add the constructor group to the package hash with a single URef.
