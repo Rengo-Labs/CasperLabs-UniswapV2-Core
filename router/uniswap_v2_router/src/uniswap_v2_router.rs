@@ -257,11 +257,15 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
         };
 
         // this call will submit cspr to the wcspr contract and in return get wcspr tokens which will be sent to pair
-        let () = Self::call_contract(
+        let ret: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_DEPOSIT,
             args,
         );
+        match ret {
+            Ok(()) => {}
+            Err(e) => runtime::revert(e),
+        }
 
         // call transfer method from wcspr
         let args: RuntimeArgs = runtime_args! {
@@ -641,11 +645,15 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "amount" => U512::from(amounts[0].as_u128()),
             "purse" => self_purse,
         };
-        let () = Self::call_contract(
+        let ret: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_DEPOSIT,
             args,
         );
+        match ret {
+            Ok(()) => {}
+            Err(e) => runtime::revert(e),
+        }
 
         // call transfer method from IWETH
         // Get pair
@@ -873,11 +881,15 @@ pub trait UniswapV2Router<Storage: ContractStorage>: ContractContext<Storage> {
             "amount" => U512::from(amounts[0].as_u128()),
             "purse" => self_purse
         };
-        let () = Self::call_contract(
+        let ret: Result<(), u32> = Self::call_contract(
             &wcspr.to_formatted_string(),
             uniswapv2_contract_methods::WCSPR_DEPOSIT,
             args,
         );
+        match ret {
+            Ok(()) => {}
+            Err(e) => runtime::revert(e),
+        }
 
         // call transfer method from wcspr
         // Get pair
