@@ -1,5 +1,4 @@
 language: rust
 script:
-  - make prepare
-  - make check-lint
-  - make test
+  - cd tests && cargo build
+  - cd tests && cargo test

@@ -797,7 +797,6 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Ok(())=>(),
             Err(err)=>runtime::revert(err)
         }
-
         let flash_swapper_address: Key = data::get_hash();
         let _result: () = runtime::call_contract(
             borrow_pair_contract_hash,

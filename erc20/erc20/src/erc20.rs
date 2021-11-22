@@ -1,18 +1,16 @@
 use crate::data::{self, Allowances, Balances, Nonces};
 use alloc::{format, string::String, vec::Vec};
-use casper_contract::contract_api::runtime;
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::system::mint::Error as MintError;
-use casper_types::{ApiError, BlockTime, ContractHash, Key, U256};
-use contract_utils::set_key;
-use contract_utils::{ContractContext, ContractStorage};
+use casper_contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
+use casper_types::{
+    system::mint::Error as MintError, ApiError, BlockTime, ContractHash, Key, U256,
+};
+use contract_utils::{set_key, ContractContext, ContractStorage};
 use cryptoxide::ed25519;
 use hex::encode;
-use renvm_sig::hash_message;
-use renvm_sig::keccak256;
+use renvm_sig::{hash_message, keccak256};
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
-#[repr(u16)]
+#[repr(u32)]
 pub enum FailureCode {
     /// 65,536 for (UniswapV2: EXPIRED)
     Zero = 0,
@@ -55,8 +53,8 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         Nonces::instance().get(&owner)
     }
 
-    fn transfer(&mut self, recipient: Key, amount: U256) {
-        self.make_transfer(self.get_caller(), recipient, amount);
+    fn transfer(&mut self, recipient: Key, amount: U256) -> Result<(), u32> {
+        self.make_transfer(self.get_caller(), recipient, amount)
     }
 
     fn approve(&mut self, spender: Key, amount: U256) {
@@ -67,7 +65,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         Allowances::instance().get(&owner, &spender)
     }
 
-    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) {
+    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32> {
         let allowances: Allowances = Allowances::instance();
         let spender: Key = self.get_caller();
         let spender_allowance: U256 = allowances.get(&owner, &spender);
@@ -79,7 +77,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(ApiError::User(FailureCode::Three as u16))
                 .unwrap_or_revert(),
         );
-        self.make_transfer(owner, recipient, amount);
+        self.make_transfer(owner, recipient, amount)
     }
 
     /// This function is to get signer and verify if it is equal
@@ -226,26 +224,34 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         nonces.set(&recipient, nonce + U256::from(1));
     }
 
-    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) {
-        if sender != recipient && amount != 0.into() {
-            let balances: Balances = Balances::instance();
-            let sender_balance: U256 = balances.get(&sender);
-            let recipient_balance: U256 = balances.get(&recipient);
-            balances.set(
-                &sender,
-                sender_balance
-                    .checked_sub(amount)
-                    .ok_or(ApiError::User(FailureCode::Three as u16))
-                    .unwrap_or_revert(),
-            );
-            balances.set(
-                &recipient,
-                recipient_balance
-                    .checked_add(amount)
-                    .ok_or(ApiError::User(FailureCode::Two as u16))
-                    .unwrap_or_revert(),
-            );
+    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32> {
+        if sender == recipient {
+            return Err(4); // Same sender recipient error
         }
+
+        if amount.is_zero() {
+            return Err(5); // Amount to transfer is 0
+        }
+
+        let balances: Balances = Balances::instance();
+        let sender_balance: U256 = balances.get(&sender);
+        let recipient_balance: U256 = balances.get(&recipient);
+        balances.set(
+            &sender,
+            sender_balance
+                .checked_sub(amount)
+                .ok_or(ApiError::User(FailureCode::Three as u16))
+                .unwrap_or_revert(),
+        );
+        balances.set(
+            &recipient,
+            recipient_balance
+                .checked_add(amount)
+                .ok_or(ApiError::User(FailureCode::Two as u16))
+                .unwrap_or_revert(),
+        );
+
+        Ok(())
     }
 
     fn total_supply(&mut self) -> U256 {

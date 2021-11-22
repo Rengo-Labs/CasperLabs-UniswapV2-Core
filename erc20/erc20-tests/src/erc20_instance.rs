@@ -2,12 +2,28 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{bytesrepr::ToBytes, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256};
 use test_env::{Sender, TestContract, TestEnv};
 
 pub struct ERC20Instance(TestContract);
 
 impl ERC20Instance {
+    pub fn instance(erc20: TestContract) -> ERC20Instance {
+        ERC20Instance(erc20)
+    }
+
+    pub fn proxy(env: &TestEnv, erc20: Key, sender: Sender) -> TestContract {
+        TestContract::new(
+            env,
+            "contract.wasm",
+            "proxy_test",
+            sender,
+            runtime_args! {
+                "erc20" => erc20
+            },
+        )
+    }
+
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
@@ -16,8 +32,8 @@ impl ERC20Instance {
         symbol: &str,
         decimals: u8,
         supply: U256,
-    ) -> ERC20Instance {
-        ERC20Instance(TestContract::new(
+    ) -> TestContract {
+        TestContract::new(
             env,
             "erc20-token.wasm",
             contract_name,
@@ -28,7 +44,7 @@ impl ERC20Instance {
                 "symbol" => symbol,
                 "decimals" => decimals
             },
-        ))
+        )
     }
 
     pub fn constructor(
@@ -62,19 +78,13 @@ impl ERC20Instance {
         );
     }
 
-    pub fn transfer_from<T: Into<Key>>(
-        &self,
-        sender: Sender,
-        owner: T,
-        recipient: T,
-        amount: U256,
-    ) {
+    pub fn transfer_from(&self, sender: Sender, owner: Key, recipient: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer_from",
             runtime_args! {
-                "owner" => owner.into(),
-                "recipient" => recipient.into(),
+                "owner" => owner,
+                "recipient" => recipient,
                 "amount" => amount
             },
         );
@@ -145,6 +155,19 @@ impl ERC20Instance {
 
     pub fn total_supply(&self) -> U256 {
         self.0.query_named_key(String::from("total_supply"))
+    }
+
+    // Result methods
+    pub fn transfer_result(&self) -> Result<(), u32> {
+        self.0.query_named_key("transfer_result".to_string())
+    }
+
+    pub fn package_hash_result(&self) -> ContractPackageHash {
+        self.0.query_named_key("package_hash".to_string())
+    }
+
+    pub fn transfer_from_result(&self) -> Result<(), u32> {
+        self.0.query_named_key("transfer_from_result".to_string())
     }
 }
 

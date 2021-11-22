@@ -151,10 +151,9 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("name", String::cl_type()),
-            Parameter::new("symbol", String::cl_type()),
-            Parameter::new("decimals", u8::cl_type()),
+            Parameter::new("wcspr", Key::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -233,18 +232,15 @@ fn get_entry_points() -> EntryPoints {
 
 #[no_mangle]
 fn constructor() {
+    let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     let wcspr_hash: Key = runtime::get_named_arg(WCSPR_HASH_RUNTIME_ARG_NAME);
-    let contract_hash: ContractHash = runtime::get_named_arg(CONTRACT_HASH_RUNTIME_ARG_NAME);
-    let package_hash: ContractPackageHash = runtime::get_named_arg(CONTRACT_HASH_RUNTIME_ARG_NAME);
-    let self_purse: URef = runtime::get_named_arg(PURSE_RUNTIME_ARG_NAME);
-
-    set_key(&CONTRACT_HASH_KEY_NAME, contract_hash);
-    set_key(&PACKAGE_HASH_KEY_NAME, package_hash);
     set_key(
         &WCSPR_HASH_KEY_NAME,
         ContractHash::from(wcspr_hash.into_hash().unwrap_or_default()),
     );
-    set_key(&SELF_PURSE_KEY_NAME, self_purse);
+    set_key(&CONTRACT_HASH_KEY_NAME, contract_hash);
+    set_key(&PACKAGE_HASH_KEY_NAME, package_hash);
 }
 
 // All session code must have a `call` entrypoint.
@@ -256,7 +252,6 @@ pub extern "C" fn call() {
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
     let wcspr_hash: Key = runtime::get_named_arg(WCSPR_HASH_RUNTIME_ARG_NAME);
-    let self_purse: URef = runtime::get_named_arg(PURSE_RUNTIME_ARG_NAME);
 
     // Get parameters and pass it to the constructors
     // Prepare constructor args
@@ -264,7 +259,6 @@ pub extern "C" fn call() {
         CONTRACT_HASH_KEY_NAME => contract_hash,
         PACKAGE_HASH_KEY_NAME => package_hash,
         WCSPR_HASH_KEY_NAME => wcspr_hash,
-        SELF_PURSE_KEY_NAME => self_purse
     };
 
     // Add the constructor group to the package hash with a single URef.

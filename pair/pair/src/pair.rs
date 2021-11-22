@@ -104,8 +104,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         Nonces::instance().get(&owner)
     }
 
-    fn transfer(&mut self, recipient: Key, amount: U256) {
-        self.make_transfer(self.get_caller(), recipient, amount);
+    fn transfer(&mut self, recipient: Key, amount: U256) -> Result<(), u32> {
+        self.make_transfer(self.get_caller(), recipient, amount)
     }
 
     fn approve(&mut self, spender: Key, amount: U256) {
@@ -116,7 +116,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         Allowances::instance().get(&owner, &spender)
     }
 
-    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) {
+    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
         let spender = self.get_caller();
         let spender_allowance = allowances.get(&owner, &spender);
@@ -128,7 +128,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(ApiError::User(FailureCode::Twelve as u16))
                 .unwrap_or_revert(),
         );
-        self.make_transfer(owner, recipient, amount);
+        self.make_transfer(owner, recipient, amount)
     }
 
     fn skim(&mut self, to: Key) {
@@ -170,17 +170,25 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let balance0_conversion: U128 = U128::from(balance0.as_u128());
         let balance1_conversion: U128 = U128::from(balance1.as_u128());
 
-        let _ret: () = runtime::call_contract(
+        let _ret: Result<(), u32> = runtime::call_contract(
             token0_contract_hash,
             "transfer",
             runtime_args! {"recipient" => to,"amount" => U256::from((balance0_conversion - reserve0).as_u128())},
         );
-        let _ret: () = runtime::call_contract(
-            token1_contract_hash,
-            "transfer",
-            runtime_args! {"recipient" => to,"amount" => U256::from((balance1_conversion - reserve1).as_u128()), },
-        );
-        data::set_lock(0);
+        match _ret {
+            Ok(()) => {
+                let _ret: Result<(), u32> = runtime::call_contract(
+                    token1_contract_hash,
+                    "transfer",
+                    runtime_args! {"recipient" => to,"amount" => U256::from((balance1_conversion - reserve1).as_u128()), },
+                );
+                match _ret {
+                    Ok(()) => data::set_lock(0),
+                    Err(e) => runtime::revert(e),
+                }
+            }
+            Err(e) => runtime::revert(e),
+        }
     }
 
     fn sync(&mut self) {
@@ -239,11 +247,15 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                         };
                         let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-                        let () = runtime::call_contract(
+                        let ret: Result<(), u32> = runtime::call_contract(
                             token0_contract_hash,
                             "transfer",
                             runtime_args! {"recipient" => to,"amount" => amount0_out}, // optimistically transfer tokens
                         );
+                        match ret {
+                            Ok(()) => {}
+                            Err(e) => runtime::revert(e),
+                        }
                     }
                     if amount1_out > zero {
                         //convert Key to ContractHash
@@ -252,11 +264,15 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                         };
                         let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-                        let () = runtime::call_contract(
+                        let _ret: Result<(), u32> = runtime::call_contract(
                             token1_contract_hash,
                             "transfer",
                             runtime_args! {"recipient" => to,"amount" => amount1_out}, // optimistically transfer tokens
                         );
+                        match _ret {
+                            Ok(()) => {}
+                            Err(e) => runtime::revert(e),
+                        }
                     }
                     if data.len() > 0 {
                         let uniswap_v2_callee_address: Key = to;
@@ -490,26 +506,34 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         nonces.set(&recipient, nonce + U256::from(1));
     }
 
-    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) {
-        if sender != recipient && amount != 0.into() {
-            let balances: Balances = Balances::instance();
-            let sender_balance: U256 = balances.get(&sender);
-            let recipient_balance: U256 = balances.get(&recipient);
-            balances.set(
-                &sender,
-                sender_balance
-                    .checked_sub(amount)
-                    .ok_or(ApiError::User(FailureCode::Twelve as u16))
-                    .unwrap_or_revert(),
-            );
-            balances.set(
-                &recipient,
-                recipient_balance
-                    .checked_add(amount)
-                    .ok_or(ApiError::User(FailureCode::Eleven as u16))
-                    .unwrap_or_revert(),
-            );
+    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32> {
+        if sender == recipient {
+            return Err(4); // Same sender recipient error
         }
+
+        if amount.is_zero() {
+            return Err(5); // Amount to transfer is 0
+        }
+
+        let balances: Balances = Balances::instance();
+        let sender_balance: U256 = balances.get(&sender);
+        let recipient_balance: U256 = balances.get(&recipient);
+        balances.set(
+            &sender,
+            sender_balance
+                .checked_sub(amount)
+                .ok_or(ApiError::User(FailureCode::Twelve as u16))
+                .unwrap_or_revert(),
+        );
+        balances.set(
+            &recipient,
+            recipient_balance
+                .checked_add(amount)
+                .ok_or(ApiError::User(FailureCode::Eleven as u16))
+                .unwrap_or_revert(),
+        );
+
+        Ok(())
     }
 
     fn set_treasury_fee_percent(&mut self, treasury_fee: U256) {
@@ -651,16 +675,25 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         if amount0 > 0.into() && amount1 > 0.into() {
             self.burn(Key::from(data::get_package_hash()), liquidity);
 
-            let () = runtime::call_contract(
+            let _ret: Result<(), u32> = runtime::call_contract(
                 token0_hash_add,
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount0 },
             );
-            let () = runtime::call_contract(
+            match _ret {
+                Ok(()) => {}
+                Err(e) => runtime::revert(e),
+            }
+            let _ret: Result<(), u32> = runtime::call_contract(
                 token1_hash_add,
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount1 },
             );
+            match _ret {
+                Ok(()) => {}
+                Err(e) => runtime::revert(e),
+            }
+
             let token0_hash_add_array = match token0 {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
