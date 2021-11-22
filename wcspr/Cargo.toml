@@ -2,7 +2,8 @@
 
 members = [
     "wcspr",
-    "wcspr-tests"
+    "wcspr-tests",
+    "wcspr_test_contract/contract"
 ]
 
 [profile.release]
