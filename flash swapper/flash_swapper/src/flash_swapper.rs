@@ -260,11 +260,15 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let cspr: Key = data::get_cspr();
         if _is_borrowing_cspr {
             // call withdraw from WCSPR and transfer cspr to 'to'
-            let () = call_contract(
+            let res: Result<(), u32>  = call_contract(
                 wcspr_hash_add,
                 "withdraw",
                 runtime_args! {"to" => data::get_hash(), "amount" => U512::from(_amount.as_u128())},
             );
+            match res{
+                Ok(())=>(),
+                Err(err)=>runtime::revert(err)
+            }
         }
         let fee: U256 = U256::from((_amount * 3) / 997)
             .checked_add(U256::from(1))
@@ -296,16 +300,17 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         );
         // payback the loan
         // wrap the cspr if necessary
+        
         if _is_paying_cspr {
             let caller_purse: URef = account::get_main_purse();
-            let ret: Result<(), u32> = call_contract(
+            let res: Result<(), u32> = call_contract(
                 wcspr_hash_add,
                 "deposit",
                 runtime_args! { "purse" => caller_purse, "amount" => U512::from(amount_to_repay.as_u128())},
             );
-            match ret {
-                Ok(()) => {}
-                Err(e) => runtime::revert(e),
+            match res{
+                Ok(())=>(),
+                Err(err)=>runtime::revert(err)
             }
         }
         let _token_borrow_hash_add_array = match _token_borrow {
@@ -313,14 +318,14 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let _token_borrow_hash_add: ContractHash = ContractHash::new(_token_borrow_hash_add_array);
-        let ret: Result<(), u32> = call_contract(
+        let res: Result<(), u32>= call_contract(
             _token_borrow_hash_add,
             "transfer",
             runtime_args! {"recipient"=>_pair_address , "amount" => amount_to_repay},
         );
-        match ret {
-            Ok(()) => {}
-            Err(e) => runtime::revert(e),
+        match res{
+            Ok(())=>(),
+            Err(err)=>runtime::revert(err)
         }
     }
 
@@ -450,11 +455,15 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let wcspr_contract_hash: ContractHash = ContractHash::new(wcspr_address_hash_add_array);
         if is_borrowing_cspr {
             // call withdraw from WCSPR and transfer cspr to 'to'
-            let () = call_contract(
+            let res: Result<(), u32> = call_contract(
                 wcspr_contract_hash,
                 "withdraw",
                 runtime_args! {"to" => data::get_hash(), "amount" => U512::from(amount.as_u128())},
             );
+            match res{
+                Ok(())=>(),
+                Err(err)=>runtime::revert(err)
+            }
         }
         // compute the amount of _tokenPay that needs to be repaid
         let pair_address: Key = data::get_permissioned_pair_address(); // gas efficiency
@@ -522,24 +531,24 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // wrap cspr if necessary
         if is_paying_cspr == true {
             let caller_purse: URef = account::get_main_purse();
-            let ret: Result<(), u32> = runtime::call_contract(
+            let _deposit_result: Result<(), u32> = runtime::call_contract(
                 wcspr_contract_hash,
                 "deposit",
                 runtime_args! { "purse" => caller_purse, "amount" => U512::from(amount_to_repay.as_u128())},
             );
-            match ret {
-                Ok(()) => {}
-                Err(e) => runtime::revert(e),
+            match _deposit_result{
+                Ok(())=>(),
+                Err(err)=>runtime::revert(err)
             }
         }
-        let ret: Result<(), u32> = runtime::call_contract(
+        let res: Result<(), u32> = runtime::call_contract(
             token_pay_contract_hash,
             "transfer",
             runtime_args! {"recipient" => _pair_address, "amount" => amount_to_repay},
         );
-        match ret {
-            Ok(()) => {}
-            Err(e) => runtime::revert(e),
+        match res{
+            Ok(())=>(),
+            Err(err)=>runtime::revert(err)
         }
     }
 
@@ -779,14 +788,14 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let wcspr_contract_hash: ContractHash = ContractHash::new(wcspr_address_hash_add_array);
-        let ret: Result<(), u32> = runtime::call_contract(
+        let res: Result<(), u32> = runtime::call_contract(
             wcspr_contract_hash,
             "transfer",
             runtime_args! {"recipient" => borrow_pair_address, "amount" => amount_of_wcspr},
         );
-        match ret {
-            Ok(()) => {}
-            Err(e) => runtime::revert(e),
+        match res{
+            Ok(())=>(),
+            Err(err)=>runtime::revert(err)
         }
         let flash_swapper_address: Key = data::get_hash();
         let _result: () = runtime::call_contract(
@@ -822,14 +831,14 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // Step 4: Do whatever the user wants (arb, liqudiation, etc)
         self.execute(token_borrow, amount, token_pay, amount_to_repay, user_data);
         // Step 5: Pay back the flash-borrow to the _tokenPay/wcspr pool
-        let ret: Result<(), u32> = runtime::call_contract(
+        let res: Result<(), u32>  = runtime::call_contract(
             token_pay_contract_hash,
             "transfer",
             runtime_args! {"recipient" => pay_pair_address, "amount" => amount_to_repay},
         );
-        match ret {
-            Ok(()) => {}
-            Err(e) => runtime::revert(e),
+        match res{
+            Ok(())=>(),
+            Err(err)=>runtime::revert(err)
         }
     }
 

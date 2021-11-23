@@ -2,11 +2,18 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256};
+use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractPackageHash};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub struct WCSPRInstance(TestContract);
+pub const DEPOSIT_TEST_RESULT_KEY_NAME: &str = "deposit_test_result";
+pub const WITHDRAW_TEST_RESULT_KEY_NAME: &str = "withdraw_test_result";
+pub const TRANSFER_TEST_RESULT_KEY_NAME: &str = "transfer_test_result";
+pub const TRANSFER_FROM_TEST_RESULT_KEY_NAME: &str = "transfer_from_test_result";
+pub const PACKAGE_HASH_KEY_NAME: &str = "package_hash";
+pub const CONTRACT_HASH_KEY_NAME: &str = "contract_hash";
+pub const WCSPR_HASH_KEY_NAME: &str = "wcspr_hash";
 
+pub struct WCSPRInstance(TestContract);
 impl WCSPRInstance {
     pub fn new(
         env: &TestEnv,
@@ -15,8 +22,8 @@ impl WCSPRInstance {
         name: &str,
         symbol: &str,
         decimals: u8,
-    ) -> WCSPRInstance {
-        WCSPRInstance(TestContract::new(
+    ) -> TestContract {
+        TestContract::new(
             env,
             "wcspr-token.wasm",
             contract_name,
@@ -26,7 +33,23 @@ impl WCSPRInstance {
                 "symbol" => symbol,
                 "decimals"=>decimals
             },
-        ))
+        )
+    }
+
+    pub fn instance(contract: TestContract)->WCSPRInstance{
+        WCSPRInstance(contract)
+    }
+
+    pub fn proxy(env: &TestEnv, wcspr: Key, sender: Sender) -> TestContract {
+        TestContract::new(
+            env,
+            "contract.wasm",
+            "proxy_test",
+            sender,
+            runtime_args! {
+                "wcspr" => wcspr
+            },
+        )
     }
 
     pub fn constructor(&self, sender: Sender, name: &str, symbol: &str) {
@@ -100,6 +123,19 @@ impl WCSPRInstance {
 
     pub fn symbol(&self) -> String {
         self.0.query_named_key(String::from("symbol"))
+    }
+
+       // Result methods
+    pub fn transfer_result(&self) -> Result<(), u32> {
+        self.0.query_named_key(TRANSFER_TEST_RESULT_KEY_NAME.to_string())
+    }
+
+    pub fn package_hash_result(&self) -> ContractPackageHash {
+        self.0.query_named_key(PACKAGE_HASH_KEY_NAME.to_string())
+    }
+
+    pub fn transfer_from_result(&self) -> Result<(), u32> {
+        self.0.query_named_key(TRANSFER_FROM_TEST_RESULT_KEY_NAME.to_string())
     }
 }
 
