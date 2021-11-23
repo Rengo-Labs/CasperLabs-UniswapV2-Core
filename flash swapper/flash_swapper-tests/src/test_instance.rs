@@ -8,26 +8,14 @@ use test_env::{Sender, TestContract, TestEnv};
 pub struct TESTInstance(TestContract);
 
 impl TESTInstance {
-    pub fn new(env: &TestEnv, contract_name: &str, sender: Sender, name: &str) -> TESTInstance {
+    pub fn new(env: &TestEnv, contract_name: &str, sender: Sender) -> TESTInstance {
         TESTInstance(TestContract::new(
             env,
             "test-contract.wasm",
             contract_name,
             sender,
-            runtime_args! {
-                "name" => name,
-            },
+            runtime_args! {},
         ))
-    }
-
-    pub fn constructor(&self, sender: Sender, name: &str) {
-        self.0.call_contract(
-            sender,
-            "constructor",
-            runtime_args! {
-                "name" => name,
-            },
-        );
     }
 
     pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: Key, amount: U256) {

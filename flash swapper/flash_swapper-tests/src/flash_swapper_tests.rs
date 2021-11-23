@@ -3,7 +3,7 @@ use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use test_env::{Sender, TestContract, TestEnv};
 
 use crate::flash_swapper_instance::FlashSwapperInstance;
-use crate::test_instance::TESTInstance;
+// use crate::test_instance::TESTInstance;
 
 fn deploy_factory(env: &TestEnv) -> TestContract {
     // deploy factory contract
@@ -71,7 +71,6 @@ fn deploy_flash_swapper() -> (
     TestContract,
     TestContract,
     TestContract,
-    TESTInstance,
 ) {
     let env = TestEnv::new();
     let owner = env.next_user();
@@ -87,13 +86,13 @@ fn deploy_flash_swapper() -> (
         Key::Hash(dai.contract_hash()),
         Key::Hash(factory.contract_hash()),
     );
-    let test = TESTInstance::new(&env, "TEST", Sender(owner), "TEST");
-    (env, flash_swapper, owner, factory, wcspr, dai, btc, test)
+    // let test = TESTInstance::new(&env, "TEST", Sender(owner));
+    (env, flash_swapper, owner, factory, wcspr, dai, btc)
 }
 
 #[test]
 fn test_flash_swapper_deploy() {
-    let (_, flash_swapper, _, _, _, _, _, _) = deploy_flash_swapper();
+    let (_, flash_swapper, _, _, _, _, _) = deploy_flash_swapper();
     let self_hash: Key = flash_swapper.self_contract_hash();
     let zero_addr: Key = Key::from_formatted_str(
         "hash-0000000000000000000000000000000000000000000000000000000000000000",
@@ -269,7 +268,7 @@ fn test_flash_swapper_deploy() {
 #[test]
 #[should_panic]
 fn test_calling_construction() {
-    let (_env, flash_swapper, owner, factory, wcspr, dai, _, _) = deploy_flash_swapper();
+    let (_env, flash_swapper, owner, factory, wcspr, dai, _) = deploy_flash_swapper();
     flash_swapper.constructor(
         Sender(owner),
         Key::Hash(wcspr.contract_hash()),
