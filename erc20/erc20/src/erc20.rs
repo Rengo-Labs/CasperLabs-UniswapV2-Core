@@ -1,13 +1,49 @@
 use crate::data::{self, Allowances, Balances, Nonces};
 use alloc::{format, string::String, vec::Vec};
+use casper_contract::contract_api::storage;
 use casper_contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
 use casper_types::{
-    system::mint::Error as MintError, ApiError, BlockTime, ContractHash, Key, U256,
+    system::mint::Error as MintError, ApiError, BlockTime, ContractHash, ContractPackageHash, Key,
+    URef, U256,
 };
 use contract_utils::{set_key, ContractContext, ContractStorage};
 use cryptoxide::ed25519;
 use hex::encode;
 use renvm_sig::{hash_message, keccak256};
+
+use crate::alloc::string::ToString;
+use alloc::collections::BTreeMap;
+
+pub enum ERC20Event {
+    Approval {
+        owner: Key,
+        spender: Key,
+        value: U256,
+    },
+    Transfer {
+        from: Key,
+        to: Key,
+        value: U256,
+    },
+}
+
+impl ERC20Event {
+    pub fn type_name(&self) -> String {
+        match self {
+            ERC20Event::Approval {
+                owner: _,
+                spender: _,
+                value: _,
+            } => "approve",
+            ERC20Event::Transfer {
+                from: _,
+                to: _,
+                value: _,
+            } => "transfer",
+        }
+        .to_string()
+    }
+}
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
 #[repr(u32)]
@@ -31,6 +67,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         domain_separator: String,
         permit_type_hash: String,
         contract_hash: Key,
+        package_hash: ContractPackageHash,
     ) {
         data::set_name(name);
         data::set_symbol(symbol);
@@ -38,6 +75,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_domain_separator(domain_separator);
         data::set_permit_type_hash(permit_type_hash);
         data::set_hash(contract_hash);
+        data::set_package_hash(package_hash);
         Nonces::init();
         let nonces = Nonces::instance();
         nonces.set(&Key::from(self.get_caller()), U256::from(0));
@@ -59,6 +97,11 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn approve(&mut self, spender: Key, amount: U256) {
         Allowances::instance().set(&self.get_caller(), &spender, amount);
+        self.emit(&ERC20Event::Approval {
+            owner: self.get_caller(),
+            spender: spender,
+            value: amount,
+        });
     }
 
     fn allowance(&mut self, owner: Key, spender: Key) -> U256 {
@@ -172,6 +215,11 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
             if result == true {
                 Allowances::instance().set(&owner, &spender, value);
+                self.emit(&ERC20Event::Approval {
+                    owner: owner,
+                    spender: spender,
+                    value: value,
+                });
             } else {
                 //signature verification failed
                 runtime::revert(ApiError::User(FailureCode::One as u16));
@@ -193,6 +241,15 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 .unwrap_or_revert(),
         );
         data::set_total_supply(data::total_supply() + amount);
+        let address_0: Key = Key::from_formatted_str(
+            "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
+        )
+        .unwrap();
+        self.emit(&ERC20Event::Transfer {
+            from: address_0,
+            to: recipient,
+            value: amount,
+        });
     }
 
     fn burn(&mut self, recipient: Key, amount: U256) {
@@ -212,6 +269,15 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                     .ok_or(ApiError::User(FailureCode::Three as u16))
                     .unwrap_or_revert(),
             );
+            let address_0: Key = Key::from_formatted_str(
+                "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap();
+            self.emit(&ERC20Event::Transfer {
+                from: recipient,
+                to: address_0,
+                value: amount,
+            });
         } else {
             // PosError::InsufficientPaymentForAmountSpent
             runtime::revert(MintError::InsufficientFunds)
@@ -250,7 +316,11 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(ApiError::User(FailureCode::Two as u16))
                 .unwrap_or_revert(),
         );
-
+        self.emit(&ERC20Event::Transfer {
+            from: sender,
+            to: recipient,
+            value: amount,
+        });
         Ok(())
     }
 
@@ -291,5 +361,36 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         let domain_separator: String = encode(domain_separator);
         let permit_type_hash: String = encode(permit_type_hash);
         (domain_separator, permit_type_hash)
+    }
+    fn emit(&mut self, erc20_event: &ERC20Event) {
+        let mut events = Vec::new();
+        let package = data::get_contract_package_hash();
+        match erc20_event {
+            ERC20Event::Approval {
+                owner,
+                spender,
+                value,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", erc20_event.type_name());
+                event.insert("owner", owner.to_string());
+                event.insert("spender", spender.to_string());
+                event.insert("value", value.to_string());
+                events.push(event);
+            }
+            ERC20Event::Transfer { from, to, value } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", erc20_event.type_name());
+                event.insert("from", from.to_string());
+                event.insert("to", to.to_string());
+                event.insert("value", value.to_string());
+                events.push(event);
+            }
+        };
+        for event in events {
+            let _: URef = storage::new_uref(event);
+        }
     }
 }

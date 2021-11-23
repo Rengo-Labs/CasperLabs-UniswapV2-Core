@@ -8,8 +8,8 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
-    EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
+    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use erc20::{self, ERC20};
@@ -35,6 +35,7 @@ impl Token {
         domain_separator: String,
         permit_type_hash: String,
         contract_hash: ContractHash,
+        package_hash: ContractPackageHash,
     ) {
         ERC20::init(
             self,
@@ -44,8 +45,9 @@ impl Token {
             domain_separator,
             permit_type_hash,
             Key::from(contract_hash),
+            package_hash,
         );
-        let ret = ERC20::mint(self, self.get_caller(), initial_supply);
+        let _ret = ERC20::mint(self, self.get_caller(), initial_supply);
     }
 }
 
@@ -58,6 +60,7 @@ fn constructor() {
     let domain_separator: String = runtime::get_named_arg("domain_separator");
     let permit_type_hash: String = runtime::get_named_arg("permit_type_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     Token::default().constructor(
         name,
         symbol,
@@ -66,6 +69,7 @@ fn constructor() {
         domain_separator,
         permit_type_hash,
         contract_hash,
+        package_hash,
     );
 }
 
@@ -289,6 +293,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("domain_separator", String::cl_type()),
             Parameter::new("permit_type_hash", String::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -437,7 +442,8 @@ fn call() {
         "initial_supply" => initial_supply,
         "domain_separator" => domain_separator,
         "permit_type_hash" => permit_type_hash,
-        "contract_hash" => contract_hash
+        "contract_hash" => contract_hash,
+        "package_hash"=> package_hash
 
     };
 

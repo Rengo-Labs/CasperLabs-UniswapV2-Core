@@ -1,2 +1,3 @@
 target
 .vscode
+flash_swapper-tests/wasm/*.wasm
