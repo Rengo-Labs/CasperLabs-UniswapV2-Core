@@ -10,7 +10,7 @@ test-only:
 
 copy-wasm-file-to-test:
 	cp target/wasm32-unknown-unknown/release/*.wasm wcspr-tests/wasm
-	cp test-contract/target/wasm32-unknown-unknown/release/*.wasm wcspr-tests/wasm
+	# cp test-contract/target/wasm32-unknown-unknown/release/*.wasm wcspr-tests/wasm
 
 test: build-contract copy-wasm-file-to-test test-only
 
