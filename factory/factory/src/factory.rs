@@ -1,10 +1,35 @@
-use alloc::vec::Vec;
-
+use crate::alloc::string::ToString;
 use crate::data::{self, get_all_pairs, Pairs};
+use alloc::collections::BTreeMap;
+use alloc::{string::String, vec::Vec};
 use casper_contract::contract_api::runtime;
-use casper_types::{runtime_args, ApiError, ContractHash, Key, RuntimeArgs};
+use casper_contract::contract_api::storage;
+use casper_types::{
+    runtime_args, ApiError, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef, U256,
+};
 use contract_utils::{ContractContext, ContractStorage};
 
+pub enum FACTORYEvent {
+    PairCreated {
+        token0: Key,
+        token1: Key,
+        pair: Key,
+        all_pairs_length: U256,
+    },
+}
+impl FACTORYEvent {
+    pub fn type_name(&self) -> String {
+        match self {
+            FACTORYEvent::PairCreated {
+                token0: _,
+                token1: _,
+                pair: _,
+                all_pairs_length: _,
+            } => "pair_created",
+        }
+        .to_string()
+    }
+}
 #[repr(u16)]
 pub enum Error {
     UniswapV2ZeroAddress = 0,
@@ -20,10 +45,17 @@ impl From<Error> for ApiError {
 }
 
 pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
-    fn init(&mut self, fee_to_setter: Key, all_pairs: Vec<Key>, contract_hash: Key) {
+    fn init(
+        &mut self,
+        fee_to_setter: Key,
+        all_pairs: Vec<Key>,
+        contract_hash: Key,
+        package_hash: ContractPackageHash,
+    ) {
         data::set_fee_to_setter(fee_to_setter);
         data::set_all_pairs(all_pairs);
         data::set_hash(contract_hash);
+        data::set_package_hash(package_hash);
         Pairs::init();
     }
 
@@ -73,6 +105,12 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         let mut pairs: Vec<Key> = get_all_pairs();
         pairs.push(pair_hash);
         self.set_all_pairs(pairs);
+        self.emit(&FACTORYEvent::PairCreated {
+            token0: token0,
+            token1: token1,
+            pair: pair_hash,
+            all_pairs_length: (get_all_pairs().len()).into(),
+        });
     }
 
     fn get_pair(&mut self, token0: Key, token1: Key) -> Key {
@@ -111,5 +149,30 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn get_all_pairs(&mut self) -> Vec<Key> {
         data::get_all_pairs()
+    }
+    fn emit(&mut self, factory_event: &FACTORYEvent) {
+        let mut events = Vec::new();
+        let package = data::get_contract_package_hash();
+        match factory_event {
+            FACTORYEvent::PairCreated {
+                token0,
+                token1,
+                pair,
+                all_pairs_length,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", factory_event.type_name());
+                event.insert("token0", token0.to_string());
+                event.insert("token1", token1.to_string());
+                event.insert("pair", pair.to_string());
+                event.insert("all_pairs_length", all_pairs_length.to_string());
+                events.push(event);
+            }
+        };
+
+        for event in events {
+            let _: URef = storage::new_uref(event);
+        }
     }
 }

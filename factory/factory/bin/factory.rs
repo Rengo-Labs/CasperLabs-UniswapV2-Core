@@ -10,8 +10,8 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
-    EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
+    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use factory::{self, FACTORY};
@@ -33,8 +33,15 @@ impl Factory {
         fee_to_setter: Key,
         all_pairs: Vec<Key>,
         contract_hash: ContractHash,
+        package_hash: ContractPackageHash,
     ) {
-        FACTORY::init(self, fee_to_setter, all_pairs, Key::from(contract_hash));
+        FACTORY::init(
+            self,
+            fee_to_setter,
+            all_pairs,
+            Key::from(contract_hash),
+            package_hash,
+        );
     }
 }
 
@@ -43,7 +50,8 @@ fn constructor() {
     let fee_to_setter: Key = runtime::get_named_arg("fee_to_setter");
     let all_pairs: Vec<Key> = runtime::get_named_arg("all_pairs");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Factory::default().constructor(fee_to_setter, all_pairs, contract_hash);
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
+    Factory::default().constructor(fee_to_setter, all_pairs, contract_hash, package_hash);
 }
 
 /// This function is to return the fee to's hash
@@ -152,6 +160,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("fee_to_setter", Key::cl_type()),
             Parameter::new("all_pairs", CLType::List(Box::new(Key::cl_type()))),
             Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -237,7 +246,8 @@ fn call() {
     let constructor_args = runtime_args! {
         "fee_to_setter" => fee_to_setter,
         "all_pairs" => all_pairs,
-        "contract_hash" => contract_hash
+        "contract_hash" => contract_hash,
+        "package_hash"=> package_hash
     };
 
     // Add the constructor group to the package hash with a single URef.

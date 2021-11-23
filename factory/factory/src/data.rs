@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::Key;
+use casper_types::{ContractPackageHash, Key};
 use contract_utils::{get_key, set_key, Dict};
 
 pub const PAIRS_DICT: &str = "pairs";
@@ -8,7 +8,7 @@ pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const FEE_TO: &str = "fee_to";
 pub const FEE_TO_SETTER: &str = "fee_to_setter";
 pub const ALL_PAIRS: &str = "all_pairs";
-
+pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
 pub struct Pairs {
     dict: Dict,
 }
@@ -81,4 +81,12 @@ pub fn set_all_pairs(all_pairs: Vec<Key>) {
 
 pub fn get_all_pairs() -> Vec<Key> {
     get_key(ALL_PAIRS).unwrap_or_revert()
+}
+
+pub fn set_package_hash(package_hash: ContractPackageHash) {
+    set_key(CONTRACT_PACKAGE_HASH, package_hash);
+}
+
+pub fn get_contract_package_hash() -> ContractPackageHash {
+    get_key(CONTRACT_PACKAGE_HASH).unwrap_or_revert()
 }

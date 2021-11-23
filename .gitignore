@@ -1,0 +1,17 @@
+erc20/target
+pair/target
+factory/target
+wcspr/target
+flash swapper/target
+erc20/.vscode
+pair/.vscode
+factory/.vscode
+wcspr/.vscode
+flash swapper/.vscode
+
+erc20/erc20-tests/wasm/*.wasm
+pair/pair-tests/wasm/*.wasm
+factory/factory-tests/wasm/*.wasm
+wcspr/wcspr-tests/wasm/*.wasm
+flash\ swapper/flash_swapper-tests/wasm/*.wasm
+
