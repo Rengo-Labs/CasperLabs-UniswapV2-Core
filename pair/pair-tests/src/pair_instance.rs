@@ -10,6 +10,22 @@ use test_env::{Sender, TestContract, TestEnv};
 pub struct PAIRInstance(TestContract);
 
 impl PAIRInstance {
+    pub fn instance(erc20: TestContract) -> PAIRInstance {
+        PAIRInstance(erc20)
+    }
+
+    pub fn proxy(env: &TestEnv, erc20: Key, sender: Sender) -> TestContract {
+        TestContract::new(
+            env,
+            "contract.wasm",
+            "proxy_test",
+            sender,
+            runtime_args! {
+                "erc20" => erc20
+            },
+        )
+    }
+
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
@@ -20,8 +36,8 @@ impl PAIRInstance {
         supply: U256,
         callee_contract_hash: Key,
         factory_hash: Key,
-    ) -> PAIRInstance {
-        PAIRInstance(TestContract::new(
+    ) -> TestContract {
+        TestContract::new(
             env,
             "pair-token.wasm",
             contract_name,
@@ -34,7 +50,7 @@ impl PAIRInstance {
                 "callee_contract_hash" => callee_contract_hash,
                 "factory_hash" => factory_hash
             },
-        ))
+        )
     }
 
     pub fn constructor(
@@ -105,6 +121,29 @@ impl PAIRInstance {
             runtime_args! {
                 "owner" => owner.into(),
                 "recipient" => recipient.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    // Factory Method
+    pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T, factory_hash: Key) {
+        self.0.call_contract(
+            sender,
+            "set_fee_to",
+            runtime_args! {
+                "fee_to" => fee_to.into(),
+                "factory_hash" => factory_hash
+            },
+        );
+    }
+    pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: Key, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "mint_with_caller",
+            runtime_args! {
+                "caller" => caller.into(),
+                "to" => to,
                 "amount" => amount
             },
         );
@@ -296,6 +335,19 @@ impl PAIRInstance {
     }
     pub fn self_package_hash(&self) -> ContractPackageHash {
         self.0.query_named_key(String::from("self_package_hash"))
+    }
+
+    // Result methods
+    pub fn transfer_result(&self) -> Result<(), u32> {
+        self.0.query_named_key("transfer_result".to_string())
+    }
+
+    pub fn package_hash_result(&self) -> ContractPackageHash {
+        self.0.query_named_key("package_hash".to_string())
+    }
+
+    pub fn transfer_from_result(&self) -> Result<(), u32> {
+        self.0.query_named_key("transfer_from_result".to_string())
     }
 }
 

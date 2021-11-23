@@ -69,12 +69,13 @@ fn test_erc20_transfer() {
     let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
-        Ok(()) => println!("Passed"),
-        Err(e) => println!("Failed {}", e),
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
 
 #[test]
+#[should_panic]
 fn test_erc20_transfer_with_same_sender_and_recipient() {
     let (_env, proxy, token, owner) = deploy();
     let package_hash = proxy.package_hash_result();
@@ -88,8 +89,8 @@ fn test_erc20_transfer_with_same_sender_and_recipient() {
     let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
-        Ok(()) => println!("Passed"),
-        Err(e) => println!("Failed {}", e),
+        Ok(()) => assert!(false),
+        Err(_) => {}
     }
 }
 
@@ -151,8 +152,8 @@ fn test_erc20_transfer_from() {
     let ret: Result<(), u32> = proxy.transfer_from_result();
 
     match ret {
-        Ok(()) => println!("Passed"),
-        Err(e) => println!("Failed {}", e),
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
 
