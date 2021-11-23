@@ -56,7 +56,6 @@ fn deploy() -> (
     PAIRInstance,
     AccountHash,
     TestContract,
-    TESTInstance,
 ) {
     let env = TestEnv::new();
     let owner = env.next_user();
@@ -89,7 +88,6 @@ fn deploy() -> (
         Key::Hash(callee_contract.contract_hash()),
         Key::Hash(factory_contract.contract_hash()),
     );
-    let test = TESTInstance::new(&env, "TEST", Sender(owner), "TEST");
     let test_contract: TestContract =
         PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
 
@@ -99,15 +97,14 @@ fn deploy() -> (
         PAIRInstance::instance(token),
         owner,
         factory_contract,
-        test,
     )
 }
 fn deploy1() -> (
     TestEnv,
     PAIRInstance,
+    PAIRInstance,
     AccountHash,
     TestContract,
-    TESTInstance,
 ) {
     let env = TestEnv::new();
     let owner = env.next_user();
@@ -129,6 +126,7 @@ fn deploy1() -> (
             "uniswap_v2_factory" => Key::Hash(factory_contract.contract_hash())
         },
     );
+
     let token = PAIRInstance::new(
         &env,
         NAME,
@@ -140,13 +138,15 @@ fn deploy1() -> (
         Key::Hash(callee_contract.contract_hash()),
         Key::Hash(factory_contract.contract_hash()),
     );
-    let test = TESTInstance::new(&env, "TEST", Sender(owner), "TEST");
+    let test_contract: TestContract =
+        PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
+
     (
         env,
+        PAIRInstance::instance(test_contract),
         PAIRInstance::instance(token),
         owner,
         factory_contract,
-        test,
     )
 }
 fn deploy_token0(env: &TestEnv) -> TestContract {
@@ -191,7 +191,7 @@ fn deploy_token1(env: &TestEnv) -> TestContract {
 
 #[test]
 fn test_pair_deploy() {
-    let (env, _, token, owner, _factory_hash, _test) = deploy();
+    let (env, _proxy, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     assert_eq!(token.name(), NAME);
     assert_eq!(token.symbol(), SYMBOL);
@@ -205,7 +205,7 @@ fn test_pair_deploy() {
 
 #[test]
 fn test_pair_transfer() {
-    let (env, proxy, token, owner, _factory_hash, _test) = deploy();
+    let (env, proxy, token, owner, _factory_hash) = deploy();
 
     let package_hash = proxy.package_hash_result();
     let user = env.next_user();
@@ -234,8 +234,9 @@ fn test_pair_transfer() {
 }
 
 #[test]
+#[should_panic]
 fn test_pair_transfer_with_same_sender_and_recipient() {
-    let (_env, proxy, token, owner, _factory_hash, _test) = deploy();
+    let (_env, proxy, token, owner, _factory_hash) = deploy();
     let package_hash = proxy.package_hash_result();
     let amount = 10.into();
 
@@ -255,7 +256,7 @@ fn test_pair_transfer_with_same_sender_and_recipient() {
 #[test]
 #[should_panic]
 fn test_pair_transfer_too_much() {
-    let (env, _, token, owner, _factory_hash, _test) = deploy();
+    let (env, _proxy, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     let amount = U256::from(INIT_TOTAL_SUPPLY) + U256::one();
     token.transfer(Sender(owner), user, amount);
@@ -263,7 +264,7 @@ fn test_pair_transfer_too_much() {
 
 #[test]
 fn test_pair_approve() {
-    let (env, _, token, owner, _factory_hash, _test) = deploy();
+    let (env, _proxy, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     let amount = 10.into();
     token.approve(Sender(owner), user, amount);
@@ -275,7 +276,7 @@ fn test_pair_approve() {
 
 #[test]
 fn test_pair_initialize() {
-    let (env, _, token, owner, factory_hash, test) = deploy();
+    let (env, proxy, token, owner, factory_hash) = deploy();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -283,7 +284,7 @@ fn test_pair_initialize() {
     let token1 = Key::Hash(token1.contract_hash());
     let factory_hash = Key::Hash(factory_hash.contract_hash());
     token.initialize(Sender(owner), token0, token1, factory_hash);
-    test.set_fee_to(Sender(owner), user, factory_hash);
+    proxy.set_fee_to(Sender(owner), user, factory_hash);
     assert_eq!(token.factory_hash(), factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
@@ -291,7 +292,7 @@ fn test_pair_initialize() {
 
 #[test]
 fn test_pair_set_treasury_fee_percent() {
-    let (_env, _, token, owner, _factory_hash, _test) = deploy();
+    let (_env, _proxy, token, owner, _factory_hash) = deploy();
     assert_eq!(token.treasury_fee(), 3.into());
     let treasury_fee: U256 = 10.into();
     token.set_treasury_fee_percent(Sender(owner), treasury_fee);
@@ -308,7 +309,7 @@ fn test_pair_set_treasury_fee_percent() {
 
 #[test]
 fn test_pair_skim() {
-    let (env, _, token, owner, factory_hash, test) = deploy();
+    let (env, proxy, token, owner, factory_hash) = deploy();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -323,13 +324,13 @@ fn test_pair_skim() {
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token0,
         Key::from(token.self_package_hash()),
         amount0,
     );
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token1,
         Key::from(token.self_package_hash()),
@@ -340,7 +341,7 @@ fn test_pair_skim() {
 
 #[test]
 fn test_pair_mint() {
-    let (env, token, owner, factory_hash, test) = deploy1();
+    let (env, proxy, token, owner, factory_hash) = deploy1();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -355,13 +356,13 @@ fn test_pair_mint() {
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token0,
         Key::from(token.self_package_hash()),
         amount0,
     );
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token1,
         Key::from(token.self_package_hash()),
@@ -372,7 +373,7 @@ fn test_pair_mint() {
 
 #[test]
 fn test_pair_burn() {
-    let (env, token, owner, factory_hash, test) = deploy1();
+    let (env, proxy, token, owner, factory_hash) = deploy1();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -387,13 +388,13 @@ fn test_pair_burn() {
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token0,
         Key::from(token.self_package_hash()),
         amount0,
     );
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token1,
         Key::from(token.self_package_hash()),
@@ -405,7 +406,7 @@ fn test_pair_burn() {
 
 #[test]
 fn test_pair_sync() {
-    let (env, _, token, owner, factory_hash, test) = deploy();
+    let (env, proxy, token, owner, factory_hash) = deploy();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -417,13 +418,13 @@ fn test_pair_sync() {
     assert_eq!(token.factory_hash(), factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token0,
         Key::from(token.self_package_hash()),
         amount,
     );
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token1,
         Key::from(token.self_package_hash()),
@@ -439,7 +440,7 @@ fn test_pair_sync() {
 
 #[test]
 fn test_pair_swap() {
-    let (env, _, token, owner, factory_hash, test) = deploy();
+    let (env, proxy, token, owner, factory_hash) = deploy();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -458,13 +459,13 @@ fn test_pair_swap() {
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token0,
         Key::from(token.self_package_hash()),
         amount0,
     );
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token1,
         Key::from(token.self_package_hash()),
@@ -474,13 +475,13 @@ fn test_pair_swap() {
     token.sync(Sender(owner));
     assert_eq!(token.reserve0(), 2000.into());
     assert_eq!(token.reserve1(), 2000.into());
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token0,
         Key::from(token.self_package_hash()),
         amount,
     );
-    test.mint_with_caller(
+    proxy.mint_with_caller(
         Sender(owner),
         token1,
         Key::from(token.self_package_hash()),
@@ -491,7 +492,7 @@ fn test_pair_swap() {
 
 #[test]
 fn test_pair_transfer_from() {
-    let (env, proxy, token, owner, _factory_hash, _test) = deploy();
+    let (env, proxy, token, owner, _factory_hash) = deploy();
     let package_hash = proxy.package_hash_result();
 
     let recipient = env.next_user();
@@ -518,7 +519,7 @@ fn test_pair_transfer_from() {
 #[test]
 #[should_panic]
 fn test_pair_transfer_from_too_much() {
-    let (env, _, token, owner, _factory_hash, _test) = deploy();
+    let (env, _proxy, token, owner, _factory_hash) = deploy();
     let spender = env.next_user();
     let recipient = env.next_user();
     let allowance = 10.into();
@@ -530,7 +531,7 @@ fn test_pair_transfer_from_too_much() {
 #[test]
 #[should_panic]
 fn test_calling_construction() {
-    let (_, _, token, owner, factory_hash, _test) = deploy();
+    let (_, _proxy, token, owner, factory_hash) = deploy();
     token.constructor(
         Sender(owner),
         NAME,

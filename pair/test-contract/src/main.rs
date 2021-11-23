@@ -10,8 +10,8 @@ use casper_contract::{
 };
 use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
-    runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key,
-    Parameter, RuntimeArgs, URef, U256,
+    runtime_args, ApiError, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
+    Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 
 pub mod mappings;
@@ -64,6 +64,42 @@ fn transfer_from() {
     mappings::set_key(&mappings::transfer_from_key(), ret);
 }
 
+#[no_mangle]
+fn mint_with_caller() {
+    let caller: Key = runtime::get_named_arg("caller");
+    let to: Key = runtime::get_named_arg("to");
+    let amount: U256 = runtime::get_named_arg("amount");
+    let caller_hash_add_array = match caller {
+        Key::Hash(package) => package,
+        _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+    };
+
+    let caller_hash_add = ContractHash::new(caller_hash_add_array);
+
+    let _ret: () = runtime::call_contract(
+        caller_hash_add,
+        "mint",
+        runtime_args! {"to" => to, "amount" => amount},
+    );
+}
+
+#[no_mangle]
+fn set_fee_to() {
+    let fee_to: Key = runtime::get_named_arg("fee_to");
+    let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    // Test::default().set_fee_to(fee_to, factory_hash);
+    let factory_hash_add_array = match factory_hash {
+        Key::Hash(package) => package,
+        _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+    };
+    let factory_hash_add = ContractHash::new(factory_hash_add_array);
+    let _fee_to: () = runtime::call_contract(
+        factory_hash_add,
+        "set_fee_to",
+        runtime_args! {"fee_to" => fee_to},
+    );
+}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -92,6 +128,24 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("owner", Key::cl_type()),
             Parameter::new("recipient", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_fee_to",
+        vec![Parameter::new("fee_to", Key::cl_type())],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "mint_with_caller",
+        vec![
+            Parameter::new("caller", Key::cl_type()),
+            Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
         ],
         <()>::cl_type(),

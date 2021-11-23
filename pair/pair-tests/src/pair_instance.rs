@@ -126,6 +126,29 @@ impl PAIRInstance {
         );
     }
 
+    // Factory Method
+    pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T, factory_hash: Key) {
+        self.0.call_contract(
+            sender,
+            "set_fee_to",
+            runtime_args! {
+                "fee_to" => fee_to.into(),
+                "factory_hash" => factory_hash
+            },
+        );
+    }
+    pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: Key, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "mint_with_caller",
+            runtime_args! {
+                "caller" => caller.into(),
+                "to" => to,
+                "amount" => amount
+            },
+        );
+    }
+
     pub fn approve<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
