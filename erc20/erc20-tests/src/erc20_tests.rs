@@ -89,8 +89,8 @@ fn test_erc20_transfer_with_same_sender_and_recipient() {
     let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
-        Ok(()) => {}
-        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
+        Ok(()) => assert!(false),
+        Err(_) => {}
     }
 }
 
