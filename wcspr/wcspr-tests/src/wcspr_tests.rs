@@ -1,6 +1,6 @@
 use casper_engine_test_support::AccountHash;
-use casper_types::{U256, Key};
-use test_env::{Sender, TestEnv, TestContract};
+use casper_types::{Key, U256};
+use test_env::{Sender, TestContract, TestEnv};
 
 use crate::wcspr_instance::WCSPRInstance;
 
@@ -19,15 +19,21 @@ fn deploy() -> (TestEnv, WCSPRInstance, WCSPRInstance, AccountHash) {
     let env = TestEnv::new();
     let owner = env.next_user();
     let token: TestContract = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL, DECIMALS);
-    let proxy: TestContract = WCSPRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
+    let proxy: TestContract =
+        WCSPRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
     // let proxy: TestContract = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL, DECIMALS);
 
-    (env,  WCSPRInstance::instance(token), WCSPRInstance::instance(proxy), owner)
+    (
+        env,
+        WCSPRInstance::instance(token),
+        WCSPRInstance::instance(proxy),
+        owner,
+    )
 }
 
 #[test]
 fn test_wcspr_deploy() {
-    let (env, token, proxy, owner) = deploy();
+    let (env, token, _proxy, owner) = deploy();
     let user = env.next_user();
     assert_eq!(token.name(), NAME);
     assert_eq!(token.symbol(), SYMBOL);
@@ -40,21 +46,20 @@ fn test_wcspr_deploy() {
 fn test_wcspr_transfer() {
     let (env, token, proxy, owner) = deploy();
     let package_hash = proxy.package_hash_result();
-    let proxy_balance : U256= token.balance_of(package_hash);
+    let proxy_balance: U256 = token.balance_of(package_hash);
     let user = env.next_user();
     let amount: U256 = 0.into();
 
     proxy.transfer(Sender(owner), user, amount);
     assert_eq!(token.balance_of(user), amount);
-    assert_eq!(token.balance_of(package_hash), proxy_balance-amount);
+    assert_eq!(token.balance_of(package_hash), proxy_balance - amount);
 }
 
 #[test]
 fn test_wcspr_transfer_with_same_sender_and_recipient() {
-    let (env, token, proxy, owner) = deploy();
+    let (_env, _token, proxy, owner) = deploy();
     let package_hash = proxy.package_hash_result();
-    let amount : U256= 10.into();
-
+    let amount: U256 = 10.into();
 
     proxy.transfer(Sender(owner), package_hash, amount);
 
@@ -84,7 +89,7 @@ fn test_wcspr_transfer_too_much() {
 
 #[test]
 fn test_wcspr_approve() {
-    let (env, token, proxy, owner) = deploy();
+    let (env, token, _proxy, owner) = deploy();
     let user = env.next_user();
     let amount = 10.into();
     token.approve(Sender(owner), user, amount);
@@ -101,8 +106,8 @@ fn test_wcspr_transfer_from() {
     let owner_balance = token.balance_of(owner);
 
     let recipient = env.next_user();
-    let allowance :U256= 10.into();
-    let amount:U256 = 0.into();
+    let allowance: U256 = 10.into();
+    let amount: U256 = 0.into();
 
     token.approve(Sender(owner), package_hash, allowance);
     proxy.transfer_from(Sender(owner), owner.into(), recipient, amount);
@@ -123,11 +128,11 @@ fn test_wcspr_transfer_from() {
 #[should_panic]
 fn test_wcspr_transfer_from_too_much() {
     let (env, token, proxy, owner) = deploy();
-    let spender = env.next_user();
+    let _spender = env.next_user();
     let recipient = env.next_user();
     let allowance = 10.into();
     let amount = 12.into();
-    let package_hash= proxy.package_hash_result();
+    let package_hash = proxy.package_hash_result();
 
     token.approve(Sender(owner), package_hash, allowance);
     proxy.transfer_from(Sender(owner), owner.into(), recipient, amount);
@@ -143,6 +148,6 @@ fn test_wcspr_transfer_from_too_much() {
 #[test]
 #[should_panic]
 fn test_calling_construction() {
-    let (_, token, _,owner) = deploy();
+    let (_, token, _, owner) = deploy();
     token.constructor(Sender(owner), NAME, SYMBOL);
 }

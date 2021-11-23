@@ -2,14 +2,14 @@
 #![no_std]
 
 extern crate alloc;
-use alloc::{collections::BTreeSet, format, string::String, vec, boxed::Box};
+use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512,ApiError, CLType
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
+    EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use wcspr::{self, WCSPR};
