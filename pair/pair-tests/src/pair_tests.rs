@@ -228,8 +228,8 @@ fn test_pair_transfer() {
     let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
-        Ok(()) => println!("Passed"),
-        Err(e) => println!("Failed {}", e),
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
 
@@ -247,8 +247,8 @@ fn test_pair_transfer_with_same_sender_and_recipient() {
     let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
-        Ok(()) => println!("Passed"),
-        Err(e) => println!("Failed {}", e),
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
 
@@ -510,8 +510,8 @@ fn test_pair_transfer_from() {
     let ret: Result<(), u32> = proxy.transfer_from_result();
 
     match ret {
-        Ok(()) => println!("Passed"),
-        Err(e) => println!("Failed {}", e),
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
 
