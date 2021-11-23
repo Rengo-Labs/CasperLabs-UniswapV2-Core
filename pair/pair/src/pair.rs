@@ -340,11 +340,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 if to != token0 && to != token1 {
                     if amount0_out > zero {
                         //convert Key to ContractHash
-                        let token0_hash_add_array = match token0 {
-                            Key::Hash(package) => package,
-                            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-                        };
-                        let token0_contract_hash = ContractHash::new(token0_hash_add_array);
+                        // let token0_hash_add_array = match token0 {
+                        //     Key::Hash(package) => package,
+                        //     _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+                        // };
+                        // let token0_contract_hash = ContractHash::new(token0_hash_add_array);
                         let ret: Result<(), u32> = runtime::call_contract(
                             // token0_contract_hash,
                             token0.into_hash().unwrap_or_revert().into(),

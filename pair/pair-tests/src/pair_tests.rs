@@ -3,7 +3,6 @@ use casper_types::{runtime_args, Key, RuntimeArgs, U256};
 use test_env::{Sender, TestContract, TestEnv};
 
 use crate::pair_instance::PAIRInstance;
-use crate::test_instance::TESTInstance;
 
 const NAME: &str = "ERC20";
 const SYMBOL: &str = "ERC";
@@ -234,7 +233,7 @@ fn test_pair_transfer() {
 }
 
 #[test]
-#[should_panic]
+// #[should_panic]
 fn test_pair_transfer_with_same_sender_and_recipient() {
     let (_env, proxy, token, owner, _factory_hash) = deploy();
     let package_hash = proxy.package_hash_result();

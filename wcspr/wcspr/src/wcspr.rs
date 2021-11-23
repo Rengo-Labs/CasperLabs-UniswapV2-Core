@@ -50,8 +50,12 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let allowances = Allowances::instance();
         let spender = self.get_caller();
         let spender_allowance = allowances.get(&owner, &spender);
-        if amount.is_zero(){
-            return Ok(());
+        if owner == recipient {
+            return Err(4); // Same sender recipient error
+        }
+
+        if amount.is_zero() {
+            return Err(5); // Amount to transfer is 0
         }
         allowances.set(
             &owner,
@@ -71,9 +75,9 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let contract_self_purse: URef = data::get_self_purse(); // get this contract's purse
 
         if amount_to_transfer.is_zero(){
-            return Ok(());
+            return Err(5); // Amount to transfer is 0
         }
-
+        
         if cspr_amount >= amount_to_transfer {
             // save received cspr
             let _ = system::transfer_from_purse_to_purse(
@@ -108,8 +112,8 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let balance = balances.get(&caller); // get balance of the caller
         let cspr_amount_u256: U256 = U256::from(amount.as_u128()); // convert U512 to U256
 
-        if amount.is_zero(){
-            return Ok(());
+        if amount.is_zero() {
+            return Err(5); // Amount to transfer is 0
         }
 
         let contract_main_purse = data::get_self_purse();
@@ -142,7 +146,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             if sender == recipient {
                 return Err(4); // Same sender recipient error
             }
-    
+
             if amount.is_zero() {
                 return Err(5); // Amount to transfer is 0
             }

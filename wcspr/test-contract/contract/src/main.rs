@@ -10,7 +10,7 @@ extern crate alloc;
 use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec, vec::Vec};
 
 use casper_contract::{
-    contract_api::{runtime, storage},
+    contract_api::{runtime, storage, system, account},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
@@ -30,7 +30,8 @@ use utils::*;
 fn deposit() {
     let amount: U512 = runtime::get_named_arg("amount");
     let purse: URef = runtime::get_named_arg("purse");
-
+    // let purse: URef = account::get_main_purse();
+    // let purse: URef = get_key(&SELF_PURSE_KEY_NAME);
     let ret: Result<(), u32> = runtime::call_contract(
         get_key(&WCSPR_HASH_KEY_NAME),
         DEPOSIT_ENTRY_POINT_NAME,
@@ -42,6 +43,7 @@ fn deposit() {
 
     set_key(DEPOSIT_TEST_RESULT_KEY_NAME, ret);
 }
+
 #[no_mangle]
 fn withdraw() {
     let to: Key = runtime::get_named_arg("to");
@@ -207,26 +209,26 @@ fn get_entry_points() -> EntryPoints {
     //     EntryPointAccess::Public,
     //     EntryPointType::Contract,
     // ));
-    // entry_points.add_entry_point(EntryPoint::new(
-    //     "deposit",
-    //     vec![
-    //         Parameter::new("amount", U512::cl_type()),
-    //         Parameter::new("purse", URef::cl_type()),
-    //     ],
-    //     <()>::cl_type(),
-    //     EntryPointAccess::Public,
-    //     EntryPointType::Contract,
-    // ));
-    // entry_points.add_entry_point(EntryPoint::new(
-    //     "withdraw",
-    //     vec![
-    //         Parameter::new("to", Key::cl_type()),
-    //         Parameter::new("amount", U512::cl_type()),
-    //     ],
-    //     <()>::cl_type(),
-    //     EntryPointAccess::Public,
-    //     EntryPointType::Contract,
-    // ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "deposit",
+        vec![
+            Parameter::new("amount", U512::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "withdraw",
+        vec![
+            Parameter::new("to", Key::cl_type()),
+            Parameter::new("amount", U512::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
 }
 

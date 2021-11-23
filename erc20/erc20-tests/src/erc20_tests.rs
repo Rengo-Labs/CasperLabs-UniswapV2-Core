@@ -75,7 +75,7 @@ fn test_erc20_transfer() {
 }
 
 #[test]
-#[should_panic]
+// #[should_panic]
 fn test_erc20_transfer_with_same_sender_and_recipient() {
     let (_env, proxy, token, owner) = deploy();
     let package_hash = proxy.package_hash_result();
