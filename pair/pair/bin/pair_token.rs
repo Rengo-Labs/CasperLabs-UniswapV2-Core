@@ -463,6 +463,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("domain_separator", String::cl_type()),
             Parameter::new("permit_type_hash", String::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
             Parameter::new("reserve0", U128::cl_type()),
             Parameter::new("reserve1", U128::cl_type()),
             Parameter::new("block_timestamp_last", u64::cl_type()),

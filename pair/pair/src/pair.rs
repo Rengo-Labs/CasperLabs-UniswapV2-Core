@@ -4,15 +4,108 @@ use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use crate::data::{self, Allowances, Balances, Nonces};
 
 use casper_contract::contract_api::runtime;
+use casper_contract::contract_api::storage;
+
+use crate::alloc::string::ToString;
+use alloc::collections::BTreeMap;
 use casper_types::system::mint::Error as MintError;
 use casper_types::{
-    runtime_args, ApiError, BlockTime, ContractHash, ContractPackageHash, Key, RuntimeArgs, U128,
-    U256,
+    runtime_args, ApiError, BlockTime, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef,
+    U128, U256,
 };
 use contract_utils::{set_key, ContractContext, ContractStorage};
 use cryptoxide::ed25519;
 use renvm_sig::hash_message;
 use renvm_sig::keccak256;
+
+pub enum PAIREvent {
+    Approval {
+        owner: Key,
+        spender: Key,
+        value: U256,
+    },
+    Transfer {
+        from: Key,
+        to: Key,
+        value: U256,
+        pair: Key,
+    },
+    Mint {
+        sender: Key,
+        amount0: U256,
+        amount1: U256,
+        pair: Key,
+    },
+    Burn {
+        sender: Key,
+        amount0: U256,
+        amount1: U256,
+        to: Key,
+        pair: Key,
+    },
+    Swap {
+        sender: Key,
+        amount0_in: U256,
+        amount1_in: U256,
+        amount0_out: U256,
+        amount1_out: U256,
+        to: Key,
+        from: Key,
+        pair: Key,
+    },
+    Sync {
+        reserve0: U128,
+        reserve1: U128,
+        pair: Key,
+    },
+}
+
+impl PAIREvent {
+    pub fn type_name(&self) -> String {
+        match self {
+            PAIREvent::Approval {
+                owner: _,
+                spender: _,
+                value: _,
+            } => "approve",
+            PAIREvent::Transfer {
+                from: _,
+                to: _,
+                value: _,
+                pair: _,
+            } => "transfer",
+            PAIREvent::Mint {
+                sender: _,
+                amount0: _,
+                amount1: _,
+                pair: _,
+            } => "mint",
+            PAIREvent::Burn {
+                sender: _,
+                amount0: _,
+                amount1: _,
+                to: _,
+                pair: _,
+            } => "burn",
+            PAIREvent::Swap {
+                sender: _,
+                amount0_in: _,
+                amount1_in: _,
+                amount0_out: _,
+                amount1_out: _,
+                to: _,
+                from: _,
+                pair: _,
+            } => "swap",
+            PAIREvent::Sync {
+                reserve0: _,
+                reserve1: _,
+                pair: _,
+            } => "sync",
+        }
+        .to_string()
+    }
+}
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
 #[repr(u16)]
@@ -110,6 +203,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn approve(&mut self, spender: Key, amount: U256) {
         Allowances::instance().set(&self.get_caller(), &spender, amount);
+        self.emit(&PAIREvent::Approval {
+            owner: self.get_caller(),
+            spender: spender,
+            value: amount,
+        });
     }
 
     fn allowance(&mut self, owner: Key, spender: Key) -> U256 {
@@ -336,6 +434,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             >= (reserve0_conversion * reserve1_conversion * reserve_multiply)
                         {
                             self.update(balance0, balance1, reserve0, reserve1);
+                            let eventpair: Key = Key::from(data::get_hash());
+                            self.emit(&PAIREvent::Swap {
+                                sender: self.get_caller(),
+                                amount0_in: amount0_in,
+                                amount1_in: amount1_in,
+                                amount0_out: amount0_out,
+                                amount1_out: amount1_out,
+                                to: to,
+                                from: self.get_caller(),
+                                pair: eventpair,
+                            });
                         } else {
                             //UniswapV2: K
                             runtime::revert(ApiError::User(FailureCode::Eight as u16));
@@ -450,6 +559,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
             if result == true {
                 Allowances::instance().set(&owner, &spender, value);
+                self.emit(&PAIREvent::Approval {
+                    owner: owner,
+                    spender: spender,
+                    value: value,
+                });
             } else {
                 //signature verification failed
                 runtime::revert(ApiError::User(FailureCode::Two as u16));
@@ -476,6 +590,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(ApiError::User(FailureCode::Eleven as u16))
                 .unwrap_or_revert(),
         );
+        let address_0: Key = Key::from_formatted_str(
+            "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
+        )
+        .unwrap();
+        let eventpair: Key = Key::from(data::get_hash());
+        self.emit(&PAIREvent::Transfer {
+            from: address_0,
+            to: recipient,
+            value: amount,
+            pair: eventpair,
+        });
     }
 
     fn burn(&mut self, recipient: Key, amount: U256) {
@@ -495,6 +620,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                     .ok_or(ApiError::User(FailureCode::Twelve as u16))
                     .unwrap_or_revert(),
             );
+            let address_0: Key = Key::from_formatted_str(
+                "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap();
+            let eventpair: Key = Key::from(data::get_hash());
+            self.emit(&PAIREvent::Transfer {
+                from: recipient,
+                to: address_0,
+                value: amount,
+                pair: eventpair,
+            });
         } else {
             runtime::revert(MintError::InsufficientFunds)
         }
@@ -532,6 +668,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(ApiError::User(FailureCode::Eleven as u16))
                 .unwrap_or_revert(),
         );
+        let eventpair: Key = Key::from(data::get_hash());
+        self.emit(&PAIREvent::Transfer {
+            from: sender,
+            to: recipient,
+            value: amount,
+            pair: eventpair,
+        });
 
         Ok(())
     }
@@ -636,6 +779,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 data::set_k_last(k_last);
             }
             data::set_liquidity(liquidity); // return liquidity
+            let eventpair: Key = Key::from(data::get_hash());
+            self.emit(&PAIREvent::Mint {
+                sender: self.get_caller(),
+                amount0: amount0,
+                amount1: amount1,
+                pair: eventpair,
+            });
             liquidity // return liquidity
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
@@ -721,6 +871,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             }
             data::set_amount0(amount0);
             data::set_amount1(amount1);
+            let eventpair: Key = Key::from(data::get_hash());
+            self.emit(&PAIREvent::Burn {
+                sender: self.get_caller(),
+                amount0: amount0,
+                amount1: amount1,
+                to: to,
+                pair: eventpair,
+            });
             (amount0, amount1)
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED
@@ -868,9 +1026,120 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_reserve0(reserve0_conversion);
             data::set_reserve1(reserve1_conversion);
             data::set_block_timestamp_last(block_timestamp);
+            let eventpair: Key = Key::from(data::get_hash());
+            self.emit(&PAIREvent::Sync {
+                reserve0: reserve0_conversion,
+                reserve1: reserve1_conversion,
+                pair: eventpair,
+            });
         } else {
             //UniswapV2: OVERFLOW
             runtime::revert(ApiError::User(FailureCode::Three as u16));
+        }
+    }
+    fn emit(&mut self, pair_event: &PAIREvent) {
+        let mut events = Vec::new();
+        let package = data::get_package_hash();
+        match pair_event {
+            PAIREvent::Approval {
+                owner,
+                spender,
+                value,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", pair_event.type_name());
+                event.insert("owner", owner.to_string());
+                event.insert("spender", spender.to_string());
+                event.insert("value", value.to_string());
+                events.push(event);
+            }
+            PAIREvent::Transfer {
+                from,
+                to,
+                value,
+                pair,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", pair_event.type_name());
+                event.insert("from", from.to_string());
+                event.insert("to", to.to_string());
+                event.insert("value", value.to_string());
+                event.insert("pair", pair.to_string());
+                events.push(event);
+            }
+            PAIREvent::Mint {
+                sender,
+                amount0,
+                amount1,
+                pair,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", pair_event.type_name());
+                event.insert("sender", sender.to_string());
+                event.insert("amount0", amount0.to_string());
+                event.insert("amount1", amount1.to_string());
+                event.insert("pair", pair.to_string());
+                events.push(event);
+            }
+            PAIREvent::Burn {
+                sender,
+                amount0,
+                amount1,
+                to,
+                pair,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", pair_event.type_name());
+                event.insert("sender", sender.to_string());
+                event.insert("amount0", amount0.to_string());
+                event.insert("amount1", amount1.to_string());
+                event.insert("to", to.to_string());
+                event.insert("pair", pair.to_string());
+                events.push(event);
+            }
+            PAIREvent::Swap {
+                sender,
+                amount0_in,
+                amount1_in,
+                amount0_out,
+                amount1_out,
+                to,
+                from,
+                pair,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", pair_event.type_name());
+                event.insert("sender", sender.to_string());
+                event.insert(" amount0In", amount0_in.to_string());
+                event.insert(" amount1In", amount1_in.to_string());
+                event.insert("amount0Out", amount0_out.to_string());
+                event.insert("amount1Out", amount1_out.to_string());
+                event.insert("to", to.to_string());
+                event.insert("from", from.to_string());
+                event.insert("pair", pair.to_string());
+                events.push(event);
+            }
+            PAIREvent::Sync {
+                reserve0,
+                reserve1,
+                pair,
+            } => {
+                let mut event = BTreeMap::new();
+                event.insert("contract_package_hash", package.to_string());
+                event.insert("event_type", pair_event.type_name());
+                event.insert("reserve0", reserve0.to_string());
+                event.insert("reserve1", reserve1.to_string());
+                event.insert("pair", pair.to_string());
+                events.push(event);
+            }
+        };
+        for event in events {
+            let _: URef = storage::new_uref(event);
         }
     }
 }
