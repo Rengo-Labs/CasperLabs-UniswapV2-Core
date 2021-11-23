@@ -2,7 +2,8 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractPackageHash};
+use casper_contract::{contract_api::{system,account}};
+use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractPackageHash, U512, URef};
 use test_env::{Sender, TestContract, TestEnv};
 
 pub const DEPOSIT_TEST_RESULT_KEY_NAME: &str = "deposit_test_result";
@@ -117,6 +118,20 @@ impl WCSPRInstance {
             .unwrap_or_default()
     }
 
+    pub fn withdraw<T: Into<Key>>(&self, sender: Sender, to: T, amount:U512) {
+        self.0.call_contract(sender,"withdraw", runtime_args!{
+            "amount"=>amount,
+            "to"=>to.into()
+        });
+    }
+
+    pub fn deposit(&self, sender: Sender, amount:U512, purse: URef) {
+        self.0.call_contract(sender,"deposit", runtime_args!{
+            "amount"=>amount,
+            "purse"=>purse
+        });
+    }
+
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
     }
@@ -136,6 +151,14 @@ impl WCSPRInstance {
 
     pub fn transfer_from_result(&self) -> Result<(), u32> {
         self.0.query_named_key(TRANSFER_FROM_TEST_RESULT_KEY_NAME.to_string())
+    }
+
+    pub fn deposit_result(&self) -> Result<(), u32> {
+        self.0.query_named_key(DEPOSIT_TEST_RESULT_KEY_NAME.to_string())
+    }
+
+    pub fn withdraw_result(&self) -> Result<(), u32> {
+        self.0.query_named_key(WITHDRAW_TEST_RESULT_KEY_NAME.to_string())
     }
 }
 
