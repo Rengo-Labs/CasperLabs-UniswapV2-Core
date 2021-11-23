@@ -249,8 +249,7 @@ fn permit() {
 fn approve() {
     let spender: Key = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
-    let ret = Pair::default().approve(spender, amount);
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    Pair::default().approve(spender, amount);
 }
 
 /// This function is to mint token against the address that user provided

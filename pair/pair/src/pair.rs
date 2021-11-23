@@ -248,9 +248,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                         };
                         let token0_contract_hash = ContractHash::new(token0_hash_add_array);
                         let ret: Result<(), u32> = runtime::call_contract(
-                            token0_contract_hash,
+                            // token0_contract_hash,
+                            token0.into_hash().unwrap_or_revert().into(),
                             "transfer",
-                            runtime_args! {"recipient" => to,"amount" => amount0_out}, // optimistically transfer tokens
+                            runtime_args! {
+                                "recipient" => to,
+                                "amount" => amount0_out
+                            }, // optimistically transfer tokens
                         );
                         match ret {
                             Ok(()) => {}
