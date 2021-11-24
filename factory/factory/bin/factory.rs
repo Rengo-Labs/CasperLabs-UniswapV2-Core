@@ -152,6 +152,19 @@ fn get_pair() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to set the white list addresses which is only possible if the caller matched with owners's hash
+///
+/// # Parameters
+///
+/// * `white_list` - A Key that holds the Account Hash of fee_to_setter
+///
+
+#[no_mangle]
+fn set_white_list() {
+    let white_list: Key = runtime::get_named_arg("white_list");
+    Factory::default().set_white_list(white_list, white_list);
+}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -225,6 +238,13 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "set_fee_to_setter",
         vec![Parameter::new("fee_to_setter", Key::cl_type())],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_white_list",
+        vec![Parameter::new("white_list", Key::cl_type())],
         CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,

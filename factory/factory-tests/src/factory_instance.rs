@@ -67,6 +67,22 @@ impl FACTORYInstance {
         );
     }
 
+    pub fn set_white_list<T: Into<Key>>(&self, sender: Sender, white_list: T) {
+        self.0.call_contract(
+            sender,
+            "set_white_list",
+            runtime_args! {
+                "white_list" => white_list.into(),
+            },
+        );
+    }
+
+    pub fn get_white_lists<T: Into<Key>>(&self, account: T) -> Key {
+        self.0
+            .query_dictionary("white_lists", key_to_str(&account.into()))
+            .unwrap()
+    }
+
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
     }
