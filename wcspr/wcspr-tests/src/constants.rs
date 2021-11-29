@@ -4,6 +4,7 @@
 pub const PACKAGE_HASH_KEY_NAME: &str = "package_hash";
 pub const CONTRACT_HASH_KEY_NAME: &str = "contract_hash";
 pub const WCSPR_HASH_KEY_NAME: &str = "wcspr_hash";
+pub const SELF_CONTRACT_HASH_KEY_NAME: &str = "self_contract_hash";
 
 /// Name of named-key for `name`.
 pub const NAME_KEY_NAME: &str = "name";

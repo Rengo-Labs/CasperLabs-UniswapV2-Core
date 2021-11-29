@@ -26,3 +26,6 @@ lint: clippy
 clean:
 	cargo clean
 	rm -rf wcspr-tests/wasm/*.wasm
+
+copy-test-contract-wasm-file-to-test:
+	cp test-contract/target/wasm32-unknown-unknown/release/*.wasm wcspr-tests/wasm

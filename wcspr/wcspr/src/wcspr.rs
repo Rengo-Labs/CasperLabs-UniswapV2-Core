@@ -98,12 +98,10 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                     .ok_or(ApiError::User(FailureCode::Zero as u16))
                     .unwrap_or_revert(),
             );
-            Ok(())
         } else {
             runtime::revert(MintError::InsufficientFunds);
         }
-
-        
+        Ok(())
     }
 
     fn withdraw(&mut self, recipient: Key, amount: U512) -> Result<(), u32>{

@@ -3,16 +3,11 @@ use blake2::{
     VarBlake2b,
 };
 use casper_contract::{contract_api::{system,account}};
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256, ContractPackageHash, U512, URef};
+use casper_types::{ bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256,ContractHash, ContractPackageHash, U512, URef};
 use test_env::{Sender, TestContract, TestEnv};
 
-pub const DEPOSIT_TEST_RESULT_KEY_NAME: &str = "deposit_test_result";
-pub const WITHDRAW_TEST_RESULT_KEY_NAME: &str = "withdraw_test_result";
-pub const TRANSFER_TEST_RESULT_KEY_NAME: &str = "transfer_test_result";
-pub const TRANSFER_FROM_TEST_RESULT_KEY_NAME: &str = "transfer_from_test_result";
-pub const PACKAGE_HASH_KEY_NAME: &str = "package_hash";
-pub const CONTRACT_HASH_KEY_NAME: &str = "contract_hash";
-pub const WCSPR_HASH_KEY_NAME: &str = "wcspr_hash";
+// pub mod constants;
+use crate::constants::*;
 
 pub struct WCSPRInstance(TestContract);
 impl WCSPRInstance {
@@ -118,19 +113,27 @@ impl WCSPRInstance {
             .unwrap_or_default()
     }
 
-    pub fn withdraw<T: Into<Key>>(&self, sender: Sender, to: T, amount:U512) {
+    pub fn withdraw<T: Into<Key>>(&self, sender: Sender, to: T, amount:U512, wcspr_hash: Key) {
         self.0.call_contract(sender,"withdraw", runtime_args!{
             "amount"=>amount,
-            "to"=>to.into()
+            "to"=>to.into(),
+            "wcspr_hash"=>wcspr_hash
         });
     }
 
-    pub fn deposit(&self, sender: Sender, amount:U512, purse: URef) {
-        self.0.call_contract(sender,"deposit", runtime_args!{
+    pub fn deposit(&self, sender: Sender, amount:U512, proxy: Key) {
+        self.0.call_contract(sender,"deposit_session", runtime_args!{
             "amount"=>amount,
-            "purse"=>purse
+            "proxy_hash"=>proxy
         });
     }
+
+    // pub fn deposit(&self, sender: Sender, amount:U512, purse: URef) {
+    //     self.0.call_contract(sender,"deposit", runtime_args!{
+    //         "amount"=>amount,
+    //         "purse"=>purse
+    //     });
+    // }
 
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
@@ -147,6 +150,14 @@ impl WCSPRInstance {
 
     pub fn package_hash_result(&self) -> ContractPackageHash {
         self.0.query_named_key(PACKAGE_HASH_KEY_NAME.to_string())
+    }
+
+    pub fn contract_hash_result(&self) -> ContractHash {
+        self.0.query_named_key(CONTRACT_HASH_KEY_NAME.to_string())
+    }
+
+    pub fn self_contract_hash_result(&self) -> Key {
+        self.0.query_named_key(SELF_CONTRACT_HASH_KEY_NAME.to_string())
     }
 
     pub fn transfer_from_result(&self) -> Result<(), u32> {
