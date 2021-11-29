@@ -67,31 +67,31 @@ fn test_wcspr_deposit_zero_amount(){
     assert_eq!(token.balance_of(proxy_package_hash), proxy_balance + U256::from(num));
     assert_eq!(res.is_err(), true);
 }
-#[test]
-fn test_wcspr_withdraw(){
-    let (env, token, proxy, owner) = deploy();
-    let proxy_package_hash = proxy.package_hash_result();
-    let proxy_contract_hash = proxy.contract_hash_result();
-    let deposit_amount= 10;
-    let withdraw_amount= 5;
-    let proxy_balance : U256 = token.balance_of(proxy_package_hash);
-    // let amount: U512 = deposit_amount.into();
+// #[test]
+// fn test_wcspr_withdraw(){
+//     let (env, token, proxy, owner) = deploy();
+//     let proxy_package_hash = proxy.package_hash_result();
+//     let proxy_contract_hash = proxy.contract_hash_result();
+//     let deposit_amount= 10;
+//     let withdraw_amount= 5;
+//     let proxy_balance : U256 = token.balance_of(proxy_package_hash);
+//     // let amount: U512 = deposit_amount.into();
 
-    // first deposit some amount and verify
-    proxy.deposit(Sender(owner), deposit_amount.into(), Key::from(proxy_contract_hash));
-    let res: Result<(), u32>= proxy.deposit_result();
-    assert_eq!(token.balance_of(proxy_package_hash), proxy_balance.checked_add(deposit_amount.into()).unwrap_or_default()); //+ U256::from(deposit_amount));
-    assert_eq!(res.is_ok(), true);
+//     // first deposit some amount and verify
+//     proxy.deposit(Sender(owner), deposit_amount.into(), Key::from(proxy_contract_hash));
+//     let res: Result<(), u32>= proxy.deposit_result();
+//     assert_eq!(token.balance_of(proxy_package_hash), proxy_balance.checked_add(deposit_amount.into()).unwrap_or_default()); //+ U256::from(deposit_amount));
+//     assert_eq!(res.is_ok(), true);
 
-    // withdraw some amount from deposited amount and verify
-    proxy.withdraw(Sender(owner), Key::from(proxy_package_hash), U512::from(withdraw_amount), token.self_contract_hash_result());
+//     // withdraw some amount from deposited amount and verify
+//     proxy.withdraw(Sender(owner), Key::from(proxy_package_hash), U512::from(withdraw_amount), token.self_contract_hash_result());
 
-    // assert_eq!(token.balance_of(proxy_package_hash), (proxy_balance.checked_add(U256::from(deposit_amount).checked_sub(withdraw_amount.into()).unwrap_or_default())).unwrap_or_default());
-    // proxy.withdraw(Sender(owner), package_hash, amount);
-    // let res: Result<(), u32>= proxy.withdraw_result();
+//     // assert_eq!(token.balance_of(proxy_package_hash), (proxy_balance.checked_add(U256::from(deposit_amount).checked_sub(withdraw_amount.into()).unwrap_or_default())).unwrap_or_default());
+//     // proxy.withdraw(Sender(owner), package_hash, amount);
+//     // let res: Result<(), u32>= proxy.withdraw_result();
 
-    // assert_eq!(token.balance_of(package_hash), proxy_balance - U256::from(10));
-}
+//     // assert_eq!(token.balance_of(package_hash), proxy_balance - U256::from(10));
+// }
 
 #[test]
 fn test_wcspr_transfer() {
