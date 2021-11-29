@@ -99,7 +99,8 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                     .unwrap_or_revert(),
             );
         } else {
-            runtime::revert(MintError::InsufficientFunds);
+            return Err(2); // insufficient balance
+            // runtime::revert(MintError::InsufficientFunds);
         }
         Ok(())
     }
@@ -135,6 +136,8 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                     .ok_or(ApiError::User(FailureCode::One as u16))
                     .unwrap_or_revert(),
             )
+        }else {
+            return Err(2); // insufficient Balance
         }
         Ok(())
     }

@@ -113,11 +113,11 @@ impl WCSPRInstance {
             .unwrap_or_default()
     }
 
-    pub fn withdraw<T: Into<Key>>(&self, sender: Sender, to: T, amount:U512, wcspr_hash: Key) {
+    pub fn withdraw<T: Into<Key>>(&self, sender: Sender, to: T, amount:U512) {
         self.0.call_contract(sender,"withdraw", runtime_args!{
             "amount"=>amount,
             "to"=>to.into(),
-            "wcspr_hash"=>wcspr_hash
+            // "wcspr_hash"=>wcspr_hash
         });
     }
 

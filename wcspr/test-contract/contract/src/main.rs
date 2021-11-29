@@ -64,18 +64,20 @@ fn deposit_session() {
 fn withdraw() {
     let to: Key = runtime::get_named_arg("to");
     let amount: U512 = runtime::get_named_arg("amount");
-    let wcspr_hash: Key = runtime::get_named_arg("wcspr_hash");
-
-    let () = runtime::call_contract(
-        _create_hash_from_key(wcspr_hash),
+    // let wcspr_hash: Key = runtime::get_named_arg("wcspr_hash");
+    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+    let ret: Result<(), u32> = runtime::call_contract(
+        // _create_hash_from_key(wcspr_hash),
+        wcspr_hash,
         WITHDRAW_ENTRY_POINT_NAME,
         runtime_args! {
             TO_RUNTIME_ARG_NAME=> to,
             AMOUNT_RUNTIME_ARG_NAME=> amount
         },
     );
-    // set_key(WITHDRAW_TEST_RESULT_KEY_NAME, ret);
+    set_key(WITHDRAW_TEST_RESULT_KEY_NAME, ret);
 }
+
 #[no_mangle]
 fn transfer() {
     let recipient: Key = runtime::get_named_arg(RECIPIENT_RUNTIME_ARG_NAME);
@@ -178,11 +180,11 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U512::cl_type()),
-            Parameter::new("wcspr_hash", Key::cl_type())
+            // Parameter::new("wcspr_hash", Key::cl_type())
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
-        EntryPointType::Session,
+        EntryPointType::Contract,
     ));
     entry_points
 }
