@@ -17,7 +17,7 @@ impl PAIRInstance {
     pub fn proxy(env: &TestEnv, erc20: Key, sender: Sender) -> TestContract {
         TestContract::new(
             env,
-            "contract.wasm",
+            "pair-test.wasm",
             "proxy_test",
             sender,
             runtime_args! {

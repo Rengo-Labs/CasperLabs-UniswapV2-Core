@@ -1,8 +1,9 @@
 [workspace]
 
 members = [
-    "wcspr",
-    "wcspr-tests",
+  "wcspr",
+  "test-contract",
+  "wcspr-tests",
 ]
 
 [profile.release]

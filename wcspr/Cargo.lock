@@ -1512,6 +1512,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "test"
+version = "0.1.0"
+dependencies = [
+ "casper-contract",
+ "casper-types",
+]
+
+[[package]]
 name = "test-env"
 version = "0.1.0"
 dependencies = [

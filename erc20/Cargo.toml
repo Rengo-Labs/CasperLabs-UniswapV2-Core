@@ -1,8 +1,9 @@
 [workspace]
 
 members = [
-    "erc20",
-    "erc20-tests"
+  "erc20",
+  "test-contract",
+  "erc20-tests",
 ]
 
 [profile.release]

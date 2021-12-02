@@ -14,10 +14,10 @@ wasm_dest_flash_swapper_path = ${uniswap_core_directory}flash\ swapper//flash_sw
 
 all:
 	# Build erc20
-	cd ${erc20_contract} && make build-contract
+	cd ${erc20_contract} && make build-contract && make build-test-contract
 	
 	# Build wcspr
-	cd ${wcspr_contract} && make build-contract
+	cd ${wcspr_contract} && make build-contract && make build-test-contract
 
 	# Build factory
 	cd ${factory_contract} && make build-contract

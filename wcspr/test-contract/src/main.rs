@@ -1,22 +1,22 @@
 #![no_std]
 #![no_main]
 
-#[cfg(not(target_arch = "wasm32"))]
-compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
+// #[cfg(not(target_arch = "wasm32"))]
+// compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
 // We need to explicitly import the std alloc crate and `alloc::string::String` as we're in a
 // `no_std` environment.
 extern crate alloc;
-use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec, vec::Vec};
+use alloc::{collections::BTreeSet, format, vec};
 
 use casper_contract::{
-    contract_api::{runtime, storage, system, account},
+    contract_api::{account, runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
-    runtime_args, ApiError, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512,
+    runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key,
+    Parameter, RuntimeArgs, URef, U256, U512,
 };
 
 pub mod constants;
@@ -45,11 +45,29 @@ fn deposit() {
 }
 
 #[no_mangle]
+fn deposit_session() {
+    let amount: U512 = runtime::get_named_arg("amount");
+    let proxy_hash: Key = runtime::get_named_arg("proxy_hash");
+    let purse: URef = account::get_main_purse();
+
+    let () = runtime::call_contract(
+        _create_hash_from_key(proxy_hash),
+        DEPOSIT_ENTRY_POINT_NAME,
+        runtime_args! {
+            PURSE_RUNTIME_ARG_NAME=> purse,
+            AMOUNT_RUNTIME_ARG_NAME=> amount
+        },
+    );
+    // set_key(DEPOSIT_TEST_RESULT_KEY_NAME, ret);
+}
+#[no_mangle]
 fn withdraw() {
     let to: Key = runtime::get_named_arg("to");
     let amount: U512 = runtime::get_named_arg("amount");
+    // let wcspr_hash: Key = runtime::get_named_arg("wcspr_hash");
     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
     let ret: Result<(), u32> = runtime::call_contract(
+        // _create_hash_from_key(wcspr_hash),
         wcspr_hash,
         WITHDRAW_ENTRY_POINT_NAME,
         runtime_args! {
@@ -59,6 +77,7 @@ fn withdraw() {
     );
     set_key(WITHDRAW_TEST_RESULT_KEY_NAME, ret);
 }
+
 #[no_mangle]
 fn transfer() {
     let recipient: Key = runtime::get_named_arg(RECIPIENT_RUNTIME_ARG_NAME);
@@ -95,53 +114,6 @@ fn transfer_from() {
     set_key(TRANSFER_FROM_TEST_RESULT_KEY_NAME, res);
 }
 
-// #[no_mangle]
-// fn approve() {
-//     let spender: Key = runtime::get_named_arg(SPENDER_RUNTIME_ARG_NAME);
-//     let amount: Key = runtime::get_named_arg(AMOUNT_RUNTIME_ARG_NAME);
-//     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
-
-//     let () = runtime::call_contract(
-//         wcspr_hash,
-//         APPROVE_ENTRY_POINT_NAME,
-//         runtime_args! {
-//             SPENDER_RUNTIME_ARG_NAME => spender,
-//             AMOUNT_RUNTIME_ARG_NAME=>amount
-//         },
-//     );
-// }
-
-// #[no_mangle]
-// fn allowance() {
-//     let owner: Key = runtime::get_named_arg(OWNER_RUNTIME_ARG_NAME);
-//     let spender: Key = runtime::get_named_arg(RECIPIENT_RUNTIME_ARG_NAME);
-//     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
-
-//     let res: U256 = runtime::call_contract(
-//         wcspr_hash,
-//         ALLOWANCE_ENTRY_POINT_NAME,
-//         runtime_args! {
-//             OWNER_RUNTIME_ARG_NAME=>owner,
-//             SPENDER_RUNTIME_ARG_NAME=>spender
-//         },
-//     );
-//     set_key(ALLOWANCE_KEY_NAME, res);
-// }
-
-// #[no_mangle]
-// fn balance_of() {
-//     let owner: Key = runtime::get_named_arg(OWNER_RUNTIME_ARG_NAME);
-//     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
-
-//     let res: U256 = runtime::call_contract(
-//         wcspr_hash,
-//         BALANCE_OF_ENTRY_POINT_NAME,
-//         runtime_args! {
-//             OWNER_RUNTIME_ARG_NAME=>owner
-//         },
-//     );
-//     set_key(BALANCE_OF_KEY_NAME, res);
-// }
 // ================================== Helper functions ============================ //
 fn _create_hash_from_key(key: Key) -> ContractHash {
     ContractHash::from(key.into_hash().unwrap_or_default())
@@ -182,33 +154,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    // entry_points.add_entry_point(EntryPoint::new(
-    //     "approve",
-    //     vec![
-    //         Parameter::new("spender", Key::cl_type()),
-    //         Parameter::new("amount", U256::cl_type()),
-    //     ],
-    //     <()>::cl_type(),
-    //     EntryPointAccess::Public,
-    //     EntryPointType::Contract,
-    // ));
-    // entry_points.add_entry_point(EntryPoint::new(
-    //     "balance_of",
-    //     vec![Parameter::new("owner", Key::cl_type())],
-    //     <()>::cl_type(),
-    //     EntryPointAccess::Public,
-    //     EntryPointType::Contract,
-    // ));
-    // entry_points.add_entry_point(EntryPoint::new(
-    //     "allowance",
-    //     vec![
-    //         Parameter::new("owner", Key::cl_type()),
-    //         Parameter::new("spender", Key::cl_type()),
-    //     ],
-    //     <()>::cl_type(),
-    //     EntryPointAccess::Public,
-    //     EntryPointType::Contract,
-    // ));
     entry_points.add_entry_point(EntryPoint::new(
         "deposit",
         vec![
@@ -220,10 +165,22 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "deposit_session",
+        vec![
+            Parameter::new("amount", U512::cl_type()),
+            // Parameter::new("purse", URef::cl_type()),
+            Parameter::new("proxy_hash", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Session,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "withdraw",
         vec![
             Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U512::cl_type()),
+            // Parameter::new("wcspr_hash", Key::cl_type())
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,
