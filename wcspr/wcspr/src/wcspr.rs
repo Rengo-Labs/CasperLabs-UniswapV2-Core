@@ -1,6 +1,10 @@
 use crate::data::{self, Allowances, Balances};
 use alloc::string::String;
-use casper_contract::{contract_api::system, unwrap_or_revert::UnwrapOrRevert};
+
+use casper_contract::{
+    contract_api::{runtime, system},
+    unwrap_or_revert::UnwrapOrRevert,
+};
 use casper_types::{ApiError, Key, URef, U256, U512};
 use contract_utils::{ContractContext, ContractStorage};
 
@@ -35,33 +39,64 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn approve(&mut self, spender: Key, amount: U256) {
-        Allowances::instance().set(&self.get_caller(), &spender, amount);
+        self._approve(self.get_caller(), spender, amount);
+    }
+
+    fn _approve(&mut self, owner: Key, spender: Key, amount: U256) {
+        Allowances::instance().set(&owner, &spender, amount);
     }
 
     fn allowance(&mut self, owner: Key, spender: Key) -> U256 {
         Allowances::instance().get(&owner, &spender)
     }
+    fn increase_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
+        let allowances = Allowances::instance();
+        let balances = Balances::instance();
+
+        let owner: Key = Key::from(runtime::get_caller());
+
+        let spender_allowance: U256 = allowances.get(&owner, &spender);
+        let owner_balance: U256 = balances.get(&owner);
+
+        let new_allowance: U256 = spender_allowance
+            .checked_add(amount)
+            .ok_or(ApiError::User(FailureCode::Zero as u16))
+            .unwrap_or_revert();
+
+        if new_allowance <= owner_balance && owner != spender {
+            self._approve(owner, spender, new_allowance);
+            return Ok(());
+        } else {
+            return Err(4);
+        }
+    }
+
+    fn decrease_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
+        let allowances = Allowances::instance();
+
+        let owner: Key = Key::from(runtime::get_caller());
+
+        let spender_allowance: U256 = allowances.get(&owner, &spender);
+
+        let new_allowance: U256 = spender_allowance
+            .checked_sub(amount)
+            .ok_or(ApiError::User(FailureCode::One as u16))
+            .unwrap_or_revert();
+
+        if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {
+            self._approve(owner, spender, new_allowance);
+            return Ok(());
+        } else {
+            return Err(4);
+        }
+    }
 
     fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32> {
-        let allowances = Allowances::instance();
-        let spender = self.get_caller();
-        let spender_allowance = allowances.get(&owner, &spender);
-        if owner == recipient {
-            return Err(4); // Same sender recipient error
+        let ret: Result<(), u32> = self.make_transfer(owner, recipient, amount);
+        if ret.is_ok() {
+            return self.decrease_allowance(recipient, amount);
         }
-
-        if amount.is_zero() {
-            return Err(5); // Amount to transfer is 0
-        }
-        allowances.set(
-            &owner,
-            &spender,
-            spender_allowance
-                .checked_sub(amount)
-                .ok_or(ApiError::User(FailureCode::One as u16))
-                .unwrap_or_revert(),
-        );
-        self.make_transfer(owner, recipient, amount)
+        ret
     }
 
     fn deposit(&mut self, amount_to_transfer: U512, purse: URef) -> Result<(), u32> {

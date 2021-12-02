@@ -43,8 +43,8 @@ pub fn self_package_key() -> String {
     format!("package_hash")
 }
 
-pub fn erc20_key() -> String {
-    format!("erc20")
+pub fn pair_key() -> String {
+    format!("pair")
 }
 
 pub fn transfer_key() -> String {

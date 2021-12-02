@@ -72,19 +72,13 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn transfer_from<T: Into<Key>>(
-        &self,
-        sender: Sender,
-        owner: T,
-        recipient: T,
-        amount: U256,
-    ) {
+    pub fn transfer_from(&self, sender: Sender, owner: Key, recipient: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer_from",
             runtime_args! {
-                "owner" => owner.into(),
-                "recipient" => recipient.into(),
+                "owner" => owner,
+                "recipient" => recipient,
                 "amount" => amount
             },
         );
@@ -94,6 +88,28 @@ impl WCSPRInstance {
         self.0.call_contract(
             sender,
             "approve",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn increase_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "increase_allowance",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn decrease_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "decrease_allowance",
             runtime_args! {
                 "spender" => spender.into(),
                 "amount" => amount

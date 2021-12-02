@@ -114,6 +114,34 @@ fn transfer_from() {
     set_key(TRANSFER_FROM_TEST_RESULT_KEY_NAME, res);
 }
 
+#[no_mangle]
+fn increase_allowance() {
+    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    let args: RuntimeArgs = runtime_args! {
+        "spender" => spender,
+        "amount" => amount,
+    };
+
+    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "increase_allowance", args);
+}
+
+#[no_mangle]
+fn decrease_allowance() {
+    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    let args: RuntimeArgs = runtime_args! {
+        "spender" => spender,
+        "amount" => amount,
+    };
+
+    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "decrease_allowance", args);
+}
+
 // ================================== Helper functions ============================ //
 fn _create_hash_from_key(key: Key) -> ContractHash {
     ContractHash::from(key.into_hash().unwrap_or_default())
@@ -181,6 +209,26 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U512::cl_type()),
             // Parameter::new("wcspr_hash", Key::cl_type())
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "increase_allowance",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "decrease_allowance",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,

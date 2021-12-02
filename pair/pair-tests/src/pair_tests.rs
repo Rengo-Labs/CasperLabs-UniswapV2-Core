@@ -492,15 +492,27 @@ fn test_pair_swap() {
 #[test]
 fn test_pair_transfer_from() {
     let (env, proxy, token, owner, _factory_hash) = deploy();
-    let package_hash = proxy.package_hash_result();
 
     let recipient = env.next_user();
 
     let allowance = 10.into();
     let amount: U256 = 3.into();
+    // Minting to proxy contract as it is the intermediate caller to transfer
+    // token.mint(Sender(owner), package_hash, mint_amount);
 
-    token.approve(Sender(owner), package_hash, allowance);
-    proxy.transfer_from(Sender(owner), owner.into(), recipient, amount);
+    // proxy.increase_allowance(Sender(owner), recipient, allowance);
+
+    token.approve(Sender(owner), recipient, allowance);
+    assert_eq!(token.balance_of(owner), 1000.into());
+    assert_eq!(token.allowance(owner, recipient), 10.into());
+    proxy.transfer_from(
+        Sender(owner),
+        Key::from(owner),
+        Key::from(recipient),
+        amount,
+    );
+
+    assert_eq!(token.allowance(owner, recipient), 7.into());
 
     assert_eq!(token.nonce(owner), 0.into());
     assert_eq!(token.nonce(recipient), 0.into());
@@ -514,7 +526,6 @@ fn test_pair_transfer_from() {
         Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
-
 #[test]
 #[should_panic]
 fn test_pair_transfer_from_too_much() {
@@ -524,7 +535,12 @@ fn test_pair_transfer_from_too_much() {
     let allowance = 10.into();
     let amount = 12.into();
     token.approve(Sender(owner), spender, allowance);
-    token.transfer_from(Sender(spender), owner, recipient, amount);
+    token.transfer_from(
+        Sender(spender),
+        Key::from(owner),
+        Key::from(recipient),
+        amount,
+    );
 }
 
 #[test]
