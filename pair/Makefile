@@ -18,8 +18,7 @@ build-contract:
 
 build-test-contract:
 	cargo build --release -p test --target wasm32-unknown-unknown
-	wasm-strip target/wasm32-unknown-unknown/release/pair-token.wasm 2>/dev/null | true
-
+	wasm-strip target/wasm32-unknown-unknown/release/pair-test.wasm 2>/dev/null | true
 
 test-only:
 	cargo test -p pair-tests

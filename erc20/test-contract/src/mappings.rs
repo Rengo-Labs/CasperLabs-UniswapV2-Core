@@ -54,3 +54,11 @@ pub fn transfer_key() -> String {
 pub fn transfer_from_key() -> String {
     format!("transfer_from_result")
 }
+
+pub fn increase_allowance_key() -> String {
+    format!("increase_allowance_result")
+}
+
+pub fn decrease_allowance_key() -> String {
+    format!("decrease_allowance_result")
+}

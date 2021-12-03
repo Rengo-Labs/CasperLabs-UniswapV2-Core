@@ -10,18 +10,18 @@ use test_env::{Sender, TestContract, TestEnv};
 pub struct PAIRInstance(TestContract);
 
 impl PAIRInstance {
-    pub fn instance(erc20: TestContract) -> PAIRInstance {
-        PAIRInstance(erc20)
+    pub fn instance(pair: TestContract) -> PAIRInstance {
+        PAIRInstance(pair)
     }
 
-    pub fn proxy(env: &TestEnv, erc20: Key, sender: Sender) -> TestContract {
+    pub fn proxy(env: &TestEnv, pair: Key, sender: Sender) -> TestContract {
         TestContract::new(
             env,
-            "contract.wasm",
+            "pair-test.wasm",
             "proxy_test",
             sender,
             runtime_args! {
-                "erc20" => erc20
+                "pair" => pair
             },
         )
     }
@@ -108,19 +108,13 @@ impl PAIRInstance {
         );
     }
 
-    pub fn transfer_from<T: Into<Key>>(
-        &self,
-        sender: Sender,
-        owner: T,
-        recipient: T,
-        amount: U256,
-    ) {
+    pub fn transfer_from(&self, sender: Sender, owner: Key, recipient: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer_from",
             runtime_args! {
-                "owner" => owner.into(),
-                "recipient" => recipient.into(),
+                "owner" => owner,
+                "recipient" => recipient,
                 "amount" => amount
             },
         );
@@ -153,6 +147,28 @@ impl PAIRInstance {
         self.0.call_contract(
             sender,
             "approve",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn increase_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "increase_allowance",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn decrease_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "decrease_allowance",
             runtime_args! {
                 "spender" => spender.into(),
                 "amount" => amount

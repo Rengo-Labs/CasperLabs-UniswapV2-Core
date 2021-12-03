@@ -14,4 +14,3 @@ pair/pair-tests/wasm/*.wasm
 factory/factory-tests/wasm/*.wasm
 wcspr/wcspr-tests/wasm/*.wasm
 flash\ swapper/flash_swapper-tests/wasm/*.wasm
-

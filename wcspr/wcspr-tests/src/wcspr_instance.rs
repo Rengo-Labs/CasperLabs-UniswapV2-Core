@@ -2,19 +2,14 @@ use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-
 use casper_types::{
-    bytesrepr::ToBytes, runtime_args, ContractPackageHash, Key, RuntimeArgs, URef, U256, U512,
+    bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
+    U512,
 };
 use test_env::{Sender, TestContract, TestEnv};
 
-pub const DEPOSIT_TEST_RESULT_KEY_NAME: &str = "deposit_test_result";
-pub const WITHDRAW_TEST_RESULT_KEY_NAME: &str = "withdraw_test_result";
-pub const TRANSFER_TEST_RESULT_KEY_NAME: &str = "transfer_test_result";
-pub const TRANSFER_FROM_TEST_RESULT_KEY_NAME: &str = "transfer_from_test_result";
-pub const PACKAGE_HASH_KEY_NAME: &str = "package_hash";
-pub const CONTRACT_HASH_KEY_NAME: &str = "contract_hash";
-pub const WCSPR_HASH_KEY_NAME: &str = "wcspr_hash";
+// pub mod constants;
+use crate::constants::*;
 
 pub struct WCSPRInstance(TestContract);
 impl WCSPRInstance {
@@ -46,7 +41,7 @@ impl WCSPRInstance {
     pub fn proxy(env: &TestEnv, wcspr: Key, sender: Sender) -> TestContract {
         TestContract::new(
             env,
-            "contract.wasm",
+            "wcspr-test.wasm",
             "proxy_test",
             sender,
             runtime_args! {
@@ -77,19 +72,13 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn transfer_from<T: Into<Key>>(
-        &self,
-        sender: Sender,
-        owner: T,
-        recipient: T,
-        amount: U256,
-    ) {
+    pub fn transfer_from(&self, sender: Sender, owner: Key, recipient: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer_from",
             runtime_args! {
-                "owner" => owner.into(),
-                "recipient" => recipient.into(),
+                "owner" => owner,
+                "recipient" => recipient,
                 "amount" => amount
             },
         );
@@ -99,6 +88,28 @@ impl WCSPRInstance {
         self.0.call_contract(
             sender,
             "approve",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn increase_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "increase_allowance",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn decrease_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "decrease_allowance",
             runtime_args! {
                 "spender" => spender.into(),
                 "amount" => amount
@@ -126,21 +137,29 @@ impl WCSPRInstance {
             "withdraw",
             runtime_args! {
                 "amount"=>amount,
-                "to"=>to.into()
+                "to"=>to.into(),
+                // "wcspr_hash"=>wcspr_hash
             },
         );
     }
 
-    pub fn deposit(&self, sender: Sender, amount: U512, purse: URef) {
+    pub fn deposit(&self, sender: Sender, amount: U512, proxy: Key) {
         self.0.call_contract(
             sender,
-            "deposit",
+            "deposit_session",
             runtime_args! {
                 "amount"=>amount,
-                "purse"=>purse
+                "proxy_hash"=>proxy
             },
         );
     }
+
+    // pub fn deposit(&self, sender: Sender, amount:U512, purse: URef) {
+    //     self.0.call_contract(sender,"deposit", runtime_args!{
+    //         "amount"=>amount,
+    //         "purse"=>purse
+    //     });
+    // }
 
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
@@ -158,6 +177,15 @@ impl WCSPRInstance {
 
     pub fn package_hash_result(&self) -> ContractPackageHash {
         self.0.query_named_key(PACKAGE_HASH_KEY_NAME.to_string())
+    }
+
+    pub fn contract_hash_result(&self) -> ContractHash {
+        self.0.query_named_key(CONTRACT_HASH_KEY_NAME.to_string())
+    }
+
+    pub fn self_contract_hash_result(&self) -> Key {
+        self.0
+            .query_named_key(SELF_CONTRACT_HASH_KEY_NAME.to_string())
     }
 
     pub fn transfer_from_result(&self) -> Result<(), u32> {

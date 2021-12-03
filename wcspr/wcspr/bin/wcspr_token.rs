@@ -6,7 +6,7 @@ use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
-};  
+};
 use casper_types::{
     runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
     EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512,
@@ -205,6 +205,40 @@ fn allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to increase the amount of tokens approved for a spender by an owner
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to increment approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn increase_allowance() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let ret: Result<(), u32> = Token::default().increase_allowance(spender, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+/// This function is to decrease the amount of tokens approved for a spender by an owner
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to decrement approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn decrease_allowance() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let ret: Result<(), u32> = Token::default().decrease_allowance(spender, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -310,6 +344,32 @@ fn get_entry_points() -> EntryPoints {
         "symbol",
         vec![],
         String::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "increase_allowance",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "decrease_allowance",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

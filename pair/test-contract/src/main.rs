@@ -20,19 +20,19 @@ pub mod mappings;
 fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
-    let erc20: Key = runtime::get_named_arg("erc20");
+    let pair: Key = runtime::get_named_arg("pair");
 
     mappings::set_key(&mappings::self_hash_key(), contract_hash);
     mappings::set_key(&mappings::self_package_key(), package_hash);
     mappings::set_key(
-        &mappings::erc20_key(),
-        ContractHash::from(erc20.into_hash().unwrap_or_default()),
+        &mappings::pair_key(),
+        ContractHash::from(pair.into_hash().unwrap_or_default()),
     );
 }
 
 #[no_mangle]
 fn transfer() {
-    let erc20_address: ContractHash = mappings::get_key(&mappings::erc20_key());
+    let pair_address: ContractHash = mappings::get_key(&mappings::pair_key());
 
     let recipient: Key = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
@@ -42,13 +42,13 @@ fn transfer() {
         "amount" => amount,
     };
 
-    let ret: Result<(), u32> = runtime::call_contract(erc20_address, "transfer", args);
+    let ret: Result<(), u32> = runtime::call_contract(pair_address, "transfer", args);
     mappings::set_key(&mappings::transfer_key(), ret);
 }
 
 #[no_mangle]
 fn transfer_from() {
-    let erc20_address: ContractHash = mappings::get_key(&mappings::erc20_key());
+    let pair_address: ContractHash = mappings::get_key(&mappings::pair_key());
 
     let owner: Key = runtime::get_named_arg("owner");
     let recipient: Key = runtime::get_named_arg("recipient");
@@ -60,7 +60,7 @@ fn transfer_from() {
         "amount" => amount,
     };
 
-    let ret: Result<(), u32> = runtime::call_contract(erc20_address, "transfer_from", args);
+    let ret: Result<(), u32> = runtime::call_contract(pair_address, "transfer_from", args);
     mappings::set_key(&mappings::transfer_from_key(), ret);
 }
 
@@ -100,6 +100,34 @@ fn set_fee_to() {
     );
 }
 
+#[no_mangle]
+fn increase_allowance() {
+    let pair_address: ContractHash = mappings::get_key(&mappings::pair_key());
+
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    let args: RuntimeArgs = runtime_args! {
+        "spender" => spender,
+        "amount" => amount,
+    };
+
+    let _ret: Result<(), u32> = runtime::call_contract(pair_address, "increase_allowance", args);
+}
+
+#[no_mangle]
+fn decrease_allowance() {
+    let pair_address: ContractHash = mappings::get_key(&mappings::pair_key());
+
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    let args: RuntimeArgs = runtime_args! {
+        "spender" => spender,
+        "amount" => amount,
+    };
+
+    let _ret: Result<(), u32> = runtime::call_contract(pair_address, "decrease_allowance", args);
+}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -107,7 +135,7 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
-            Parameter::new("erc20", Key::cl_type()),
+            Parameter::new("pair", Key::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -152,6 +180,26 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "increase_allowance",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "decrease_allowance",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
 }
 
@@ -161,13 +209,13 @@ fn call() {
     let (package_hash, access_token) = storage::create_contract_package_at_hash();
     let (contract_hash, _) =
         storage::add_contract_version(package_hash, get_entry_points(), Default::default());
-    let erc20: Key = runtime::get_named_arg("erc20");
+    let pair: Key = runtime::get_named_arg("pair");
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "contract_hash" => contract_hash,
         "package_hash" => package_hash,
-        "erc20" => erc20
+        "pair" => pair
     };
 
     // Add the constructor group to the package hash with a single URef.

@@ -1,10 +1,10 @@
 use crate::data::{self, Allowances, Balances};
 use alloc::string::String;
+
 use casper_contract::{
     contract_api::{runtime, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
-use casper_types::system::mint::Error as MintError;
 use casper_types::{ApiError, Key, URef, U256, U512};
 use contract_utils::{ContractContext, ContractStorage};
 
@@ -34,50 +34,81 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         Balances::instance().get(&owner)
     }
 
-    fn transfer(&mut self, recipient: Key, amount: U256) -> Result<(), u32>{
+    fn transfer(&mut self, recipient: Key, amount: U256) -> Result<(), u32> {
         self.make_transfer(self.get_caller(), recipient, amount)
     }
 
     fn approve(&mut self, spender: Key, amount: U256) {
-        Allowances::instance().set(&self.get_caller(), &spender, amount);
+        self._approve(self.get_caller(), spender, amount);
+    }
+
+    fn _approve(&mut self, owner: Key, spender: Key, amount: U256) {
+        Allowances::instance().set(&owner, &spender, amount);
     }
 
     fn allowance(&mut self, owner: Key, spender: Key) -> U256 {
         Allowances::instance().get(&owner, &spender)
     }
-
-    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32>{
+    fn increase_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-        let spender = self.get_caller();
-        let spender_allowance = allowances.get(&owner, &spender);
-        if owner == recipient {
-            return Err(4); // Same sender recipient error
-        }
+        let balances = Balances::instance();
 
-        if amount.is_zero() {
-            return Err(5); // Amount to transfer is 0
+        let owner: Key = self.get_caller();
+
+        let spender_allowance: U256 = allowances.get(&owner, &spender);
+        let owner_balance: U256 = balances.get(&owner);
+
+        let new_allowance: U256 = spender_allowance
+            .checked_add(amount)
+            .ok_or(ApiError::User(FailureCode::Zero as u16))
+            .unwrap_or_revert();
+
+        if new_allowance <= owner_balance && owner != spender {
+            self._approve(owner, spender, new_allowance);
+            return Ok(());
+        } else {
+            return Err(4);
         }
-        allowances.set(
-            &owner,
-            &spender,
-            spender_allowance
-                .checked_sub(amount)
-                .ok_or(ApiError::User(FailureCode::One as u16))
-                .unwrap_or_revert(),
-        );
-        self.make_transfer(owner, recipient, amount)
     }
 
-    fn deposit(&mut self, amount_to_transfer: U512, purse: URef) -> Result<(), u32>{
+    fn decrease_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
+        let allowances = Allowances::instance();
+
+        let owner: Key = self.get_caller();
+
+        let spender_allowance: U256 = allowances.get(&owner, &spender);
+
+        let new_allowance: U256 = spender_allowance
+            .checked_sub(amount)
+            .ok_or(ApiError::User(FailureCode::One as u16))
+            .unwrap_or_revert();
+
+        if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {
+            self._approve(owner, spender, new_allowance);
+            return Ok(());
+        } else {
+            return Err(4);
+        }
+    }
+
+    fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32> {
+        let ret: Result<(), u32> = self.make_transfer(owner, recipient, amount);
+        if ret.is_ok() {
+            return self.decrease_allowance(recipient, amount);
+        }
+        ret
+    }
+
+    fn deposit(&mut self, amount_to_transfer: U512, purse: URef) -> Result<(), u32> {
         let cspr_amount: U512 = system::get_purse_balance(purse).unwrap_or_revert(); // get amount of cspr from purse received
         let _cspr_amount_u256: U256 = U256::from(cspr_amount.as_u128()); // convert amount to U256
         let amount_to_transfer_u256: U256 = U256::from(amount_to_transfer.as_u128()); // convert amount_to_transfer to U256
         let contract_self_purse: URef = data::get_self_purse(); // get this contract's purse
 
-        if amount_to_transfer.is_zero(){
+        if amount_to_transfer.is_zero() {
             return Err(5); // Amount to transfer is 0
         }
-        
+
         if cspr_amount >= amount_to_transfer {
             // save received cspr
             let _ = system::transfer_from_purse_to_purse(
@@ -98,15 +129,14 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                     .ok_or(ApiError::User(FailureCode::Zero as u16))
                     .unwrap_or_revert(),
             );
-            Ok(())
         } else {
-            runtime::revert(MintError::InsufficientFunds);
+            return Err(2); // insufficient balance
+                           // runtime::revert(MintError::InsufficientFunds);
         }
-
-        
+        Ok(())
     }
 
-    fn withdraw(&mut self, recipient: Key, amount: U512) -> Result<(), u32>{
+    fn withdraw(&mut self, recipient: Key, amount: U512) -> Result<(), u32> {
         let caller = self.get_caller();
         let balances = Balances::instance();
         let balance = balances.get(&caller); // get balance of the caller
@@ -137,37 +167,38 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                     .ok_or(ApiError::User(FailureCode::One as u16))
                     .unwrap_or_revert(),
             )
+        } else {
+            return Err(2); // insufficient Balance
         }
         Ok(())
     }
 
-    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32>{
+    fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32> {
+        if sender == recipient {
+            return Err(4); // Same sender recipient error
+        }
 
-            if sender == recipient {
-                return Err(4); // Same sender recipient error
-            }
+        if amount.is_zero() {
+            return Err(5); // Amount to transfer is 0
+        }
 
-            if amount.is_zero() {
-                return Err(5); // Amount to transfer is 0
-            }
-
-            let balances: Balances = Balances::instance();
-            let sender_balance: U256 = balances.get(&sender);
-            let recipient_balance: U256 = balances.get(&recipient);
-            balances.set(
-                &sender,
-                sender_balance
-                    .checked_sub(amount)
-                    .ok_or(ApiError::User(FailureCode::One as u16))
-                    .unwrap_or_revert(),
-            );
-            balances.set(
-                &recipient,
-                recipient_balance
-                    .checked_add(amount)
-                    .ok_or(ApiError::User(FailureCode::Zero as u16))
-                    .unwrap_or_revert(),
-            );
+        let balances: Balances = Balances::instance();
+        let sender_balance: U256 = balances.get(&sender);
+        let recipient_balance: U256 = balances.get(&recipient);
+        balances.set(
+            &sender,
+            sender_balance
+                .checked_sub(amount)
+                .ok_or(ApiError::User(FailureCode::One as u16))
+                .unwrap_or_revert(),
+        );
+        balances.set(
+            &recipient,
+            recipient_balance
+                .checked_add(amount)
+                .ok_or(ApiError::User(FailureCode::Zero as u16))
+                .unwrap_or_revert(),
+        );
         Ok(())
     }
 

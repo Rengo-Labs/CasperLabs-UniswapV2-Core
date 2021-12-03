@@ -15,7 +15,7 @@ impl ERC20Instance {
     pub fn proxy(env: &TestEnv, erc20: Key, sender: Sender) -> TestContract {
         TestContract::new(
             env,
-            "contract.wasm",
+            "erc20-test.wasm",
             "proxy_test",
             sender,
             runtime_args! {
@@ -100,6 +100,29 @@ impl ERC20Instance {
             },
         );
     }
+
+    pub fn increase_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "increase_allowance",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
+    pub fn decrease_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+        self.0.call_contract(
+            sender,
+            "decrease_allowance",
+            runtime_args! {
+                "spender" => spender.into(),
+                "amount" => amount
+            },
+        );
+    }
+
     pub fn mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
         self.0.call_contract(
             sender,
