@@ -138,30 +138,26 @@ fn test_erc20_transfer_from() {
     let recipient = env.next_user();
     let mint_amount = 100.into();
     let allowance = 10.into();
-    let amount: U256 = 0.into();
+    let amount: U256 = 10.into();
     // Minting to proxy contract as it is the intermediate caller to transfer
     token.mint(Sender(owner), package_hash, mint_amount);
 
-    // proxy.increase_allowance(Sender(owner), recipient, allowance);
-
-    token.approve(Sender(owner), recipient, allowance);
+    proxy.approve(Sender(owner), recipient, allowance);
     assert_eq!(token.balance_of(owner), 1000.into());
-    assert_eq!(token.allowance(owner, recipient), 10.into());
-    // proxy.transfer_from(Sender(owner), package_hash.into(), recipient.into(), amount);
-
-    assert_eq!(token.allowance(owner, recipient), 10.into());
+    // assert_eq!(token.allowance(package_hash, recipient), 10.into());
+    proxy.transfer_from(Sender(owner), package_hash.into(), recipient.into(), amount);
 
     assert_eq!(token.nonce(owner), 0.into());
     assert_eq!(token.nonce(recipient), 0.into());
     assert_eq!(token.balance_of(owner), 1000.into());
     assert_eq!(token.balance_of(recipient), amount);
 
-    // let ret: Result<(), u32> = proxy.transfer_from_result();
+    let ret: Result<(), u32> = proxy.transfer_from_result();
 
-    // match ret {
-    //     Ok(()) => {}
-    //     Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
-    // }
+    match ret {
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
+    }
 }
 
 #[test]

@@ -93,6 +93,18 @@ fn decrease_allowance() {
     let ret: Result<(), u32> = runtime::call_contract(erc20_address, "decrease_allowance", args);
     mappings::set_key(&mappings::decrease_allowance_key(), ret);
 }
+#[no_mangle]
+fn approve() {
+    let erc20_address: ContractHash = mappings::get_key(&mappings::erc20_key());
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    let args: RuntimeArgs = runtime_args! {
+        "spender" => spender,
+        "amount" => amount,
+    };
+
+    let _ret: () = runtime::call_contract(erc20_address, "approve", args);
+}
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -140,6 +152,16 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "decrease_allowance",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "approve",
         vec![
             Parameter::new("spender", Key::cl_type()),
             Parameter::new("amount", U256::cl_type()),
