@@ -53,7 +53,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let allowances = Allowances::instance();
         let balances = Balances::instance();
 
-        let owner: Key = Key::from(runtime::get_caller());
+        let owner: Key = self.get_caller();
 
         let spender_allowance: U256 = allowances.get(&owner, &spender);
         let owner_balance: U256 = balances.get(&owner);
@@ -74,7 +74,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     fn decrease_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
 
-        let owner: Key = Key::from(runtime::get_caller());
+        let owner: Key = self.get_caller();
 
         let spender_allowance: U256 = allowances.get(&owner, &spender);
 
