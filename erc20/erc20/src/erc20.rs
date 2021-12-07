@@ -39,7 +39,7 @@ impl ERC20Event {
                 from: _,
                 to: _,
                 value: _,
-            } => "transfer",
+            } => "erc20_transfer",
         }
         .to_string()
     }
