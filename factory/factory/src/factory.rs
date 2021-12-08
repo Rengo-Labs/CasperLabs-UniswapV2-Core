@@ -1,5 +1,5 @@
 use crate::alloc::string::ToString;
-use crate::data::{self, get_all_pairs, Pairs};
+use crate::data::{self, get_all_pairs, Pairs, Whitelists};
 use alloc::collections::BTreeMap;
 use alloc::{string::String, vec::Vec};
 use casper_contract::contract_api::runtime;
@@ -36,6 +36,8 @@ pub enum Error {
     UniswapV2PairExists = 1,
     UniswapV2Forbidden = 2,
     UniswapV2IdenticalAddresses = 3,
+    UniswapV2NotInWhiteList = 4,
+    UniswapV2NotOwner = 5,
 }
 
 impl From<Error> for ApiError {
@@ -53,64 +55,77 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         package_hash: ContractPackageHash,
     ) {
         data::set_fee_to_setter(fee_to_setter);
+        data::set_owner(self.get_caller());
         data::set_all_pairs(all_pairs);
         data::set_hash(contract_hash);
         data::set_package_hash(package_hash);
         Pairs::init();
+        Whitelists::init();
     }
 
     fn create_pair(&mut self, token_a: Key, token_b: Key, pair_hash: Key) {
-        if token_a == token_b {
-            runtime::revert(Error::UniswapV2IdenticalAddresses);
-        }
-        let token0: Key;
-        let token1: Key;
-        let address_0: Key = Key::from_formatted_str(
-            "hash-0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap();
-        if token_a < token_b {
-            token0 = token_a;
-            token1 = token_b;
+        let white_lists: Whitelists = Whitelists::instance();
+        let white_list_user: Key = white_lists.get(&self.get_caller());
+        if white_list_user
+            != Key::from_formatted_str(
+                "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap()
+        {
+            if token_a == token_b {
+                runtime::revert(Error::UniswapV2IdenticalAddresses);
+            }
+            let token0: Key;
+            let token1: Key;
+            let address_0: Key = Key::from_formatted_str(
+                "hash-0000000000000000000000000000000000000000000000000000000000000000",
+            )
+            .unwrap();
+            if token_a < token_b {
+                token0 = token_a;
+                token1 = token_b;
+            } else {
+                token0 = token_b;
+                token1 = token_a;
+            }
+            // in before 0 address was hash-0000000000000000000000000000000000000000000000000000000000000000
+            if token0 == address_0 {
+                runtime::revert(Error::UniswapV2ZeroAddress);
+            }
+            let pair_0_1_key: Key = self.get_pair(token0, token1);
+            let pair_1_0_key: Key = self.get_pair(token1, token0);
+            if pair_0_1_key != address_0 {
+                runtime::revert(Error::UniswapV2PairExists);
+            }
+            if pair_1_0_key != address_0 {
+                runtime::revert(Error::UniswapV2PairExists);
+            }
+            //convert Key to ContractHash
+            let pair_hash_add_array = match pair_hash {
+                Key::Hash(package) => package,
+                _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+            };
+            let pair_contract_hash = ContractHash::new(pair_hash_add_array);
+            let _ret: () = runtime::call_contract(
+                pair_contract_hash,
+                "initialize",
+                runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
+            );
+            // handling the pair creation by updating the storage
+            self.set_pair(token0, token1, pair_hash);
+            self.set_pair(token1, token0, pair_hash);
+            let mut pairs: Vec<Key> = get_all_pairs();
+            pairs.push(pair_hash);
+            self.set_all_pairs(pairs);
+            self.emit(&FACTORYEvent::PairCreated {
+                token0: token0,
+                token1: token1,
+                pair: pair_hash,
+                all_pairs_length: (get_all_pairs().len()).into(),
+            });
         } else {
-            token0 = token_b;
-            token1 = token_a;
+            runtime::revert(Error::UniswapV2NotInWhiteList);
         }
-        // in before 0 address was hash-0000000000000000000000000000000000000000000000000000000000000000
-        if token0 == address_0 {
-            runtime::revert(Error::UniswapV2ZeroAddress);
-        }
-        let pair_0_1_key: Key = self.get_pair(token0, token1);
-        let pair_1_0_key: Key = self.get_pair(token1, token0);
-        if pair_0_1_key != address_0 {
-            runtime::revert(Error::UniswapV2PairExists);
-        }
-        if pair_1_0_key != address_0 {
-            runtime::revert(Error::UniswapV2PairExists);
-        }
-        //convert Key to ContractHash
-        let pair_hash_add_array = match pair_hash {
-            Key::Hash(package) => package,
-            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-        };
-        let pair_contract_hash = ContractHash::new(pair_hash_add_array);
-        let _ret: () = runtime::call_contract(
-            pair_contract_hash,
-            "initialize",
-            runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
-        );
-        // handling the pair creation by updating the storage
-        self.set_pair(token0, token1, pair_hash);
-        self.set_pair(token1, token0, pair_hash);
-        let mut pairs: Vec<Key> = get_all_pairs();
-        pairs.push(pair_hash);
-        self.set_all_pairs(pairs);
-        self.emit(&FACTORYEvent::PairCreated {
-            token0: token0,
-            token1: token1,
-            pair: pair_hash,
-            all_pairs_length: (get_all_pairs().len()).into(),
-        });
     }
 
     fn get_pair(&mut self, token0: Key, token1: Key) -> Key {
@@ -149,6 +164,14 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn get_all_pairs(&mut self) -> Vec<Key> {
         data::get_all_pairs()
+    }
+
+    fn set_white_list(&mut self, white_list: Key, value: Key) {
+        if self.get_caller() == data::get_owner() {
+            Whitelists::instance().set(&white_list, value);
+        } else {
+            runtime::revert(Error::UniswapV2NotOwner);
+        }
     }
     fn emit(&mut self, factory_event: &FACTORYEvent) {
         let mut events = Vec::new();

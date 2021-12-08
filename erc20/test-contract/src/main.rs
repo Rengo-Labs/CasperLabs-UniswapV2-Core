@@ -47,6 +47,18 @@ fn transfer() {
 }
 
 #[no_mangle]
+fn approve() {
+    let erc20_address: ContractHash = mappings::get_key(&mappings::erc20_key());
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    let args: RuntimeArgs = runtime_args! {
+        "spender" => spender,
+        "amount" => amount,
+    };
+
+    let _ret: () = runtime::call_contract(erc20_address, "approve", args);
+}
+#[no_mangle]
 fn transfer_from() {
     let erc20_address: ContractHash = mappings::get_key(&mappings::erc20_key());
 
@@ -92,18 +104,6 @@ fn decrease_allowance() {
 
     let ret: Result<(), u32> = runtime::call_contract(erc20_address, "decrease_allowance", args);
     mappings::set_key(&mappings::decrease_allowance_key(), ret);
-}
-#[no_mangle]
-fn approve() {
-    let erc20_address: ContractHash = mappings::get_key(&mappings::erc20_key());
-    let spender: Key = runtime::get_named_arg("spender");
-    let amount: U256 = runtime::get_named_arg("amount");
-    let args: RuntimeArgs = runtime_args! {
-        "spender" => spender,
-        "amount" => amount,
-    };
-
-    let _ret: () = runtime::call_contract(erc20_address, "approve", args);
 }
 
 fn get_entry_points() -> EntryPoints {

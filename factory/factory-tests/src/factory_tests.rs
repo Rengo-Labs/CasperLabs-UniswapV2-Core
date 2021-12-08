@@ -161,7 +161,13 @@ fn test_factory_create_pair() {
     let token0 = Key::Hash(token0.contract_hash());
     let token1 = Key::Hash(token1.contract_hash());
     let pair_hash = Key::Hash(pair_hash.contract_hash());
-    token.create_pair(Sender(owner), token0, token1, pair_hash);
+    let user = env.next_user();
+    token.set_white_list(Sender(owner), Key::Account(user));
+    assert_eq!(
+        token.get_white_lists(Key::Account(user)),
+        Key::Account(user)
+    );
+    token.create_pair(Sender(user), token0, token1, pair_hash);
     let pair_0_1: Key = token.get_pair(token0, token1);
     let pair_1_0: Key = token.get_pair(token1, token0);
     let all_pairs: Vec<Key> = token.all_pairs();
@@ -169,6 +175,33 @@ fn test_factory_create_pair() {
     assert_eq!(pair_0_1, pair_hash);
     assert_eq!(pair_1_0, pair_hash);
     assert_eq!(all_pairs.len(), 1);
+}
+
+#[test]
+fn test_factory_set_white_list() {
+    let (env, token, owner, _pair_hash) = deploy();
+    assert_eq!(token.fee_to_setter(), Key::Account(owner));
+    let user = env.next_user();
+    token.set_white_list(Sender(owner), Key::Account(user));
+
+    assert_eq!(
+        token.get_white_lists(Key::Account(user)),
+        Key::Account(user)
+    );
+    token.set_white_list(Sender(owner), Key::Account(owner));
+    assert_eq!(
+        token.get_white_lists(Key::Account(owner)),
+        Key::Account(owner)
+    );
+}
+
+#[test]
+#[should_panic]
+fn test_factory_set_white_list_with_non_owner() {
+    let (env, token, owner, _pair_hash) = deploy();
+    assert_eq!(token.fee_to_setter(), Key::Account(owner));
+    let user = env.next_user();
+    token.set_white_list(Sender(user), Key::Account(user));
 }
 
 #[test]
