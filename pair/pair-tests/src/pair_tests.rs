@@ -233,22 +233,34 @@ fn test_pair_transfer() {
 }
 
 #[test]
-// #[should_panic]
+#[should_panic]
 fn test_pair_transfer_with_same_sender_and_recipient() {
-    let (_env, proxy, token, owner, _factory_hash) = deploy();
+    let (env, proxy, token, owner, _factory_hash) = deploy();
     let package_hash = proxy.package_hash_result();
-    let amount = 10.into();
+    let user = env.next_user();
+    let amount: U256 = 100.into();
 
+    // TRASNFER CALL IN PROXY USES:- runtime::call_contract() so transfer is being done from proxy to a recipient
+
+    // Minting to proxy contract as it is the intermediate caller to transfer
     token.erc20_mint(Sender(owner), package_hash, amount);
-    proxy.transfer(Sender(owner), package_hash, amount);
 
     assert_eq!(token.balance_of(package_hash), amount);
+    assert_eq!(token.balance_of(user), U256::from(0));
+    assert_eq!(token.balance_of(owner), 1000.into());
+
+    // Transfering to user from the proxy contract
+    proxy.transfer(Sender(owner), package_hash, amount);
+
+    assert_eq!(token.balance_of(package_hash), U256::from(100));
+
+    assert_eq!(token.balance_of(owner), U256::from(1000));
 
     let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
-        Ok(()) => assert!(false),
-        Err(_) => {}
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
 
@@ -275,15 +287,13 @@ fn test_pair_approve() {
 
 #[test]
 fn test_pair_initialize() {
-    let (env, proxy, token, owner, factory_hash) = deploy();
-    let user = env.next_user();
+    let (env, _proxy, token, owner, factory_hash) = deploy();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
     let token0 = Key::Hash(token0.contract_hash());
     let token1 = Key::Hash(token1.contract_hash());
     let factory_hash = Key::Hash(factory_hash.contract_hash());
     token.initialize(Sender(owner), token0, token1, factory_hash);
-    proxy.set_fee_to(Sender(owner), user, factory_hash);
     assert_eq!(token.factory_hash(), factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
@@ -367,7 +377,7 @@ fn test_pair_mint() {
         Key::from(token.self_package_hash()),
         amount1,
     );
-    token.mint_js_client(Sender(owner), user);
+    token.mint_no_ret(Sender(owner), user);
 }
 
 #[test]
@@ -399,8 +409,8 @@ fn test_pair_burn() {
         Key::from(token.self_package_hash()),
         amount1,
     );
-    token.mint_js_client(Sender(owner), Key::from(token.self_package_hash()));
-    token.burn_js_client(Sender(owner), user);
+    token.mint_no_ret(Sender(owner), Key::from(token.self_package_hash()));
+    token.burn_no_ret(Sender(owner), user);
 }
 
 #[test]
@@ -523,18 +533,33 @@ fn test_pair_transfer_from() {
 #[test]
 #[should_panic]
 fn test_pair_transfer_from_too_much() {
-    let (env, _proxy, token, owner, _factory_hash) = deploy();
-    let spender = env.next_user();
+    let (env, proxy, token, owner, _factory_hash) = deploy();
+
+    let package_hash = proxy.package_hash_result();
     let recipient = env.next_user();
+    let mint_amount = 100.into();
     let allowance = 10.into();
-    let amount = 12.into();
-    token.approve(Sender(owner), spender, allowance);
-    token.transfer_from(
-        Sender(spender),
-        Key::from(owner),
-        Key::from(recipient),
-        amount,
-    );
+    let amount: U256 = 11.into();
+    // Minting to proxy contract as it is the intermediate caller to transfer
+    token.erc20_mint(Sender(owner), package_hash, mint_amount);
+
+    // proxy.increase_allowance(Sender(owner), recipient, allowance);
+
+    proxy.approve(Sender(owner), recipient, allowance);
+    assert_eq!(token.balance_of(owner), 1000.into());
+    proxy.transfer_from(Sender(owner), package_hash.into(), recipient.into(), amount);
+
+    assert_eq!(token.nonce(owner), 0.into());
+    assert_eq!(token.nonce(recipient), 0.into());
+    assert_eq!(token.balance_of(owner), 1000.into());
+    assert_eq!(token.balance_of(recipient), amount);
+
+    let ret: Result<(), u32> = proxy.transfer_from_result();
+
+    match ret {
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
+    }
 }
 
 #[test]

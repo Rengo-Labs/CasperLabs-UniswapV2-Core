@@ -111,12 +111,6 @@ fn test_wcspr_withdraw() {
     assert_eq!(res.is_ok(), true);
     let new_proxy_balance: U256 = U256::from(deposit_amount - withdraw_amount);
     assert_eq!(token.balance_of(proxy_package_hash), new_proxy_balance);
-
-    // assert_eq!(token.balance_of(proxy_package_hash), (proxy_balance.checked_add(U256::from(deposit_amount).checked_sub(withdraw_amount.into()).unwrap_or_default())).unwrap_or_default());
-    // proxy.withdraw(Sender(owner), package_hash, amount);
-    // let res: Result<(), u32>= proxy.withdraw_result();
-
-    // assert_eq!(token.balance_of(owner), proxy_balance - U256::from(10));
 }
 
 #[test]
@@ -132,45 +126,41 @@ fn test_wcspr_transfer() {
     // first deposit some amount and verify
     proxy.deposit(Sender(owner), amount, Key::from(proxy_contract_hash));
     let res: Result<(), u32> = proxy.deposit_result();
-    assert_eq!(token.balance_of(package_hash), U256::from(amount.as_u128())); //+ U256::from(deposit_amount));
+    assert_eq!(token.balance_of(package_hash), U256::from(amount.as_u128()));
     assert_eq!(res.is_ok(), true);
     let transfer_amount: U256 = 1.into();
 
     // transfer amount to user
     proxy.transfer(Sender(owner), user, transfer_amount);
     let _ret: Result<(), u32> = proxy.transfer_result();
-
-    // // assert_eq!(ret.is_err(), false);
-    // assert_eq!(token.balance_of(user), transfer_amount);
-    // assert_eq!(
-    //     token.balance_of(owner),
-    //     U256::from(amount.as_u128()) - transfer_amount
-    // );
-}
-
-#[test]
-fn test_wcspr_transfer_with_same_sender_and_recipient() {
-    let (_env, _token, proxy, owner) = deploy();
-    let package_hash = proxy.package_hash_result();
-    let amount: U256 = 10.into();
-
-    proxy.transfer(Sender(owner), package_hash, amount);
-
-    let ret: Result<(), u32> = proxy.transfer_result();
-    // sent amount is zero
-    assert_eq!(ret.is_err(), true);
+    assert_eq!(
+        token.balance_of(package_hash),
+        U256::from(amount.as_u128()) - transfer_amount
+    );
+    assert_eq!(token.balance_of(user), transfer_amount);
 }
 
 #[test]
 #[should_panic]
 fn test_wcspr_transfer_too_much() {
     let (env, token, proxy, owner) = deploy();
+    let package_hash = proxy.package_hash_result();
+    let proxy_contract_hash = proxy.contract_hash_result();
     let user = env.next_user();
-    let amount = U256::one();
-    token.transfer(Sender(owner), user, amount);
 
-    let ret: Result<(), u32> = proxy.transfer_result();
-    assert_eq!(ret.is_err(), true);
+    let num = 200;
+    let amount: U512 = num.into();
+
+    // first deposit some amount and verify
+    proxy.deposit(Sender(owner), amount, Key::from(proxy_contract_hash));
+    let res: Result<(), u32> = proxy.deposit_result();
+    assert_eq!(token.balance_of(package_hash), U256::from(amount.as_u128())); //+ U256::from(deposit_amount));
+    assert_eq!(res.is_ok(), true);
+    let transfer_amount: U256 = 201.into();
+
+    // transfer amount to user
+    proxy.transfer(Sender(owner), user, transfer_amount);
+    let _ret: Result<(), u32> = proxy.transfer_result();
 }
 
 #[test]
@@ -230,17 +220,32 @@ fn test_wcspr_transfer_from() {
 #[should_panic]
 fn test_wcspr_transfer_from_too_much() {
     let (env, token, proxy, owner) = deploy();
-    let _spender = env.next_user();
+
     let recipient = env.next_user();
-    let allowance = 10.into();
-    let amount = 12.into();
+    let proxy_contract_hash = proxy.contract_hash_result();
     let package_hash = proxy.package_hash_result();
+    let deposit_amount = 50;
+    let allowance = 10.into();
+    let amount: U256 = 11.into();
 
-    token.approve(Sender(owner), package_hash, allowance);
-    proxy.transfer_from(Sender(owner), owner.into(), recipient.into(), amount);
+    // proxy.increase_allowance(Sender(owner), recipient, allowance);
+    // first deposit some amount and verify
+    proxy.deposit(
+        Sender(owner),
+        deposit_amount.into(),
+        Key::from(proxy_contract_hash),
+    );
+    let res: Result<(), u32> = proxy.deposit_result();
+    assert_eq!(token.balance_of(package_hash), deposit_amount.into()); //+ U256::from(deposit_amount));
+    assert_eq!(res.is_ok(), true);
 
-    let ret: Result<(), u32> = proxy.transfer_from_result();
-    assert_eq!(ret.is_err(), true);
+    proxy.approve(Sender(owner), recipient, allowance);
+    proxy.transfer_from(
+        Sender(owner),
+        Key::from(package_hash),
+        Key::from(recipient),
+        amount,
+    );
 }
 
 #[test]

@@ -4,12 +4,13 @@
 extern crate alloc;
 use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
 use casper_contract::{
-    contract_api::{runtime, storage},
+    contract_api::{runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess,
-    EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512,
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
+    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    U512,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use wcspr::{self, WCSPR};
@@ -32,8 +33,18 @@ impl Token {
         symbol: String,
         decimals: u8,
         contract_hash: ContractHash,
+        package_hash: ContractPackageHash,
+        purse: URef,
     ) {
-        WCSPR::init(self, name, symbol, decimals, Key::from(contract_hash));
+        WCSPR::init(
+            self,
+            name,
+            symbol,
+            decimals,
+            Key::from(contract_hash),
+            package_hash,
+            purse,
+        );
     }
 }
 
@@ -43,8 +54,9 @@ fn constructor() {
     let symbol: String = runtime::get_named_arg("symbol");
     let decimals: u8 = runtime::get_named_arg("decimals");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-
-    Token::default().constructor(name, symbol, decimals, contract_hash);
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
+    let purse: URef = runtime::get_named_arg("purse");
+    Token::default().constructor(name, symbol, decimals, contract_hash, package_hash, purse);
 }
 
 /// This function is to transfer tokens against the address that user provided
@@ -188,6 +200,24 @@ fn symbol() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to return the Package Hash of contract
+///
+
+#[no_mangle]
+fn package_hash() {
+    let ret: ContractPackageHash = Token::default().get_package_hash();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+/// This function is to return the Purse of contract
+///
+
+#[no_mangle]
+fn purse() {
+    let ret: URef = Token::default().purse();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
 /// This function is to return the Allowance of owner and spender that user provided
 ///
 /// # Parameters
@@ -248,6 +278,8 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("symbol", String::cl_type()),
             Parameter::new("decimals", u8::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -348,6 +380,13 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "purse",
+        vec![],
+        URef::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "increase_allowance",
         vec![
             Parameter::new("spender", Key::cl_type()),
@@ -373,6 +412,13 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "package_hash",
+        vec![],
+        ContractPackageHash::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
 }
 
@@ -386,13 +432,16 @@ fn call() {
     let name: String = runtime::get_named_arg("name");
     let symbol: String = runtime::get_named_arg("symbol");
     let decimals: u8 = runtime::get_named_arg("decimals");
+    let purse: URef = system::create_purse();
 
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "name" => name,
         "symbol" => symbol,
         "decimals" => decimals,
-        "contract_hash" => contract_hash
+        "contract_hash" => contract_hash,
+        "package_hash"=> package_hash,
+        "purse" => purse
     };
 
     // Add the constructor group to the package hash with a single URef.
@@ -434,4 +483,5 @@ fn call() {
         &format!("{}_package_access_token", contract_name),
         access_token.into(),
     );
+    runtime::put_key(&format!("{}_contract_purse", contract_name), purse.into());
 }

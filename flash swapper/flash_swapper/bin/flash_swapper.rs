@@ -6,12 +6,12 @@ extern crate alloc;
 use alloc::{collections::BTreeSet, format, string::String, vec};
 
 use casper_contract::{
-    contract_api::{runtime, storage},
+    contract_api::{runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLTyped, ContractHash, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints,
-    Group, Key, Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
+    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use flash_swapper::{self, FLASHSWAPPER};
@@ -34,6 +34,8 @@ impl Token {
         dai: Key,
         uniswap_v2_factory: Key,
         contract_hash: ContractHash,
+        package_hash: ContractPackageHash,
+        purse: URef,
     ) {
         FLASHSWAPPER::init(
             self,
@@ -41,6 +43,8 @@ impl Token {
             dai,
             uniswap_v2_factory,
             Key::from(contract_hash),
+            package_hash,
+            purse,
         );
     }
 }
@@ -51,7 +55,17 @@ fn constructor() {
     let dai: Key = runtime::get_named_arg("dai");
     let uniswap_v2_factory: Key = runtime::get_named_arg("uniswap_v2_factory");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-    Token::default().constructor(wcspr, dai, uniswap_v2_factory, contract_hash);
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
+
+    let purse: URef = runtime::get_named_arg("purse");
+    Token::default().constructor(
+        wcspr,
+        dai,
+        uniswap_v2_factory,
+        contract_hash,
+        package_hash,
+        purse,
+    );
 }
 
 /// @notice Flash-borrows amount of token_borrow from a Uniswap V2 pair and repays using token_pay
@@ -81,6 +95,24 @@ fn uniswap_v2_call() {
     Token::default().uniswap_v2_call(sender, amount0, amount1, data);
 }
 
+/// This function is to return the Purse of contract
+///
+
+#[no_mangle]
+fn purse() {
+    let ret: URef = Token::default().purse();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+/// This function is to fetch a Contract Package Hash
+///
+
+#[no_mangle]
+fn package_hash() {
+    let ret: ContractPackageHash = Token::default().get_package_hash();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -90,6 +122,8 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("dai", Key::cl_type()),
             Parameter::new("uniswap_v2_factory", Key::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
@@ -119,6 +153,20 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "purse",
+        vec![],
+        URef::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "package_hash",
+        vec![],
+        ContractPackageHash::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
 }
 
@@ -132,12 +180,15 @@ fn call() {
     let uniswap_v2_factory: Key = runtime::get_named_arg("uniswap_v2_factory");
     let wcspr: Key = runtime::get_named_arg("wcspr");
     let dai: Key = runtime::get_named_arg("dai");
+    let purse: URef = system::create_purse();
     // Prepare constructor args
     let constructor_args = runtime_args! {
         "wcspr" => wcspr,
         "dai" => dai,
         "uniswap_v2_factory" => uniswap_v2_factory,
-        "contract_hash" => contract_hash
+        "contract_hash" => contract_hash,
+        "package_hash"=> package_hash,
+        "purse" => purse
     };
 
     // Add the constructor group to the package hash with a single URef.

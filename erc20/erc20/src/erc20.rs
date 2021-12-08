@@ -279,7 +279,12 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(ApiError::User(FailureCode::Two as u16))
                 .unwrap_or_revert(),
         );
-        data::set_total_supply(data::total_supply() + amount);
+        data::set_total_supply(
+            data::total_supply()
+                .checked_add(amount)
+                .ok_or(ApiError::User(FailureCode::Two as u16))
+                .unwrap_or_revert(),
+        );
         let address_0: Key = Key::from_formatted_str(
             "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
         )
@@ -403,7 +408,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn emit(&mut self, erc20_event: &ERC20Event) {
         let mut events = Vec::new();
-        let package = data::get_contract_package_hash();
+        let package = data::get_package_hash();
         match erc20_event {
             ERC20Event::Approval {
                 owner,
@@ -431,5 +436,9 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         for event in events {
             let _: URef = storage::new_uref(event);
         }
+    }
+    
+    fn get_package_hash(&mut self) -> ContractPackageHash {
+        data::get_package_hash()
     }
 }

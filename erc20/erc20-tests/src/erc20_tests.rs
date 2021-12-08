@@ -75,22 +75,34 @@ fn test_erc20_transfer() {
 }
 
 #[test]
-// #[should_panic]
+#[should_panic]
 fn test_erc20_transfer_with_same_sender_and_recipient() {
-    let (_env, proxy, token, owner) = deploy();
+    let (env, proxy, token, owner) = deploy();
     let package_hash = proxy.package_hash_result();
-    let amount = 10.into();
+    let user = env.next_user();
+    let amount: U256 = 100.into();
 
+    // TRASNFER CALL IN PROXY USES:- runtime::call_contract() so transfer is being done from proxy to a recipient
+
+    // Minting to proxy contract as it is the intermediate caller to transfer
     token.mint(Sender(owner), package_hash, amount);
-    proxy.transfer(Sender(owner), package_hash, amount);
 
     assert_eq!(token.balance_of(package_hash), amount);
+    assert_eq!(token.balance_of(user), U256::from(0));
+    assert_eq!(token.balance_of(owner), 1000.into());
+
+    // Transfering to user from the proxy contract
+    proxy.transfer(Sender(owner), package_hash, amount);
+
+    assert_eq!(token.balance_of(package_hash), U256::from(100));
+
+    assert_eq!(token.balance_of(owner), U256::from(1000));
 
     let ret: Result<(), u32> = proxy.transfer_result();
 
     match ret {
-        Ok(()) => assert!(false),
-        Err(_) => {}
+        Ok(()) => {}
+        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
     }
 }
 
@@ -163,13 +175,19 @@ fn test_erc20_transfer_from() {
 #[test]
 #[should_panic]
 fn test_erc20_transfer_from_too_much() {
-    let (env, _, token, owner) = deploy();
-    let spender = env.next_user();
+    let (env, proxy, token, owner) = deploy();
+    let package_hash = proxy.package_hash_result();
     let recipient = env.next_user();
+    let mint_amount = 100.into();
     let allowance = 10.into();
-    let amount = 12.into();
-    token.approve(Sender(owner), spender, allowance);
-    token.transfer_from(Sender(spender), owner.into(), recipient.into(), amount);
+    let amount: U256 = 12.into();
+    // Minting to proxy contract as it is the intermediate caller to transfer
+    token.mint(Sender(owner), package_hash, mint_amount);
+
+    proxy.approve(Sender(owner), recipient, allowance);
+    assert_eq!(token.balance_of(owner), 1000.into());
+    // assert_eq!(token.allowance(package_hash, recipient), 10.into());
+    proxy.transfer_from(Sender(owner), package_hash.into(), recipient.into(), amount);
 }
 
 #[test]

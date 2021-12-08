@@ -137,7 +137,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn set_fee_to(&mut self, fee_to: Key) {
-        if runtime::get_caller() != self.get_fee_to_setter().into_account().unwrap_or_default() {
+        if self.get_caller() != self.get_fee_to_setter() {
             runtime::revert(Error::UniswapV2Forbidden);
         }
         data::set_fee_to(fee_to);
@@ -148,7 +148,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn set_fee_to_setter(&mut self, fee_to_setter: Key) {
-        if runtime::get_caller() != self.get_fee_to_setter().into_account().unwrap_or_default() {
+        if self.get_caller() != self.get_fee_to_setter() {
             runtime::revert(Error::UniswapV2Forbidden);
         }
         data::set_fee_to_setter(fee_to_setter);
@@ -175,7 +175,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn emit(&mut self, factory_event: &FACTORYEvent) {
         let mut events = Vec::new();
-        let package = data::get_contract_package_hash();
+        let package = data::get_package_hash();
         match factory_event {
             FACTORYEvent::PairCreated {
                 token0,
@@ -197,5 +197,9 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         for event in events {
             let _: URef = storage::new_uref(event);
         }
+    }
+
+    fn get_package_hash(&mut self) -> ContractPackageHash {
+        data::get_package_hash()
     }
 }

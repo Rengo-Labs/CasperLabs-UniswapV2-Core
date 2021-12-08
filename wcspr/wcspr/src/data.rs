@@ -1,8 +1,8 @@
 use alloc::string::String;
+use casper_contract::contract_api::runtime;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, U256, URef, ApiError};
+use casper_types::{ApiError, ContractPackageHash, Key, URef, U256};
 use contract_utils::{get_key, set_key, Dict};
-use casper_contract::{contract_api::{runtime}};
 //use casper_contract::{value::account::PurseId ,contract_api::{runtime,system}, unwrap_or_revert::UnwrapOrRevert};
 
 pub const BALANCES_DICT: &str = "balances";
@@ -12,6 +12,7 @@ pub const SYMBOL: &str = "symbol";
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const SELF_PURSE: &str = "self_purse";
 pub const DECIMALS: &str = "decimals";
+pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
 
 #[repr(u16)]
 pub enum ErrorCodes {
@@ -102,12 +103,19 @@ pub fn set_self_purse(purse: URef) {
     runtime::put_key(&SELF_PURSE, purse.into());
 }
 
-
 pub fn get_self_purse() -> URef {
     let destination_purse_key = runtime::get_key(&SELF_PURSE).unwrap_or_revert();
 
     match destination_purse_key.as_uref() {
         Some(uref) => *uref,
-        None => runtime::revert(ApiError::User(ErrorCodes::Abort  as u16))
+        None => runtime::revert(ApiError::User(ErrorCodes::Abort as u16)),
     }
+}
+
+pub fn set_package_hash(package_hash: ContractPackageHash) {
+    set_key(CONTRACT_PACKAGE_HASH, package_hash);
+}
+
+pub fn get_package_hash() -> ContractPackageHash {
+    get_key(CONTRACT_PACKAGE_HASH).unwrap_or_revert()
 }

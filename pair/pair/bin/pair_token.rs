@@ -308,7 +308,7 @@ fn mint() {
 ///  
 
 #[no_mangle]
-fn mint_js_client() {
+fn mint_no_ret() {
     let to: Key = runtime::get_named_arg("to");
     let _liquidity: U256 = Pair::default().mint_helper(to);
 }
@@ -351,7 +351,7 @@ fn burn() {
 ///
 
 #[no_mangle]
-fn burn_js_client() {
+fn burn_no_ret() {
     let to: Key = runtime::get_named_arg("to");
     let (_amount0, _amount1): (U256, U256) = Pair::default().burn_helper(to);
 }
@@ -478,7 +478,6 @@ pub extern "C" fn set_treasury_fee_percent() {
 ///
 
 #[no_mangle]
-
 fn package_hash() {
     let ret: ContractPackageHash = Pair::default().get_package_hash();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
@@ -655,7 +654,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "mint_js_client",
+        "mint_no_ret",
         vec![Parameter::new("to", Key::cl_type())],
         <()>::cl_type(),
         EntryPointAccess::Public,
@@ -669,7 +668,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "burn_js_client",
+        "burn_no_ret",
         vec![Parameter::new("to", Key::cl_type())],
         <()>::cl_type(),
         EntryPointAccess::Public,

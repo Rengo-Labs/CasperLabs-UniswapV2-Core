@@ -315,6 +315,15 @@ fn decrease_allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to fetch a Contract Package Hash
+///
+
+#[no_mangle]
+fn package_hash() {
+    let ret: ContractPackageHash = Token::default().get_package_hash();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -444,6 +453,13 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "package_hash",
+        vec![],
+        ContractPackageHash::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "symbol",
         vec![],
         String::cl_type(),
@@ -476,6 +492,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
+
     entry_points
 }
 

@@ -1,11 +1,8 @@
 use crate::data::{self, Allowances, Balances};
 use alloc::string::String;
 
-use casper_contract::{
-    contract_api::{runtime, system},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{ApiError, Key, URef, U256, U512};
+use casper_contract::{contract_api::system, unwrap_or_revert::UnwrapOrRevert};
+use casper_types::{ApiError, ContractPackageHash, Key, URef, U256, U512};
 use contract_utils::{ContractContext, ContractStorage};
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
@@ -18,16 +15,24 @@ pub enum FailureCode {
 }
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
-    fn init(&mut self, name: String, symbol: String, decimals: u8, contract_hash: Key) {
+    fn init(
+        &mut self,
+        name: String,
+        symbol: String,
+        decimals: u8,
+        contract_hash: Key,
+        package_hash: ContractPackageHash,
+        purse: URef,
+    ) {
         data::set_name(name);
         data::set_symbol(symbol);
         data::set_hash(contract_hash);
         data::set_decimals(decimals);
+        data::set_package_hash(package_hash);
+        data::set_self_purse(purse);
 
         Balances::init();
         Allowances::init();
-
-        data::set_self_purse(system::create_purse());
     }
 
     fn balance_of(&mut self, owner: Key) -> U256 {
@@ -208,5 +213,13 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn symbol(&mut self) -> String {
         data::symbol()
+    }
+
+    fn purse(&mut self) -> URef {
+        data::get_self_purse()
+    }
+
+    fn get_package_hash(&mut self) -> ContractPackageHash {
+        data::get_package_hash()
     }
 }

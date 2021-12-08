@@ -1,5 +1,6 @@
+use casper_contract::contract_api::runtime;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, URef};
+use casper_types::{ApiError, ContractPackageHash, Key, URef};
 use contract_utils::{get_key, set_key};
 
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
@@ -10,7 +11,13 @@ pub const CSPR: &str = "cspr";
 pub const PERMISSIONED_PAIR_ADDRESS: &str = "permissioned_pair_address";
 pub const UNISWAP_V2_FACTROY: &str = "uniswap_v2_factory";
 pub const UNISWAP_V2_PAIR: &str = "uniswap_v2_pair";
-pub const SELF_PURSE: &str = "purse";
+pub const SELF_PURSE: &str = "self_purse";
+pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
+
+#[repr(u16)]
+pub enum ErrorCodes {
+    Abort = 35,
+}
 
 pub fn set_wcspr(wcspr: Key) {
     set_key(WCSPR, wcspr);
@@ -70,11 +77,22 @@ pub fn get_hash() -> Key {
 
 // contract purse
 pub fn set_self_purse(purse: URef) {
-    set_key(SELF_PURSE, Key::from(purse));
+    runtime::put_key(&SELF_PURSE, purse.into());
 }
 
 pub fn get_self_purse() -> URef {
-    let contract_main_purse_key: Key = get_key(SELF_PURSE).unwrap_or_revert();
-    let contract_main_purse = contract_main_purse_key.as_uref().unwrap_or_revert();
-    *contract_main_purse
+    let destination_purse_key = runtime::get_key(&SELF_PURSE).unwrap_or_revert();
+
+    match destination_purse_key.as_uref() {
+        Some(uref) => *uref,
+        None => runtime::revert(ApiError::User(ErrorCodes::Abort as u16)),
+    }
+}
+
+pub fn set_package_hash(package_hash: ContractPackageHash) {
+    set_key(CONTRACT_PACKAGE_HASH, package_hash);
+}
+
+pub fn get_package_hash() -> ContractPackageHash {
+    get_key(CONTRACT_PACKAGE_HASH).unwrap_or_revert()
 }

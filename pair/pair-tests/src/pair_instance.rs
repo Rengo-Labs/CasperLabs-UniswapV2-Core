@@ -224,20 +224,20 @@ impl PAIRInstance {
         );
     }
 
-    pub fn mint_js_client<T: Into<Key>>(&self, sender: Sender, to: T) {
+    pub fn mint_no_ret<T: Into<Key>>(&self, sender: Sender, to: T) {
         self.0.call_contract(
             sender,
-            "mint_js_client",
+            "mint_no_ret",
             runtime_args! {
                 "to" => to.into(),
             },
         );
     }
 
-    pub fn burn_js_client<T: Into<Key>>(&self, sender: Sender, to: T) {
+    pub fn burn_no_ret<T: Into<Key>>(&self, sender: Sender, to: T) {
         self.0.call_contract(
             sender,
-            "burn_js_client",
+            "burn_no_ret",
             runtime_args! {
                 "to" => to.into(),
             },
