@@ -23,6 +23,17 @@ impl ERC20Instance {
             },
         )
     }
+    pub fn proxy2(env: &TestEnv, erc20: Key, sender: Sender) -> TestContract {
+        TestContract::new(
+            env,
+            "erc20-test2.wasm",
+            "proxy_test2",
+            sender,
+            runtime_args! {
+                "erc20" => erc20
+            },
+        )
+    }
 
     pub fn new(
         env: &TestEnv,
@@ -112,6 +123,17 @@ impl ERC20Instance {
         );
     }
 
+    pub fn allowance_fn(&self, sender: Sender, owner: Key, spender: Key) {
+        self.0.call_contract(
+            sender,
+            "allowance",
+            runtime_args! {
+                "owner" => owner,
+                "spender" => spender,
+            },
+        );
+    }
+
     pub fn decrease_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
@@ -191,6 +213,9 @@ impl ERC20Instance {
 
     pub fn transfer_from_result(&self) -> Result<(), u32> {
         self.0.query_named_key("transfer_from_result".to_string())
+    }
+    pub fn allowance_res(&self) -> U256 {
+        self.0.query_named_key("allowance".to_string())
     }
 }
 

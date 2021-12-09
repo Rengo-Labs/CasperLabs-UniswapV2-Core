@@ -14,25 +14,34 @@ pub const PACKAGE_HASH_KEY_NAME: &str = "package_hash";
 pub const CONTRACT_HASH_KEY_NAME: &str = "contract_hash";
 pub const WCSPR_HASH_KEY_NAME: &str = "wcspr_hash";
 
-fn deploy() -> (TestEnv, WCSPRInstance, WCSPRInstance, AccountHash) {
+fn deploy() -> (
+    TestEnv,
+    WCSPRInstance,
+    WCSPRInstance,
+    WCSPRInstance,
+    AccountHash,
+) {
     let env = TestEnv::new();
     let owner = env.next_user();
     let token: TestContract = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL, DECIMALS);
     let proxy: TestContract =
         WCSPRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
     // let proxy: TestContract = WCSPRInstance::new(&env, NAME, Sender(owner), NAME, SYMBOL, DECIMALS);
+    let proxy2: TestContract =
+        WCSPRInstance::proxy2(&env, Key::Hash(token.contract_hash()), Sender(owner));
 
     (
         env,
         WCSPRInstance::instance(token),
         WCSPRInstance::instance(proxy),
+        WCSPRInstance::instance(proxy2),
         owner,
     )
 }
 
 #[test]
 fn test_wcspr_deploy() {
-    let (env, token, _proxy, owner) = deploy();
+    let (env, token, _proxy, _, owner) = deploy();
     let user = env.next_user();
     assert_eq!(token.name(), NAME);
     assert_eq!(token.symbol(), SYMBOL);
@@ -43,7 +52,7 @@ fn test_wcspr_deploy() {
 
 #[test]
 fn test_wcspr_deposit() {
-    let (_env, token, proxy, owner) = deploy();
+    let (_env, token, proxy, _, owner) = deploy();
     let proxy_contract_hash = proxy.contract_hash_result();
     let _proxy_package_hash = proxy.package_hash_result();
     let package_hash = proxy.package_hash_result();
@@ -63,7 +72,7 @@ fn test_wcspr_deposit() {
 
 #[test]
 fn test_wcspr_deposit_zero_amount() {
-    let (_env, token, proxy, owner) = deploy();
+    let (_env, token, proxy, _, owner) = deploy();
     let proxy_contract_hash = proxy.contract_hash_result();
     let proxy_package_hash = proxy.package_hash_result();
     let proxy_balance: U256 = token.balance_of(proxy_contract_hash);
@@ -82,7 +91,7 @@ fn test_wcspr_deposit_zero_amount() {
 
 #[test]
 fn test_wcspr_withdraw() {
-    let (_env, token, proxy, owner) = deploy();
+    let (_env, token, proxy, _, owner) = deploy();
     let proxy_package_hash = proxy.package_hash_result();
     let proxy_contract_hash = proxy.contract_hash_result();
     let deposit_amount = 10;
@@ -115,7 +124,7 @@ fn test_wcspr_withdraw() {
 
 #[test]
 fn test_wcspr_transfer() {
-    let (env, token, proxy, owner) = deploy();
+    let (env, token, proxy, _, owner) = deploy();
     let package_hash = proxy.package_hash_result();
     let proxy_contract_hash = proxy.contract_hash_result();
     let user = env.next_user();
@@ -143,7 +152,7 @@ fn test_wcspr_transfer() {
 #[test]
 #[should_panic]
 fn test_wcspr_transfer_too_much() {
-    let (env, token, proxy, owner) = deploy();
+    let (env, token, proxy, _, owner) = deploy();
     let package_hash = proxy.package_hash_result();
     let proxy_contract_hash = proxy.contract_hash_result();
     let user = env.next_user();
@@ -165,7 +174,7 @@ fn test_wcspr_transfer_too_much() {
 
 #[test]
 fn test_wcspr_approve() {
-    let (env, token, _proxy, owner) = deploy();
+    let (env, token, _proxy, _, owner) = deploy();
     let user = env.next_user();
     let amount = 10.into();
     token.approve(Sender(owner), user, amount);
@@ -176,11 +185,12 @@ fn test_wcspr_approve() {
 
 #[test]
 fn test_wcspr_transfer_from() {
-    let (env, token, proxy, owner) = deploy();
+    let (env, token, proxy, proxy2, owner) = deploy();
 
     let recipient = env.next_user();
     let proxy_contract_hash = proxy.contract_hash_result();
     let package_hash = proxy.package_hash_result();
+    let package_hash2 = proxy2.package_hash_result();
     let deposit_amount = 50;
     let allowance = 10.into();
     let amount: U256 = 5.into();
@@ -196,37 +206,37 @@ fn test_wcspr_transfer_from() {
     assert_eq!(token.balance_of(package_hash), deposit_amount.into()); //+ U256::from(deposit_amount));
     assert_eq!(res.is_ok(), true);
 
-    proxy.approve(Sender(owner), recipient, allowance);
-    proxy.transfer_from(
+    proxy.approve(Sender(owner), package_hash2, allowance);
+    proxy.allowance_fn(
+        Sender(owner),
+        Key::from(package_hash),
+        Key::from(package_hash2),
+    );
+    assert_eq!(proxy.allowance_res(), 10.into());
+    proxy2.transfer_from(
         Sender(owner),
         Key::from(package_hash),
         Key::from(recipient),
         amount,
     );
-
-    assert_eq!(token.balance_of(owner), 0.into());
-    assert_eq!(token.balance_of(package_hash), 45.into());
     assert_eq!(token.balance_of(recipient), amount);
-
-    let ret: Result<(), u32> = proxy.transfer_from_result();
-
-    match ret {
-        Ok(()) => {}
-        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
-    }
+    assert_eq!(
+        token.balance_of(package_hash),
+        U256::from(deposit_amount) - amount
+    );
 }
-
 #[test]
 #[should_panic]
 fn test_wcspr_transfer_from_too_much() {
-    let (env, token, proxy, owner) = deploy();
+    let (env, token, proxy, proxy2, owner) = deploy();
 
     let recipient = env.next_user();
     let proxy_contract_hash = proxy.contract_hash_result();
     let package_hash = proxy.package_hash_result();
+    let package_hash2 = proxy2.package_hash_result();
     let deposit_amount = 50;
     let allowance = 10.into();
-    let amount: U256 = 11.into();
+    let amount: U256 = 12.into();
 
     // proxy.increase_allowance(Sender(owner), recipient, allowance);
     // first deposit some amount and verify
@@ -239,18 +249,29 @@ fn test_wcspr_transfer_from_too_much() {
     assert_eq!(token.balance_of(package_hash), deposit_amount.into()); //+ U256::from(deposit_amount));
     assert_eq!(res.is_ok(), true);
 
-    proxy.approve(Sender(owner), recipient, allowance);
-    proxy.transfer_from(
+    proxy.approve(Sender(owner), package_hash2, allowance);
+    proxy.allowance_fn(
+        Sender(owner),
+        Key::from(package_hash),
+        Key::from(package_hash2),
+    );
+    assert_eq!(proxy.allowance_res(), 10.into());
+    proxy2.transfer_from(
         Sender(owner),
         Key::from(package_hash),
         Key::from(recipient),
         amount,
+    );
+    assert_eq!(token.balance_of(recipient), amount);
+    assert_eq!(
+        token.balance_of(package_hash),
+        U256::from(deposit_amount) - amount
     );
 }
 
 #[test]
 #[should_panic]
 fn test_calling_construction() {
-    let (_, token, _, owner) = deploy();
+    let (_, token, _, _, owner) = deploy();
     token.constructor(Sender(owner), NAME, SYMBOL);
 }

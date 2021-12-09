@@ -3,6 +3,7 @@
 members = [
   "wcspr",
   "test-contract",
+  "test-contract2",
   "wcspr-tests",
 ]
 

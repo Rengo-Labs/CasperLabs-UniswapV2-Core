@@ -49,6 +49,17 @@ impl WCSPRInstance {
             },
         )
     }
+    pub fn proxy2(env: &TestEnv, wcspr: Key, sender: Sender) -> TestContract {
+        TestContract::new(
+            env,
+            "wcspr-test2.wasm",
+            "proxy_test2",
+            sender,
+            runtime_args! {
+                "wcspr" => wcspr
+            },
+        )
+    }
 
     pub fn constructor(&self, sender: Sender, name: &str, symbol: &str) {
         self.0.call_contract(
@@ -130,6 +141,16 @@ impl WCSPRInstance {
             .query_dictionary("allowances", keys_to_str(&owner, &spender))
             .unwrap_or_default()
     }
+    pub fn allowance_fn(&self, sender: Sender, owner: Key, spender: Key) {
+        self.0.call_contract(
+            sender,
+            "allowance",
+            runtime_args! {
+                "owner" => owner,
+                "spender" => spender,
+            },
+        );
+    }
 
     pub fn withdraw<T: Into<Key>>(&self, sender: Sender, to: T, amount: U512) {
         self.0.call_contract(
@@ -201,6 +222,9 @@ impl WCSPRInstance {
     pub fn withdraw_result(&self) -> Result<(), u32> {
         self.0
             .query_named_key(WITHDRAW_TEST_RESULT_KEY_NAME.to_string())
+    }
+    pub fn allowance_res(&self) -> U256 {
+        self.0.query_named_key("allowance".to_string())
     }
 }
 

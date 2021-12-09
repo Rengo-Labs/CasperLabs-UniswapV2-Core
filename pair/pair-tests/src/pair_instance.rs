@@ -25,6 +25,17 @@ impl PAIRInstance {
             },
         )
     }
+    pub fn proxy2(env: &TestEnv, pair: Key, sender: Sender) -> TestContract {
+        TestContract::new(
+            env,
+            "pair-test2.wasm",
+            "proxy_test2",
+            sender,
+            runtime_args! {
+                "pair" => pair
+            },
+        )
+    }
 
     pub fn new(
         env: &TestEnv,
@@ -120,6 +131,16 @@ impl PAIRInstance {
         );
     }
 
+    pub fn allowance_fn(&self, sender: Sender, owner: Key, spender: Key) {
+        self.0.call_contract(
+            sender,
+            "allowance",
+            runtime_args! {
+                "owner" => owner,
+                "spender" => spender,
+            },
+        );
+    }
     // Factory Method
     pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T, factory_hash: Key) {
         self.0.call_contract(
@@ -364,6 +385,9 @@ impl PAIRInstance {
 
     pub fn transfer_from_result(&self) -> Result<(), u32> {
         self.0.query_named_key("transfer_from_result".to_string())
+    }
+    pub fn allowance_res(&self) -> U256 {
+        self.0.query_named_key("allowance".to_string())
     }
 }
 

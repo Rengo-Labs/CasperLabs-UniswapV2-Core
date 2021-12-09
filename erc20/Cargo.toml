@@ -3,6 +3,7 @@
 members = [
   "erc20",
   "test-contract",
+  "test-contract2",
   "erc20-tests",
 ]
 

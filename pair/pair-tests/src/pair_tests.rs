@@ -53,6 +53,7 @@ fn deploy() -> (
     TestEnv,
     PAIRInstance,
     PAIRInstance,
+    PAIRInstance,
     AccountHash,
     TestContract,
 ) {
@@ -89,10 +90,13 @@ fn deploy() -> (
     );
     let test_contract: TestContract =
         PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
+    let test_contract2: TestContract =
+        PAIRInstance::proxy2(&env, Key::Hash(token.contract_hash()), Sender(owner));
 
     (
         env,
         PAIRInstance::instance(test_contract),
+        PAIRInstance::instance(test_contract2),
         PAIRInstance::instance(token),
         owner,
         factory_contract,
@@ -100,6 +104,7 @@ fn deploy() -> (
 }
 fn deploy1() -> (
     TestEnv,
+    PAIRInstance,
     PAIRInstance,
     PAIRInstance,
     AccountHash,
@@ -139,10 +144,13 @@ fn deploy1() -> (
     );
     let test_contract: TestContract =
         PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
+    let test_contract2: TestContract =
+        PAIRInstance::proxy2(&env, Key::Hash(token.contract_hash()), Sender(owner));
 
     (
         env,
         PAIRInstance::instance(test_contract),
+        PAIRInstance::instance(test_contract2),
         PAIRInstance::instance(token),
         owner,
         factory_contract,
@@ -190,7 +198,7 @@ fn deploy_token1(env: &TestEnv) -> TestContract {
 
 #[test]
 fn test_pair_deploy() {
-    let (env, _proxy, token, owner, _factory_hash) = deploy();
+    let (env, _proxy, _proxy2, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     assert_eq!(token.name(), NAME);
     assert_eq!(token.symbol(), SYMBOL);
@@ -204,7 +212,7 @@ fn test_pair_deploy() {
 
 #[test]
 fn test_pair_transfer() {
-    let (env, proxy, token, owner, _factory_hash) = deploy();
+    let (env, proxy, _proxy, token, owner, _factory_hash) = deploy();
 
     let package_hash = proxy.package_hash_result();
     let user = env.next_user();
@@ -235,7 +243,7 @@ fn test_pair_transfer() {
 #[test]
 #[should_panic]
 fn test_pair_transfer_with_same_sender_and_recipient() {
-    let (env, proxy, token, owner, _factory_hash) = deploy();
+    let (env, proxy, _proxy, token, owner, _factory_hash) = deploy();
     let package_hash = proxy.package_hash_result();
     let user = env.next_user();
     let amount: U256 = 100.into();
@@ -267,7 +275,7 @@ fn test_pair_transfer_with_same_sender_and_recipient() {
 #[test]
 #[should_panic]
 fn test_pair_transfer_too_much() {
-    let (env, _proxy, token, owner, _factory_hash) = deploy();
+    let (env, _proxy, _proxy2, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     let amount = U256::from(INIT_TOTAL_SUPPLY) + U256::one();
     token.transfer(Sender(owner), user, amount);
@@ -275,7 +283,7 @@ fn test_pair_transfer_too_much() {
 
 #[test]
 fn test_pair_approve() {
-    let (env, _proxy, token, owner, _factory_hash) = deploy();
+    let (env, _proxy, _proxy2, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     let amount = 10.into();
     token.approve(Sender(owner), user, amount);
@@ -287,7 +295,7 @@ fn test_pair_approve() {
 
 #[test]
 fn test_pair_initialize() {
-    let (env, _proxy, token, owner, factory_hash) = deploy();
+    let (env, _proxy, _proxy2, token, owner, factory_hash) = deploy();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
     let token0 = Key::Hash(token0.contract_hash());
@@ -301,7 +309,7 @@ fn test_pair_initialize() {
 
 #[test]
 fn test_pair_set_treasury_fee_percent() {
-    let (_env, _proxy, token, owner, _factory_hash) = deploy();
+    let (_env, _proxy, _proxy2, token, owner, _factory_hash) = deploy();
     assert_eq!(token.treasury_fee(), 3.into());
     let treasury_fee: U256 = 10.into();
     token.set_treasury_fee_percent(Sender(owner), treasury_fee);
@@ -318,7 +326,7 @@ fn test_pair_set_treasury_fee_percent() {
 
 #[test]
 fn test_pair_skim() {
-    let (env, proxy, token, owner, factory_hash) = deploy();
+    let (env, proxy, _proxy2, token, owner, factory_hash) = deploy();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -350,7 +358,7 @@ fn test_pair_skim() {
 
 #[test]
 fn test_pair_mint() {
-    let (env, proxy, token, owner, factory_hash) = deploy1();
+    let (env, proxy, _proxy2, token, owner, factory_hash) = deploy1();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -382,7 +390,7 @@ fn test_pair_mint() {
 
 #[test]
 fn test_pair_burn() {
-    let (env, proxy, token, owner, factory_hash) = deploy1();
+    let (env, proxy, _proxy2, token, owner, factory_hash) = deploy1();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -415,7 +423,7 @@ fn test_pair_burn() {
 
 #[test]
 fn test_pair_sync() {
-    let (env, proxy, token, owner, factory_hash) = deploy();
+    let (env, proxy, _, token, owner, factory_hash) = deploy();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -449,7 +457,7 @@ fn test_pair_sync() {
 
 #[test]
 fn test_pair_swap() {
-    let (env, proxy, token, owner, factory_hash) = deploy();
+    let (env, proxy, _proxy2, token, owner, factory_hash) = deploy();
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
@@ -501,28 +509,36 @@ fn test_pair_swap() {
 
 #[test]
 fn test_pair_transfer_from() {
-    let (env, proxy, token, owner, _factory_hash) = deploy();
+    let (env, proxy, proxy2, token, owner, _factory_hash) = deploy();
 
     let package_hash = proxy.package_hash_result();
+    let package_hash2 = proxy2.package_hash_result();
     let recipient = env.next_user();
+    let user = env.next_user();
     let mint_amount = 100.into();
     let allowance = 10.into();
-    let amount: U256 = 5.into();
+    let amount: U256 = 1.into();
     // Minting to proxy contract as it is the intermediate caller to transfer
     token.erc20_mint(Sender(owner), package_hash, mint_amount);
 
-    // proxy.increase_allowance(Sender(owner), recipient, allowance);
-
-    proxy.approve(Sender(owner), recipient, allowance);
+    proxy.approve(Sender(owner), package_hash2, allowance);
     assert_eq!(token.balance_of(owner), 1000.into());
-    proxy.transfer_from(Sender(owner), package_hash.into(), recipient.into(), amount);
+
+    proxy.allowance_fn(
+        Sender(owner),
+        Key::from(package_hash),
+        Key::from(package_hash2),
+    );
+    assert_eq!(proxy.allowance_res(), 10.into());
+
+    proxy2.transfer_from(Sender(owner), package_hash.into(), user.into(), amount);
 
     assert_eq!(token.nonce(owner), 0.into());
     assert_eq!(token.nonce(recipient), 0.into());
     assert_eq!(token.balance_of(owner), 1000.into());
-    assert_eq!(token.balance_of(recipient), amount);
+    assert_eq!(token.balance_of(user), amount);
 
-    let ret: Result<(), u32> = proxy.transfer_from_result();
+    let ret: Result<(), u32> = proxy2.transfer_from_result();
 
     match ret {
         Ok(()) => {}
@@ -533,39 +549,34 @@ fn test_pair_transfer_from() {
 #[test]
 #[should_panic]
 fn test_pair_transfer_from_too_much() {
-    let (env, proxy, token, owner, _factory_hash) = deploy();
+    let (env, proxy, proxy2, token, owner, _factory_hash) = deploy();
 
     let package_hash = proxy.package_hash_result();
-    let recipient = env.next_user();
+    let package_hash2 = proxy2.package_hash_result();
+    let user = env.next_user();
     let mint_amount = 100.into();
     let allowance = 10.into();
-    let amount: U256 = 11.into();
+    let amount: U256 = 12.into();
     // Minting to proxy contract as it is the intermediate caller to transfer
     token.erc20_mint(Sender(owner), package_hash, mint_amount);
 
-    // proxy.increase_allowance(Sender(owner), recipient, allowance);
-
-    proxy.approve(Sender(owner), recipient, allowance);
+    proxy.approve(Sender(owner), package_hash2, allowance);
     assert_eq!(token.balance_of(owner), 1000.into());
-    proxy.transfer_from(Sender(owner), package_hash.into(), recipient.into(), amount);
 
-    assert_eq!(token.nonce(owner), 0.into());
-    assert_eq!(token.nonce(recipient), 0.into());
-    assert_eq!(token.balance_of(owner), 1000.into());
-    assert_eq!(token.balance_of(recipient), amount);
+    proxy.allowance_fn(
+        Sender(owner),
+        Key::from(package_hash),
+        Key::from(package_hash2),
+    );
+    assert_eq!(proxy.allowance_res(), 10.into());
 
-    let ret: Result<(), u32> = proxy.transfer_from_result();
-
-    match ret {
-        Ok(()) => {}
-        Err(e) => assert!(false, "Transfer Failed ERROR:{}", e),
-    }
+    proxy2.transfer_from(Sender(owner), package_hash.into(), user.into(), amount);
 }
 
 #[test]
 #[should_panic]
 fn test_calling_construction() {
-    let (_, _proxy, token, owner, factory_hash) = deploy();
+    let (_, _proxy, _proxy2, token, owner, factory_hash) = deploy();
     token.constructor(
         Sender(owner),
         NAME,
