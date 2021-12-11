@@ -10,7 +10,7 @@ extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec};
 
 use casper_contract::{
-    contract_api::{account, runtime, system, storage},
+    contract_api::{account, runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
@@ -62,8 +62,7 @@ fn deposit_session() {
 }
 #[no_mangle]
 fn withdraw() {
-    //let to: Key = runtime::get_named_arg("to");
-    let to: URef = system::create_purse();
+    let to: Key = runtime::get_named_arg("to");
     let amount: U512 = runtime::get_named_arg("amount");
     // let wcspr_hash: Key = runtime::get_named_arg("wcspr_hash");
     let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
@@ -72,7 +71,7 @@ fn withdraw() {
         wcspr_hash,
         WITHDRAW_ENTRY_POINT_NAME,
         runtime_args! {
-            TO_PURSE_RUNTIME_ARG_NAME => to,
+            TO_RUNTIME_ARG_NAME=> to,
             AMOUNT_RUNTIME_ARG_NAME=> amount
         },
     );

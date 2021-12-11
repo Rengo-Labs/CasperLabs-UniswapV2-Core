@@ -273,7 +273,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             let res: Result<(), u32> = call_contract(
                 wcspr_hash_add,
                 "withdraw",
-                runtime_args! {"to" => data::get_hash(), "amount" => U512::from(_amount.as_u128())},
+                runtime_args! {"to_purse" => data::get_self_purse(), "amount" => U512::from(_amount.as_u128())},
             );
             match res {
                 Ok(()) => (),
@@ -468,7 +468,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             let res: Result<(), u32> = call_contract(
                 wcspr_contract_hash,
                 "withdraw",
-                runtime_args! {"to" => data::get_hash(), "amount" => U512::from(amount.as_u128())},
+                runtime_args! {"to_purse" => data::get_self_purse(), "amount" => U512::from(amount.as_u128())},
             );
             match res {
                 Ok(()) => (),

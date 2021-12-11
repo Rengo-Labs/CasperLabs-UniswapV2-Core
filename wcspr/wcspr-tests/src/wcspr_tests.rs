@@ -115,7 +115,7 @@ fn test_wcspr_withdraw() {
     assert_eq!(res.is_ok(), true);
 
     // withdraw some amount from deposited amount and verify
-    proxy.withdraw(Sender(owner), Key::from(owner), U512::from(withdraw_amount));
+    proxy.withdraw(Sender(owner), U512::from(withdraw_amount));
     let res: Result<(), u32> = proxy.withdraw_result();
     assert_eq!(res.is_ok(), true);
     let new_proxy_balance: U256 = U256::from(deposit_amount - withdraw_amount);

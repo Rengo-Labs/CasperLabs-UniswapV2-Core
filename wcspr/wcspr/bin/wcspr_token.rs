@@ -162,7 +162,7 @@ fn deposit() {
 
 #[no_mangle]
 fn withdraw() {
-    let to: Key = runtime::get_named_arg("to");
+    let to: URef = runtime::get_named_arg("to_purse");
     let amount: U512 = runtime::get_named_arg("amount");
     let ret = Token::default().withdraw(to, amount);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
@@ -355,7 +355,7 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "withdraw",
         vec![
-            Parameter::new("to", Key::cl_type()),
+            Parameter::new("to_purse", URef::cl_type()),
             Parameter::new("amount", U512::cl_type()),
         ],
         CLType::Result {

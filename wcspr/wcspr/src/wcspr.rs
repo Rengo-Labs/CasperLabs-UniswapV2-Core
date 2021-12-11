@@ -155,7 +155,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         Ok(())
     }
 
-    fn withdraw(&mut self, recipient: Key, amount: U512) -> Result<(), u32> {
+    fn withdraw(&mut self, recipient_purse: URef, amount: U512) -> Result<(), u32> {
         let caller = self.get_caller();
         let balances = Balances::instance();
         let balance = balances.get(&caller); // get balance of the caller
@@ -170,10 +170,10 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             system::get_purse_balance(contract_main_purse).unwrap_or_revert();
 
         if balance >= cspr_amount_u256 && amount <= main_purse_balance.into() {
-            system::transfer_from_purse_to_account(
+            system::transfer_from_purse_to_purse(
                 // transfer native cspr from purse to account
                 contract_main_purse,
-                recipient.into_account().unwrap_or_revert(),
+                recipient_purse,
                 amount,
                 None,
             )

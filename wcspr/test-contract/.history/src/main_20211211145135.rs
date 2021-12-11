@@ -10,7 +10,7 @@ extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec};
 
 use casper_contract::{
-    contract_api::{account, runtime, system, storage},
+    contract_api::{account, runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{

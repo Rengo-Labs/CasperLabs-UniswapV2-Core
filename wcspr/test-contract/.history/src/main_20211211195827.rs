@@ -10,7 +10,11 @@ extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec};
 
 use casper_contract::{
+<<<<<<< HEAD
+    contract_api::{account, runtime, storage},
+=======
     contract_api::{account, runtime, system, storage},
+>>>>>>> wcspr_flashswapper_fixes
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
@@ -244,7 +248,11 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "withdraw",
         vec![
+<<<<<<< HEAD
+            Parameter::new("to", Key::cl_type()),
+=======
             //Parameter::new("to", Key::cl_type()),             // no need to pass 'to'. Purse will be created here
+>>>>>>> wcspr_flashswapper_fixes
             Parameter::new("amount", U512::cl_type()),
             // Parameter::new("wcspr_hash", Key::cl_type())
         ],
