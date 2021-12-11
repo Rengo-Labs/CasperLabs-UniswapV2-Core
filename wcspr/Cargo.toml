@@ -1,0 +1,12 @@
+[workspace]
+
+members = [
+  "wcspr",
+  "test-contract",
+  "test-contract2",
+  "wcspr-tests",
+]
+
+[profile.release]
+codegen-units = 1
+lto = true

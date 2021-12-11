@@ -1,0 +1,10 @@
+[package]
+authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
+edition = "2018"
+name = "contract-utils"
+version = "0.1.0"
+
+[dependencies]
+casper-contract = "1.3.2"
+casper-types = "1.3.2"
+hex = {version = "0.4.3", default-features = false}

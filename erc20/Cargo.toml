@@ -1,0 +1,12 @@
+[workspace]
+
+members = [
+  "erc20",
+  "test-contract",
+  "test-contract2",
+  "erc20-tests",
+]
+
+[profile.release]
+codegen-units = 1
+lto = true

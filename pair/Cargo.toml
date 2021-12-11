@@ -1,0 +1,12 @@
+[workspace]
+
+members = [
+  "pair",
+  "test-contract",
+  "test-contract2",
+  "pair-tests",
+]
+
+[profile.release]
+codegen-units = 1
+lto = true
