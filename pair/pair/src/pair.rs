@@ -381,6 +381,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn swap(&mut self, amount0_out: U256, amount1_out: U256, to: Key, data: String) {
+        let lock = data::get_lock();
+        if lock != 0 {
+            //UniswapV2: Locked
+            runtime::revert(ApiError::User(FailureCode::Fourteen as u16));
+        }
+        data::set_lock(1);
         let pair_address: Key = Key::from(data::get_package_hash());
         let zero: U256 = 0.into();
         if amount0_out > zero || amount1_out > zero {
@@ -392,12 +398,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 let token1: Key = self.get_token1();
                 if to != token0 && to != token1 {
                     if amount0_out > zero {
-                        //convert Key to ContractHash
-                        // let token0_hash_add_array = match token0 {
-                        //     Key::Hash(package) => package,
-                        //     _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-                        // };
-                        // let token0_contract_hash = ContractHash::new(token0_hash_add_array);
                         let ret: Result<(), u32> = runtime::call_contract(
                             // token0_contract_hash,
                             token0.into_hash().unwrap_or_revert().into(),
@@ -502,6 +502,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                                 from: self.get_caller(),
                                 pair: eventpair,
                             });
+                            data::set_lock(0);
                         } else {
                             //UniswapV2: K
                             runtime::revert(ApiError::User(FailureCode::Eight as u16));
@@ -783,6 +784,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn mint_helper(&mut self, to: Key) -> U256 {
+        let lock = data::get_lock();
+        if lock != 0 {
+            //UniswapV2: Locked
+            runtime::revert(ApiError::User(FailureCode::Fourteen as u16));
+        }
+        data::set_lock(1);
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let token0: Key = data::get_token0();
         let token1: Key = data::get_token1();
@@ -843,6 +850,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 amount1: amount1,
                 pair: eventpair,
             });
+            data::set_lock(0);
             liquidity // return liquidity
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
@@ -851,6 +859,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn burn_helper(&mut self, to: Key) -> (U256, U256) {
+        let lock = data::get_lock();
+        if lock != 0 {
+            //UniswapV2: Locked
+            runtime::revert(ApiError::User(FailureCode::Fourteen as u16));
+        }
+        data::set_lock(1);
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let token0: Key = data::get_token0();
         let token1: Key = data::get_token1();
@@ -936,6 +950,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 to: to,
                 pair: eventpair,
             });
+            data::set_lock(0);
             (amount0, amount1)
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED

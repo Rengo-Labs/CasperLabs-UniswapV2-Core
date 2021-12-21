@@ -313,21 +313,6 @@ fn mint_no_ret() {
     let _liquidity: U256 = Pair::default().mint_helper(to);
 }
 
-/// This function is to mint token against the address that user provided with the amount
-///
-/// # Parameters
-///
-/// * `to` - A Key that holds the account address of the user
-///
-/// * `amount` - A U256 that holds the value that is going to mint
-///
-
-#[no_mangle]
-fn erc20_mint() {
-    let to: Key = runtime::get_named_arg("to");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Pair::default().mint(to, amount);
-}
 
 /// This function is to burn token against the address that user provided
 ///
@@ -729,16 +714,6 @@ fn get_entry_points() -> EntryPoints {
             Box::new(CLType::U128),
             Box::new(u64::cl_type()),
         ]),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "erc20_mint",
-        vec![
-            Parameter::new("to", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
