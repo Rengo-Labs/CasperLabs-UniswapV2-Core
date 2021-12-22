@@ -869,11 +869,11 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         _user_data: String,
     ) {
     }
-    
+
     fn purse(&mut self) -> URef {
         data::get_self_purse()
     }
-    
+
     fn get_package_hash(&mut self) -> ContractPackageHash {
         data::get_package_hash()
     }

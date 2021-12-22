@@ -81,7 +81,7 @@ fn transfer() {
 /// # Parameters
 ///
 /// * `owner` - A Key that holds the account address of the user
-///  
+///
 /// * `recipient` - A Key that holds the account address of the user
 ///
 /// * `amount` - A U256 that holds the amount for transfer
