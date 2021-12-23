@@ -1,22 +1,22 @@
 #![no_std]
 #![no_main]
 
-// #[cfg(not(target_arch = "wasm32"))]
-// compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
+#[cfg(not(target_arch = "wasm32"))]
+compile_error!("target arch should be wasm32: compile with '--target wasm32-unknown-unknown'");
 
 // We need to explicitly import the std alloc crate and `alloc::string::String` as we're in a
 // `no_std` environment.
 extern crate alloc;
-use alloc::{collections::BTreeSet, format, vec};
+use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec, vec::Vec};
 
 use casper_contract::{
-    contract_api::{account, runtime, storage},
+    contract_api::{runtime, storage, system, account},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
     contracts::{ContractHash, ContractPackageHash},
-    runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key,
-    Parameter, RuntimeArgs, URef, U256, U512,
+    runtime_args, ApiError, CLType, CLTyped, EntryPoint, EntryPointAccess, EntryPointType,
+    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512
 };
 
 pub mod constants;
@@ -51,7 +51,7 @@ fn deposit_session() {
     let purse: URef = account::get_main_purse();
 
     let () = runtime::call_contract(
-        _create_hash_from_key(proxy_hash),
+       _create_hash_from_key(proxy_hash),
         DEPOSIT_ENTRY_POINT_NAME,
         runtime_args! {
             PURSE_RUNTIME_ARG_NAME=> purse,
@@ -219,13 +219,13 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    entry_points.add_entry_point(EntryPoint::new(
+     entry_points.add_entry_point(EntryPoint::new(
         "deposit_session",
         vec![
             Parameter::new("amount", U512::cl_type()),
             // Parameter::new("purse", URef::cl_type()),
-            Parameter::new("proxy_hash", Key::cl_type()),
-        ],
+            Parameter::new("proxy_hash", Key::cl_type())
+            ],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Session,
