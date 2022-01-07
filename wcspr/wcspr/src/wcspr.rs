@@ -48,30 +48,20 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn transfer(&mut self, recipient: Key, amount: U256) -> Result<(), u32> {
-        let ret: Result<(), u32> = self.make_transfer(self.get_caller(), recipient, amount);
-
-        if ret.is_ok() {
-            self.emit(&WcsprEvents::Transfer {
-                src: self.get_caller(),
-                recipient: recipient,
-                amount: amount,
-            });
-        }
-        ret
+        self.make_transfer(self.get_caller(), recipient, amount)
     }
 
     fn approve(&mut self, spender: Key, amount: U256) {
         self._approve(self.get_caller(), spender, amount);
-
-        self.emit(&WcsprEvents::Approve {
-            owner: self.get_caller(),
-            spender: spender,
-            amount: amount,
-        });
     }
 
     fn _approve(&mut self, owner: Key, spender: Key, amount: U256) {
         Allowances::instance().set(&owner, &spender, amount);
+        self.emit(&WcsprEvents::Approval {
+            owner: owner,
+            spender: spender,
+            value: amount,
+        });
     }
 
     fn allowance(&mut self, owner: Key, spender: Key) -> U256 {
@@ -122,14 +112,6 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32> {
         let ret: Result<(), u32> = self.make_transfer(owner, recipient, amount);
         if ret.is_ok() {
-            // if okay, emit event first
-            self.emit(&WcsprEvents::TransferFrom {
-                owner: owner,
-                sender: Key::from(data::get_package_hash()),
-                recipient: recipient,
-                amount: amount,
-            });
-
             let allowances = Allowances::instance();
             let spender_allowance: U256 = allowances.get(&owner, &self.get_caller());
             let new_allowance: U256 = spender_allowance
@@ -278,6 +260,11 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(Error::UniswapV2CoreWCSPROverFlow)
                 .unwrap_or_revert(),
         );
+        self.emit(&WcsprEvents::Transfer {
+            from: sender,
+            to: recipient,
+            value: amount,
+        });
         Ok(())
     }
 
@@ -303,47 +290,27 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let package = data::get_package_hash();
 
         match wcspr_event {
-            WcsprEvents::Approve {
+            WcsprEvents::Approval {
                 owner,
                 spender,
-                amount,
+                value,
             } => {
                 let mut event = BTreeMap::new();
                 event.insert("contract_package_hash", package.to_string());
                 event.insert("event_type", wcspr_event.type_name());
                 event.insert("owner", owner.to_string());
                 event.insert("spender", spender.to_string());
-                event.insert("amount", amount.to_string());
+                event.insert("value", value.to_string());
                 events.push(event);
             }
 
-            WcsprEvents::Transfer {
-                src,
-                recipient,
-                amount,
-            } => {
+            WcsprEvents::Transfer { from, to, value } => {
                 let mut event = BTreeMap::new();
                 event.insert("contract_package_hash", package.to_string());
                 event.insert("event_type", wcspr_event.type_name());
-                event.insert("source", src.to_string());
-                event.insert("recipient", recipient.to_string());
-                event.insert("amount", amount.to_string());
-                events.push(event);
-            }
-
-            WcsprEvents::TransferFrom {
-                owner,
-                sender,
-                recipient,
-                amount,
-            } => {
-                let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package.to_string());
-                event.insert("event_type", wcspr_event.type_name());
-                event.insert("owner", owner.to_string());
-                event.insert("sender", sender.to_string());
-                event.insert("recipient", recipient.to_string());
-                event.insert("amount", amount.to_string());
+                event.insert("from", from.to_string());
+                event.insert("to", to.to_string());
+                event.insert("value", value.to_string());
                 events.push(event);
             }
 

@@ -151,6 +151,22 @@ fn deposit() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to deposit token against the address that user provided (This function can be called from command line)
+///
+/// # Parameters
+///
+/// * `to` - A Key that holds the account address of the user
+///
+/// * `amount` - A U256 that holds the amount for deposit
+///
+/// 
+#[no_mangle]
+fn deposit_no_return() {
+    let amount: U512 = runtime::get_named_arg("amount");
+    let purse: URef = runtime::get_named_arg("purse");
+    let _ret = Token::default().deposit(amount, purse);
+}
+
 /// This function is to withdraw token against the address that user provided
 ///
 /// # Parameters
@@ -341,6 +357,19 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "deposit",
+        vec![
+            Parameter::new("amount", U512::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
+        ],
+        CLType::Result {
+            ok: Box::new(CLType::Unit),
+            err: Box::new(CLType::U32),
+        },
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "deposit_no_return",
         vec![
             Parameter::new("amount", U512::cl_type()),
             Parameter::new("purse", URef::cl_type()),

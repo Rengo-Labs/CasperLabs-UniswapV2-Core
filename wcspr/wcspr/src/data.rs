@@ -12,23 +12,16 @@ use contract_utils::{get_key, set_key, Dict};
 // Events
 
 pub enum WcsprEvents {
-    Approve {
-        owner: Key, 
+    Approval {
+        owner: Key,
         spender: Key,
-        amount: U256
+        value: U256,
     },
 
     Transfer {
-        src: Key,
-        recipient: Key,
-        amount: U256
-    },
-
-    TransferFrom {
-        owner: Key,
-        sender: Key,
-        recipient: Key,
-        amount: U256
+        from: Key,
+        to: Key,
+        value: U256,
     },
 
     Deposit {
@@ -45,34 +38,27 @@ pub enum WcsprEvents {
 impl WcsprEvents {
     pub fn type_name(&self) -> String {
         match self {
-            WcsprEvents::Approve {
+            WcsprEvents::Approval{
                 owner: _,
                 spender: _,
-                amount: _
-            } => "Approve",
+                value: _
+            } => "approve",
 
             WcsprEvents::Transfer {
-                src: _,
-                recipient: _,
-                amount: _
-            } => "Transfer",
-
-            WcsprEvents::TransferFrom {
-                owner: _,
-                sender: _,
-                recipient: _,
-                amount: _
-            } => "TransferFrom",
+                from: _,
+                to: _,
+                value: _,
+            } => "erc20_transfer",
 
             WcsprEvents::Deposit {
                 src_purse: _,
                 amount: _
-            } => "Deposit",
+            } => "deposit",
             
             WcsprEvents::Withdraw {
                 recipient_purse: _,
                 amount: _
-            } => "Withdraw"
+            } => "withdraw"
         }.to_string()
     }
 }
