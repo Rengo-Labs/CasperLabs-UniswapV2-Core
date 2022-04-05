@@ -46,7 +46,7 @@ impl PAIRInstance {
         symbol: &str,
         decimals: u8,
         supply: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         factory_hash: Key,
     ) -> TestContract {
         TestContract::new(
@@ -59,7 +59,7 @@ impl PAIRInstance {
                 "name" => name,
                 "symbol" => symbol,
                 "decimals" => decimals,
-                "callee_contract_hash" => callee_contract_hash,
+                "callee_package_hash" => callee_package_hash,
                 "factory_hash" => factory_hash
             },
         )
@@ -72,7 +72,7 @@ impl PAIRInstance {
         symbol: &str,
         decimals: u8,
         initial_supply: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         factory_hash: Key,
     ) {
         self.0.call_contract(
@@ -83,7 +83,7 @@ impl PAIRInstance {
                 "name" => name,
                 "symbol" => symbol,
                 "decimals" => decimals,
-                "callee_contract_hash" => callee_contract_hash,
+                "callee_package_hash" => callee_package_hash,
                 "factory_hash" => factory_hash
             },
         );
@@ -381,8 +381,8 @@ impl PAIRInstance {
         self.0.query_named_key(String::from("amount1"))
     }
 
-    pub fn callee_contract_hash(&self) -> Key {
-        self.0.query_named_key(String::from("callee_contract_hash"))
+    pub fn callee_package_hash(&self) -> Key {
+        self.0.query_named_key(String::from("callee_package_hash"))
     }
 
     pub fn factory_hash(&self) -> Key {

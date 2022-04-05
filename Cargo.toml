@@ -1,0 +1,12 @@
+[workspace]
+members = [
+    "erc20",
+    "wcspr",
+    "pair",
+    "factory",
+    "flashswapper"
+]
+
+[profile.release]
+codegen-units = 1
+lto = true

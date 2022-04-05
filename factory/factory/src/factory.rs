@@ -105,18 +105,13 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let pair_contract_hash = ContractHash::new(pair_hash_add_array);
-            let _ret: () = runtime::call_contract(
-                pair_contract_hash,
+            let pair_package_hash = ContractPackageHash::new(pair_hash_add_array);
+            let _ret: () = runtime::call_versioned_contract(
+                pair_package_hash,
+                None,
                 "initialize",
                 runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
             );
-            // let _ret: () = runtime::call_versioned_contract(
-            //     pair_contract_hash,
-            //     None,
-            //     "initialize",
-            //     runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
-            // );
             
             // handling the pair creation by updating the storage
             self.set_pair(token0, token1, pair_hash);

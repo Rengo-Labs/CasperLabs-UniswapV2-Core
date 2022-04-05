@@ -10,8 +10,7 @@ use crate::alloc::string::ToString;
 use alloc::collections::BTreeMap;
 use casper_types::system::mint::Error as MintError;
 use casper_types::{
-    runtime_args, ApiError, BlockTime, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef,
-    U128, U256,
+    runtime_args, ApiError, BlockTime, ContractPackageHash, Key, RuntimeArgs, URef, U128, U256,
 };
 use contract_utils::{set_key, ContractContext, ContractStorage};
 use cryptoxide::ed25519;
@@ -165,7 +164,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         k_last: U256,
         treasury_fee: U256,
         minimum_liquidity: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         lock: u64,
     ) {
         data::set_name(name);
@@ -184,7 +183,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_k_last(k_last);
         data::set_treasury_fee(treasury_fee);
         data::set_minimum_liquidity(minimum_liquidity);
-        data::set_callee_contract_hash(callee_contract_hash);
+        data::set_callee_package_hash(callee_package_hash);
         data::set_lock(lock);
         Nonces::init();
         let nonces = Nonces::instance();
@@ -294,43 +293,45 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let reserve0: U128 = data::get_reserve0();
         let reserve1: U128 = data::get_reserve1();
         let pair_address: Key = Key::from(data::get_package_hash());
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let token0_hash_add_array = match token0 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-        //convert Key to ContractHash
+        let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+        //convert Key to ContractPackageHash
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
-            token0_contract_hash,
+        let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
+            token0_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-        // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
-        let balance1: U256 = runtime::call_contract(
-            token1_contract_hash,
+        let balance1: U256 = runtime::call_versioned_contract(
+            token1_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-        // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
 
         let balance0_conversion: U128 = U128::from(balance0.as_u128());
         let balance1_conversion: U128 = U128::from(balance1.as_u128());
 
-        let _ret: Result<(), u32> = runtime::call_contract(
-            token0_contract_hash,
+        let _ret: Result<(), u32> = runtime::call_versioned_contract(
+            token0_package_hash,
+            None,
             "transfer",
             runtime_args! {"recipient" => to,"amount" => U256::from((balance0_conversion - reserve0).as_u128())},
         );
         match _ret {
             Ok(()) => {
-                let _ret: Result<(), u32> = runtime::call_contract(
-                    token1_contract_hash,
+                let _ret: Result<(), u32> = runtime::call_versioned_contract(
+                    token1_package_hash,
+                    None,
                     "transfer",
                     runtime_args! {"recipient" => to,"amount" => U256::from((balance1_conversion - reserve1).as_u128()), },
                 );
@@ -355,30 +356,30 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let reserve0: U128 = data::get_reserve0();
         let reserve1: U128 = data::get_reserve1();
         let pair_address: Key = Key::from(data::get_package_hash());
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let token0_hash_add_array = match token0 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-        //convert Key to ContractHash
+        let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+        //convert Key to ContractPackageHash
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
-            token0_contract_hash,
+        let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
+            token0_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-        // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
-        let balance1: U256 = runtime::call_contract(
-            token1_contract_hash,
+        let balance1: U256 = runtime::call_versioned_contract(
+            token1_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-        // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
         self.update(balance0, balance1, reserve0, reserve1);
         data::set_lock(0);
     }
@@ -395,48 +396,40 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 let token1: Key = self.get_token1();
                 if to != token0 && to != token1 {
                     if amount0_out > zero {
-                        //convert Key to ContractHash
+                        //convert Key to ContractPackageHash
                         // let token0_hash_add_array = match token0 {
                         //     Key::Hash(package) => package,
                         //     _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                         // };
-                        // let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-                        let ret: Result<(), u32> = runtime::call_contract(
-                            // token0_contract_hash,
+                        // let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+                        let ret: Result<(), u32> = runtime::call_versioned_contract(
+                            // token0_package_hash,
                             token0.into_hash().unwrap_or_revert().into(),
+                            None,
                             "transfer",
                             runtime_args! {
                                 "recipient" => to,
                                 "amount" => amount0_out
                             }, // optimistically transfer tokens
                         );
-                        // let ret: Result<(), u32> = runtime::call_versioned_contract(token0.into_hash().unwrap_or_revert().into(), None, "transfer",
-                        // runtime_args! {
-                        //     "recipient" => to,
-                        //     "amount" => amount0_out
-                        // }, // optimistically transfer tokens);
                         match ret {
                             Ok(()) => {}
                             Err(e) => runtime::revert(e),
                         }
                     }
                     if amount1_out > zero {
-                        //convert Key to ContractHash
+                        //convert Key to ContractPackageHash
                         let token1_hash_add_array = match token1 {
                             Key::Hash(package) => package,
                             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                         };
-                        let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-                        let _ret: Result<(), u32> = runtime::call_contract(
-                            token1_contract_hash,
+                        let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+                        let _ret: Result<(), u32> = runtime::call_versioned_contract(
+                            token1_package_hash,
+                            None,
                             "transfer",
                             runtime_args! {"recipient" => to,"amount" => amount1_out}, // optimistically transfer tokens
                         );
-                        // let ret: Result<(), u32> = runtime::call_versioned_contract(token1_contract_hash, None, "transfer",
-                        // runtime_args! {
-                        //     "recipient" => to,
-                        //     "amount" => amount1_out
-                        // }, // optimistically transfer tokens);
                         match _ret {
                             Ok(()) => {}
                             Err(e) => runtime::revert(e),
@@ -444,48 +437,46 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                     }
                     if data.len() > 0 {
                         let uniswap_v2_callee_address: Key = to;
-                        //convert Key to ContractHash
+                        //convert Key to ContractPackageHash
                         let uniswap_v2_callee_address_hash_add_array =
                             match uniswap_v2_callee_address {
                                 Key::Hash(package) => package,
                                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                             };
-                        let uniswap_v2_callee_contract_hash =
-                            ContractHash::new(uniswap_v2_callee_address_hash_add_array);
+                        let uniswap_v2_callee_package_hash =
+                            ContractPackageHash::new(uniswap_v2_callee_address_hash_add_array);
 
-                        let _result: () = runtime::call_contract(
-                            uniswap_v2_callee_contract_hash,
+                        let _result: () = runtime::call_versioned_contract(
+                            uniswap_v2_callee_package_hash,
+                            None,
                             "uniswap_v2_call",
-                            runtime_args! {"sender" => data::get_callee_contract_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data},
+                            runtime_args! {"sender" => data::get_callee_package_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data},
                         );
-                        //     let _result: () = runtime::call_versioned_contract(uniswap_v2_callee_contract_hash, None, "uniswap_v2_call",
-                        //     runtime_args! {"sender" => data::get_callee_contract_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data},
-                        //  ); // optimistically transfer tokens);
                     }
-                    //convert Key to ContractHash
+                    //convert Key to ContractPackageHash
                     let token0_hash_add_array = match token0 {
                         Key::Hash(package) => package,
                         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                     };
-                    let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-                    //convert Key to ContractHash
+                    let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+                    //convert Key to ContractPackageHash
                     let token1_hash_add_array = match token1 {
                         Key::Hash(package) => package,
                         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                     };
-                    let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-                    let balance0: U256 = runtime::call_contract(
-                        token0_contract_hash,
+                    let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+                    let balance0: U256 = runtime::call_versioned_contract(
+                        token0_package_hash,
+                        None,
                         "balance_of",
                         runtime_args! {"owner" => pair_address},
                     );
-                    // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
-                    let balance1: U256 = runtime::call_contract(
-                        token1_contract_hash,
+                    let balance1: U256 = runtime::call_versioned_contract(
+                        token1_package_hash,
+                        None,
                         "balance_of",
                         runtime_args! {"owner" => pair_address},
                     );
-                    // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
                     let mut amount0_in: U256 = 0.into();
                     let mut amount1_in: U256 = 0.into();
 
@@ -804,30 +795,30 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let token0: Key = data::get_token0();
         let token1: Key = data::get_token1();
-        let pair_contract_hash1: Key = Key::from(data::get_package_hash());
-        let pair_contract_hash2: Key = Key::from(data::get_package_hash());
+        let pair_package_hash1: Key = Key::from(data::get_package_hash());
+        let pair_package_hash2: Key = Key::from(data::get_package_hash());
         let token0_hash_add_array = match token0 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_hash_add = ContractHash::new(token0_hash_add_array);
+        let token0_hash_add = ContractPackageHash::new(token0_hash_add_array);
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_hash_add = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
+        let token1_hash_add = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
             token0_hash_add,
+            None,
             "balance_of",
-            runtime_args! {"owner" => pair_contract_hash1},
+            runtime_args! {"owner" => pair_package_hash1},
         );
-        // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_contract_hash1},);
-        let balance1: U256 = runtime::call_contract(
+        let balance1: U256 = runtime::call_versioned_contract(
             token1_hash_add,
+            None,
             "balance_of",
-            runtime_args! {"owner" => pair_contract_hash2},
+            runtime_args! {"owner" => pair_package_hash2},
         );
-        // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_contract_hash2},);
         let amount0: U256 = balance0
             .checked_sub(U256::from(reserve0.as_u128()))
             .ok_or(ApiError::User(FailureCode::TwentySeven as u16))
@@ -888,24 +879,24 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_hash_add = ContractHash::new(token0_hash_add_array);
+        let token0_hash_add = ContractPackageHash::new(token0_hash_add_array);
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_hash_add = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
+        let token1_hash_add = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
             token0_hash_add,
+            None,
             "balance_of",
             runtime_args! {"owner" => Key::from(data::get_package_hash())},
         );
-        // let balance0: U256 = runtime::call_versioned_contract(token0_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
-        let balance1: U256 = runtime::call_contract(
+        let balance1: U256 = runtime::call_versioned_contract(
             token1_hash_add,
+            None,
             "balance_of",
             runtime_args! {"owner" => Key::from(data::get_package_hash())},
         );
-        // let balance1: U256 = runtime::call_versioned_contract(token1_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
         let liquidity: U256 = self.balance_of(Key::from(data::get_package_hash()));
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let total_supply: U256 = self.total_supply();
@@ -915,24 +906,22 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             self.burn(Key::from(data::get_package_hash()), liquidity);
             // set_key("amount0",amount0);
             // set_key("amount1",amount1);
-            let _ret: Result<(), u32> = runtime::call_contract(
+            let _ret: Result<(), u32> = runtime::call_versioned_contract(
                 token0_hash_add,
+                None,
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount0 },
             );
-            // let _ret: Result<(), u32> =runtime::call_versioned_contract(token0_hash_add, None, "transfer",
-            // runtime_args! {"recipient" => to,"amount" => amount0 },);
             match _ret {
                 Ok(()) => {}
                 Err(e) => runtime::revert(e),
             }
-            let _ret: Result<(), u32> = runtime::call_contract(
+            let _ret: Result<(), u32> = runtime::call_versioned_contract(
                 token1_hash_add,
+                None,
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount1 },
             );
-            // let _ret: Result<(), u32> =runtime::call_versioned_contract(token1_hash_add, None, "transfer",
-            // runtime_args! {"recipient" => to,"amount" => amount1 },);
             match _ret {
                 Ok(()) => {}
                 Err(e) => runtime::revert(e),
@@ -942,24 +931,24 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let token0_hash_add = ContractHash::new(token0_hash_add_array);
+            let token0_hash_add = ContractPackageHash::new(token0_hash_add_array);
             let token1_hash_add_array = match token1 {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let token1_hash_add = ContractHash::new(token1_hash_add_array);
-            let balance0: U256 = runtime::call_contract(
+            let token1_hash_add = ContractPackageHash::new(token1_hash_add_array);
+            let balance0: U256 = runtime::call_versioned_contract(
                 token0_hash_add,
+                None,
                 "balance_of",
                 runtime_args! {"owner" => Key::from(data::get_package_hash())},
             );
-            // let balance0: U256 = runtime::call_versioned_contract(token0_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
-            let balance1: U256 = runtime::call_contract(
+            let balance1: U256 = runtime::call_versioned_contract(
                 token1_hash_add,
+                None,
                 "balance_of",
                 runtime_args! {"owner" => Key::from(data::get_package_hash())},
             );
-            // let balance1: U256 = runtime::call_versioned_contract(token1_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
             self.update(balance0, balance1, reserve0, reserve1);
             if fee_on {
                 let k_last: U256 = U256::from((reserve0 * reserve1).as_u128()); // reserve0 and reserve1 are up-to-date
@@ -989,9 +978,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let factory_hash_add = ContractHash::new(factory_hash_add_array);
-        // let fee_to: Key =  runtime::call_versioned_contract(factory_hash_add, None, "fee_to", runtime_args! {},);
-        let fee_to: Key = runtime::call_contract(factory_hash_add, "fee_to", runtime_args! {});
+        let factory_hash_add = ContractPackageHash::new(factory_hash_add_array);
+        let fee_to: Key =
+            runtime::call_versioned_contract(factory_hash_add, None, "fee_to", runtime_args! {});
         let mut fee_on: bool = false;
         if fee_to
             != Key::from_formatted_str(

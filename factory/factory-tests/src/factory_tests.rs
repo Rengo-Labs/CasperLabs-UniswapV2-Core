@@ -25,8 +25,8 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
         "flash_swapper",
         owner,
         runtime_args! {
-            "wcspr" => Key::Hash(wcspr.contract_hash()),
-            "dai" => Key::Hash(dai.contract_hash()),
+            "wcspr" => Key::Hash(wcspr.package_hash()),
+            "dai" => Key::Hash(dai.package_hash()),
             "uniswap_v2_factory" => token.self_contract_hash()
         },
     );
@@ -159,9 +159,9 @@ fn test_factory_create_pair() {
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
-    let token0 = Key::Hash(token0.contract_hash());
-    let token1 = Key::Hash(token1.contract_hash());
-    let pair_hash = Key::Hash(pair_hash.contract_hash());
+    let token0 = Key::Hash(token0.package_hash());
+    let token1 = Key::Hash(token1.package_hash());
+    let pair_hash = Key::Hash(pair_hash.package_hash());
     let user = env.next_user();
     token.set_white_list(owner, Key::Account(user));
     assert_eq!(

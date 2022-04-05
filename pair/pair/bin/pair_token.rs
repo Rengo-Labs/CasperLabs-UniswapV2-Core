@@ -49,7 +49,7 @@ impl Pair {
         k_last: U256,
         treasury_fee: U256,
         minimum_liquidity: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         factory_hash: Key,
         lock: u64,
     ) {
@@ -71,7 +71,7 @@ impl Pair {
             k_last,
             treasury_fee,
             minimum_liquidity,
-            callee_contract_hash,
+            callee_package_hash,
             lock,
         );
         PAIR::mint(self, self.get_caller(), initial_supply);
@@ -96,7 +96,7 @@ fn constructor() {
     let k_last: U256 = runtime::get_named_arg("k_last"); // reserve0 * reserve1, as of immediately after the most recent liquidity event
     let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
     let minimum_liquidity: U256 = runtime::get_named_arg("minimum_liquidity");
-    let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
+    let callee_package_hash: Key = runtime::get_named_arg("callee_package_hash");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
     let lock: u64 = runtime::get_named_arg("lock");
     Pair::default().constructor(
@@ -116,7 +116,7 @@ fn constructor() {
         k_last,
         treasury_fee,
         minimum_liquidity,
-        callee_contract_hash,
+        callee_package_hash,
         factory_hash,
         lock,
     );
@@ -537,7 +537,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("k_last", U256::cl_type()), // reserve0 * reserve1, as of immediately after the most recent liquidity event
             Parameter::new("treasury_fee", U256::cl_type()),
             Parameter::new("minimum_liquidity", U256::cl_type()),
-            Parameter::new("callee_contract_hash", Key::cl_type()),
+            Parameter::new("callee_package_hash", Key::cl_type()),
             Parameter::new("factory_hash", Key::cl_type()),
             Parameter::new("lock", u64::cl_type()),
         ],
@@ -813,7 +813,7 @@ fn call() {
         let symbol: String = runtime::get_named_arg("symbol");
         let decimals: u8 = runtime::get_named_arg("decimals");
         let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-        let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
+        let callee_package_hash: Key = runtime::get_named_arg("callee_package_hash");
         let factory_hash: Key = runtime::get_named_arg("factory_hash");
         let eip_712_domain: &str =
             "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
@@ -862,7 +862,7 @@ fn call() {
             "k_last" => k_last,
             "treasury_fee" => treasury_fee,
             "minimum_liquidity" => minimum_liquidity,
-            "callee_contract_hash" => callee_contract_hash,
+            "callee_package_hash" => callee_package_hash,
             "factory_hash" => factory_hash,
             "lock"=>lock
         };

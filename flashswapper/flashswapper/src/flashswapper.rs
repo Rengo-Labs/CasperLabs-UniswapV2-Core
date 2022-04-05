@@ -2,12 +2,11 @@ use alloc::{format, string::String, vec::Vec};
 use casper_contract::contract_api::runtime::{self, call_contract};
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::{
-    runtime_args, ApiError, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef, U256, U512,
+    runtime_args, ApiError, ContractPackageHash, Key, RuntimeArgs, URef, U256, U512,
 };
 use contract_utils::{ContractContext, ContractStorage};
 
 use crate::data::{self};
-
 
 /// Enum for FailureCode, It represents codes for different smart contract errors.
 #[repr(u16)]
@@ -47,7 +46,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         dai: Key,
         uniswap_v2_factory: Key,
         contract_hash: Key,
-        package_hash: ContractPackageHash,
+        package_hash: Key,
         purse: URef,
     ) {
         data::set_wcspr(wcspr);
@@ -114,7 +113,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         if self.get_caller() != permissioned_pair_address {
             runtime::revert(Error::UniswapV2PermissionedPairAccess);
         }
-        if _sender != data::get_hash() {
+        if _sender != data::get_package_hash() {
             runtime::revert(Error::UniswapV2InvalidContractAddress);
         }
         let decoded_data_without_commas: Vec<&str> = _data.split(',').collect();
@@ -180,10 +179,11 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let uniswap_v2_factory_hash_add: ContractHash =
-            ContractHash::new(uniswap_v2_factory_hash_add_array);
-        let permissioned_pair_address: Key = call_contract(
+        let uniswap_v2_factory_hash_add: ContractPackageHash =
+            ContractPackageHash::new(uniswap_v2_factory_hash_add_array);
+        let permissioned_pair_address: Key = runtime::call_versioned_contract(
             uniswap_v2_factory_hash_add,
+            None,
             "get_pair",
             runtime_args! {"token0" => _token_borrow, "token1"  => other_token },
         );
@@ -202,9 +202,19 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let pair_address_hash_add = ContractHash::new(pair_address_hash_add_array);
-        let token0: Key = call_contract(pair_address_hash_add, "token0", RuntimeArgs::new());
-        let token1: Key = call_contract(pair_address_hash_add, "token1", RuntimeArgs::new());
+        let pair_address_hash_add = ContractPackageHash::new(pair_address_hash_add_array);
+        let token0: Key = runtime::call_versioned_contract(
+            pair_address_hash_add,
+            None,
+            "token0",
+            RuntimeArgs::new(),
+        );
+        let token1: Key = runtime::call_versioned_contract(
+            pair_address_hash_add,
+            None,
+            "token1",
+            RuntimeArgs::new(),
+        );
         let amount0_out: U256;
         let amount1_out: U256;
         if _token_borrow == token0 {
@@ -221,7 +231,8 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let _token_borrow_hash_add: ContractHash = ContractHash::new(_token_borrow_hash_add_array);
+        let _token_borrow_hash_add: ContractPackageHash =
+            ContractPackageHash::new(_token_borrow_hash_add_array);
         let _token_borrow_str: String = _token_borrow_hash_add.to_formatted_string();
         let _token_borrow_vec: Vec<&str> = _token_borrow_str.split('-').collect();
         let _token_borrow_hash: &str = _token_borrow_vec[1];
@@ -243,8 +254,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             ",",
             _data
         );
-        let _ret: () = runtime::call_contract(
+        let _ret: () = runtime::call_versioned_contract(
             pair_address_hash_add,
+            None,
             "swap",
             runtime_args! {"amount0_out" => amount0_out, "amount1_out"  => amount1_out, "to" => data::get_hash(), "data" => data },
         );
@@ -267,12 +279,13 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let wcspr_hash_add: ContractHash = ContractHash::new(wcspr_hash_add_array);
+        let wcspr_hash_add: ContractPackageHash = ContractPackageHash::new(wcspr_hash_add_array);
         let cspr: Key = data::get_cspr();
         if _is_borrowing_cspr {
             // call withdraw from WCSPR and transfer cspr to 'to'
-            let res: Result<(), u32> = call_contract(
+            let res: Result<(), u32> = runtime::call_versioned_contract(
                 wcspr_hash_add,
+                None,
                 "withdraw",
                 runtime_args! {"to_purse" => data::get_self_purse(), "amount" => U512::from(_amount.as_u128())},
             );
@@ -314,8 +327,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
 
         if _is_paying_cspr {
             let caller_purse: URef = data::get_self_purse(); // get this contract's purse
-            let res: Result<(), u32> = call_contract(
+            let res: Result<(), u32> = runtime::call_versioned_contract(
                 wcspr_hash_add,
+                None,
                 "deposit",
                 runtime_args! { "purse" => caller_purse, "amount" => U512::from(amount_to_repay.as_u128())},
             );
@@ -328,9 +342,11 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let _token_borrow_hash_add: ContractHash = ContractHash::new(_token_borrow_hash_add_array);
-        let res: Result<(), u32> = call_contract(
+        let _token_borrow_hash_add: ContractPackageHash =
+            ContractPackageHash::new(_token_borrow_hash_add_array);
+        let res: Result<(), u32> = runtime::call_versioned_contract(
             _token_borrow_hash_add,
+            None,
             "transfer",
             runtime_args! {"recipient"=>_pair_address , "amount" => amount_to_repay},
         );
@@ -355,15 +371,16 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         user_data: String,
     ) {
         let uniswap_v2_factory_address: Key = data::get_uniswap_v2_factory();
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let uniswap_v2_factory_address_hash_add_array = match uniswap_v2_factory_address {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let uniswap_v2_factory_contract_hash: ContractHash =
-            ContractHash::new(uniswap_v2_factory_address_hash_add_array);
-        let token_borrow_token_pay_pair_address: Key = runtime::call_contract(
-            uniswap_v2_factory_contract_hash,
+        let uniswap_v2_factory_package_hash: ContractPackageHash =
+            ContractPackageHash::new(uniswap_v2_factory_address_hash_add_array);
+        let token_borrow_token_pay_pair_address: Key = runtime::call_versioned_contract(
+            uniswap_v2_factory_package_hash,
+            None,
             "get_pair",
             runtime_args! {"token0" => token_borrow, "token1" => token_pay},
         );
@@ -374,17 +391,25 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         )
         .unwrap();
         if pair_address != address_0 {
-            //convert Key to ContractHash
+            //convert Key to ContractPackageHash
             let pair_address_hash_add_array = match pair_address {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let pair_address_hash_add: ContractHash =
-                ContractHash::new(pair_address_hash_add_array);
-            let token0: Key =
-                runtime::call_contract(pair_address_hash_add, "token0", runtime_args! {});
-            let token1: Key =
-                runtime::call_contract(pair_address_hash_add, "token1", runtime_args! {});
+            let pair_address_hash_add: ContractPackageHash =
+                ContractPackageHash::new(pair_address_hash_add_array);
+            let token0: Key = runtime::call_versioned_contract(
+                pair_address_hash_add,
+                None,
+                "token0",
+                runtime_args! {},
+            );
+            let token1: Key = runtime::call_versioned_contract(
+                pair_address_hash_add,
+                None,
+                "token1",
+                runtime_args! {},
+            );
             let amount0_out: U256;
             let amount1_out: U256;
             if token_borrow == token0 {
@@ -401,8 +426,8 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let _token_borrow_hash_add: ContractHash =
-                ContractHash::new(_token_borrow_hash_add_array);
+            let _token_borrow_hash_add: ContractPackageHash =
+                ContractPackageHash::new(_token_borrow_hash_add_array);
             let _token_borrow_str: String = _token_borrow_hash_add.to_formatted_string();
             let _token_borrow_vec: Vec<&str> = _token_borrow_str.split('-').collect();
             let _token_borrow_hash: &str = _token_borrow_vec[1];
@@ -410,7 +435,8 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let _token_pay_hash_add: ContractHash = ContractHash::new(_token_pay_hash_add_array);
+            let _token_pay_hash_add: ContractPackageHash =
+                ContractPackageHash::new(_token_pay_hash_add_array);
             let _token_pay_str: String = _token_pay_hash_add.to_formatted_string();
             let _token_pay_vec: Vec<&str> = _token_pay_str.split('-').collect();
             let _token_pay_hash: &str = _token_pay_vec[1];
@@ -432,8 +458,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 ",",
                 user_data
             );
-            let _ret: () = runtime::call_contract(
+            let _ret: () = runtime::call_versioned_contract(
                 pair_address_hash_add,
+                None,
                 "swap",
                 runtime_args! {"amount0_out" => amount0_out, "amount1_out"  => amount1_out, "to" => data::get_hash(), "data" => data },
             );
@@ -458,16 +485,18 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
     ) {
         // unwrap wcspr if necessary
         let wcspr_address: Key = data::get_wcspr();
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let wcspr_address_hash_add_array = match wcspr_address {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let wcspr_contract_hash: ContractHash = ContractHash::new(wcspr_address_hash_add_array);
+        let wcspr_package_hash: ContractPackageHash =
+            ContractPackageHash::new(wcspr_address_hash_add_array);
         if is_borrowing_cspr {
             // call withdraw from WCSPR and transfer cspr to 'to'
-            let res: Result<(), u32> = call_contract(
-                wcspr_contract_hash,
+            let res: Result<(), u32> = runtime::call_versioned_contract(
+                wcspr_package_hash,
+                None,
                 "withdraw",
                 runtime_args! {"to_purse" => data::get_self_purse(), "amount" => U512::from(amount.as_u128())},
             );
@@ -478,31 +507,33 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         }
         // compute the amount of _tokenPay that needs to be repaid
         let pair_address: Key = data::get_permissioned_pair_address(); // gas efficiency
-                                                                       //convert Key to ContractHash
+                                                                       //convert Key to ContractPackageHash
         let token_borrow_address_hash_add_array = match token_borrow {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token_borrow_contract_hash: ContractHash =
-            ContractHash::new(token_borrow_address_hash_add_array);
-        let pair_balance_token_borrow: U256 = runtime::call_contract(
-            token_borrow_contract_hash,
+        let token_borrow_package_hash: ContractPackageHash =
+            ContractPackageHash::new(token_borrow_address_hash_add_array);
+        let pair_balance_token_borrow: U256 = runtime::call_versioned_contract(
+            token_borrow_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let token_pay_address_hash_add_array = match token_pay {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token_pay_contract_hash: ContractHash =
-            ContractHash::new(token_pay_address_hash_add_array);
-        let pair_balance_token_pay: U256 = runtime::call_contract(
-            token_pay_contract_hash,
+        let token_pay_package_hash: ContractPackageHash =
+            ContractPackageHash::new(token_pay_address_hash_add_array);
+        let pair_balance_token_pay: U256 = runtime::call_versioned_contract(
+            token_pay_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-        let amount_1000: U256 = 1000.into();
+        let amount_1000: U256 = U256::from(1000);
         let amount_997: U256 = 997.into();
         let amount_1: U256 = 1.into();
         let amount_to_repay: U256 = ((amount_1000 * pair_balance_token_pay * amount)
@@ -542,8 +573,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // wrap cspr if necessary
         if is_paying_cspr == true {
             let caller_purse: URef = data::get_self_purse(); // get this contract's purse
-            let _deposit_result: Result<(), u32> = runtime::call_contract(
-                wcspr_contract_hash,
+            let _deposit_result: Result<(), u32> = runtime::call_versioned_contract(
+                wcspr_package_hash,
+                None,
                 "deposit",
                 runtime_args! { "purse" => caller_purse, "amount" => U512::from(amount_to_repay.as_u128())},
             );
@@ -552,8 +584,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 Err(err) => runtime::revert(err),
             }
         }
-        let res: Result<(), u32> = runtime::call_contract(
-            token_pay_contract_hash,
+        let res: Result<(), u32> = runtime::call_versioned_contract(
+            token_pay_package_hash,
+            None,
             "transfer",
             runtime_args! {"recipient" => _pair_address, "amount" => amount_to_repay},
         );
@@ -579,16 +612,17 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         user_data: String,
     ) {
         let uniswap_v2_factory_address: Key = data::get_uniswap_v2_factory();
-        // convert Key to ContractHash
+        // convert Key to ContractPackageHash
         let uniswap_v2_factory_address_hash_add_array = match uniswap_v2_factory_address {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let uniswap_v2_factory_contract_hash: ContractHash =
-            ContractHash::new(uniswap_v2_factory_address_hash_add_array);
+        let uniswap_v2_factory_package_hash: ContractPackageHash =
+            ContractPackageHash::new(uniswap_v2_factory_address_hash_add_array);
         let wcspr: Key = data::get_wcspr();
-        let borrow_pair_address: Key = runtime::call_contract(
-            uniswap_v2_factory_contract_hash,
+        let borrow_pair_address: Key = runtime::call_versioned_contract(
+            uniswap_v2_factory_package_hash,
+            None,
             "get_pair",
             runtime_args! {"token0" => token_borrow, "token1" => wcspr},
         );
@@ -597,8 +631,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         )
         .unwrap();
         if borrow_pair_address != address_0 {
-            let permissioned_pair_address: Key = runtime::call_contract(
-                uniswap_v2_factory_contract_hash,
+            let permissioned_pair_address: Key = runtime::call_versioned_contract(
+                uniswap_v2_factory_package_hash,
+                None,
                 "get_pair",
                 runtime_args! {"token0" => token_pay, "token1" => wcspr},
             );
@@ -606,15 +641,16 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             let pay_pair_address: Key = permissioned_pair_address; // gas efficiency
             if pay_pair_address != address_0 {
                 // STEP 1: Compute how much wcspr will be needed to get _amount of _tokenBorrow out of the _tokenBorrow/wcspr pool
-                //convert Key to ContractHash
+                //convert Key to ContractPackageHash
                 let token_borrow_address_hash_add_array = match token_borrow {
                     Key::Hash(package) => package,
                     _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                 };
-                let token_borrow_contract_hash: ContractHash =
-                    ContractHash::new(token_borrow_address_hash_add_array);
-                let pair_balance_token_borrow_before: U256 = runtime::call_contract(
-                    token_borrow_contract_hash,
+                let token_borrow_package_hash: ContractPackageHash =
+                    ContractPackageHash::new(token_borrow_address_hash_add_array);
+                let pair_balance_token_borrow_before: U256 = runtime::call_versioned_contract(
+                    token_borrow_package_hash,
+                    None,
                     "balance_of",
                     runtime_args! {"owner" => borrow_pair_address},
                 );
@@ -624,15 +660,16 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                         .checked_sub(amount)
                         .ok_or(ApiError::User(FailureCode::Five as u16))
                         .unwrap_or_revert();
-                    //convert Key to ContractHash
+                    //convert Key to ContractPackageHash
                     let wcspr_address_hash_add_array = match wcspr {
                         Key::Hash(package) => package,
                         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                     };
-                    let wcspr_contract_hash: ContractHash =
-                        ContractHash::new(wcspr_address_hash_add_array);
-                    let pair_balance_wcspr: U256 = runtime::call_contract(
-                        wcspr_contract_hash,
+                    let wcspr_package_hash: ContractPackageHash =
+                        ContractPackageHash::new(wcspr_address_hash_add_array);
+                    let pair_balance_wcspr: U256 = runtime::call_versioned_contract(
+                        wcspr_package_hash,
+                        None,
                         "balance_of",
                         runtime_args! {"owner" => borrow_pair_address},
                     );
@@ -678,18 +715,26 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         amount_of_wcspr: U256,
         user_data: String,
     ) {
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let pay_pair_address_hash_add_array = match pay_pair_address {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let pay_pair_contract_hash: ContractHash =
-            ContractHash::new(pay_pair_address_hash_add_array);
+        let pay_pair_package_hash: ContractPackageHash =
+            ContractPackageHash::new(pay_pair_address_hash_add_array);
         // Step 2: Flash-borrow _amountOfwcspr wcspr from the _tokenPay/wcspr pool
-        let token0: Key =
-            runtime::call_contract(pay_pair_contract_hash, "token0", runtime_args! {});
-        let token1: Key =
-            runtime::call_contract(pay_pair_contract_hash, "token1", runtime_args! {});
+        let token0: Key = runtime::call_versioned_contract(
+            pay_pair_package_hash,
+            None,
+            "token0",
+            runtime_args! {},
+        );
+        let token1: Key = runtime::call_versioned_contract(
+            pay_pair_package_hash,
+            None,
+            "token1",
+            runtime_args! {},
+        );
         let mut amount0_out: U256 = 0.into();
         let mut amount1_out: U256 = 0.into();
         let wcspr: Key = data::get_wcspr();
@@ -703,7 +748,8 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let _token_borrow_hash_add: ContractHash = ContractHash::new(_token_borrow_hash_add_array);
+        let _token_borrow_hash_add: ContractPackageHash =
+            ContractPackageHash::new(_token_borrow_hash_add_array);
         let _token_borrow_str: String = _token_borrow_hash_add.to_formatted_string();
         let _token_borrow_vec: Vec<&str> = _token_borrow_str.split('-').collect();
         let _token_borrow_hash: &str = _token_borrow_vec[1];
@@ -711,7 +757,8 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let _token_pay_hash_add: ContractHash = ContractHash::new(_token_pay_hash_add_array);
+        let _token_pay_hash_add: ContractPackageHash =
+            ContractPackageHash::new(_token_pay_hash_add_array);
         let _token_pay_str: String = _token_pay_hash_add.to_formatted_string();
         let _token_pay_vec: Vec<&str> = _token_pay_str.split('-').collect();
         let _token_pay_hash: &str = _token_pay_vec[1];
@@ -719,7 +766,8 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let _borrow_pair_hash_add: ContractHash = ContractHash::new(_borrow_pair_hash_add_array);
+        let _borrow_pair_hash_add: ContractPackageHash =
+            ContractPackageHash::new(_borrow_pair_hash_add_array);
         let _borrow_pair_str: String = _borrow_pair_hash_add.to_formatted_string();
         let _borrow_pair_vec: Vec<&str> = _borrow_pair_str.split('-').collect();
         let _borrow_pair_hash: &str = _borrow_pair_vec[1];
@@ -742,8 +790,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             ",",
             user_data
         );
-        let _result: () = runtime::call_contract(
-            pay_pair_contract_hash,
+        let _result: () = runtime::call_versioned_contract(
+            pay_pair_package_hash,
+            None,
             "swap",
             runtime_args! {"amount0_out" => amount0_out, "amount1_out" => amount1_out, "to" => data::get_hash(), "data" => data},
         );
@@ -767,18 +816,26 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let borrow_pair_address: Key =
             Key::from_formatted_str(&borrow_pair_address_string).unwrap();
         let amount_of_wcspr: U256 = decoded_data_without_fullstop[1].parse().unwrap();
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let borrow_pair_address_hash_add_array = match borrow_pair_address {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let borrow_pair_contract_hash: ContractHash =
-            ContractHash::new(borrow_pair_address_hash_add_array);
+        let borrow_pair_package_hash: ContractPackageHash =
+            ContractPackageHash::new(borrow_pair_address_hash_add_array);
         // Step 3: Using a normal swap, trade that wcspr for _tokenBorrow
-        let token0: Key =
-            runtime::call_contract(borrow_pair_contract_hash, "token0", runtime_args! {});
-        let token1: Key =
-            runtime::call_contract(borrow_pair_contract_hash, "token1", runtime_args! {});
+        let token0: Key = runtime::call_versioned_contract(
+            borrow_pair_package_hash,
+            None,
+            "token0",
+            runtime_args! {},
+        );
+        let token1: Key = runtime::call_versioned_contract(
+            borrow_pair_package_hash,
+            None,
+            "token1",
+            runtime_args! {},
+        );
         let amount0_out: U256;
         let amount1_out: U256;
         if token_borrow == token0 {
@@ -793,14 +850,16 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         }
         // send our flash-borrowed wcspr to the pair
         let wcspr: Key = data::get_wcspr();
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let wcspr_address_hash_add_array = match wcspr {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let wcspr_contract_hash: ContractHash = ContractHash::new(wcspr_address_hash_add_array);
-        let res: Result<(), u32> = runtime::call_contract(
-            wcspr_contract_hash,
+        let wcspr_package_hash: ContractPackageHash =
+            ContractPackageHash::new(wcspr_address_hash_add_array);
+        let res: Result<(), u32> = runtime::call_versioned_contract(
+            wcspr_package_hash,
+            None,
             "transfer",
             runtime_args! {"recipient" => borrow_pair_address, "amount" => amount_of_wcspr},
         );
@@ -809,27 +868,30 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             Err(err) => runtime::revert(err),
         }
         let flash_swapper_address: Key = data::get_hash();
-        let _result: () = runtime::call_contract(
-            borrow_pair_contract_hash,
+        let _result: () = runtime::call_versioned_contract(
+            borrow_pair_package_hash,
+            None,
             "swap",
             runtime_args! {"amount0_out" => amount0_out, "amount1_out" => amount1_out, "to" => flash_swapper_address, "data" => ""},
         );
         // compute the amount of _tokenPay that needs to be repaid
         let pay_pair_address: Key = data::get_permissioned_pair_address(); // gas efficiency
-        let pair_balance_wcspr: U256 = runtime::call_contract(
-            wcspr_contract_hash,
+        let pair_balance_wcspr: U256 = runtime::call_versioned_contract(
+            wcspr_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pay_pair_address},
         );
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let token_pay_address_hash_add_array = match token_pay {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token_pay_contract_hash: ContractHash =
-            ContractHash::new(token_pay_address_hash_add_array);
-        let pair_balance_token_pay: U256 = runtime::call_contract(
-            token_pay_contract_hash,
+        let token_pay_package_hash: ContractPackageHash =
+            ContractPackageHash::new(token_pay_address_hash_add_array);
+        let pair_balance_token_pay: U256 = runtime::call_versioned_contract(
+            token_pay_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pay_pair_address},
         );
@@ -842,8 +904,9 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // Step 4: Do whatever the user wants (arb, liqudiation, etc)
         self.execute(token_borrow, amount, token_pay, amount_to_repay, user_data);
         // Step 5: Pay back the flash-borrow to the _tokenPay/wcspr pool
-        let res: Result<(), u32> = runtime::call_contract(
-            token_pay_contract_hash,
+        let res: Result<(), u32> = runtime::call_versioned_contract(
+            token_pay_package_hash,
+            None,
             "transfer",
             runtime_args! {"recipient" => pay_pair_address, "amount" => amount_to_repay},
         );
@@ -875,7 +938,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         data::get_self_purse()
     }
 
-    fn get_package_hash(&mut self) -> ContractPackageHash {
+    fn get_package_hash(&mut self) -> Key {
         data::get_package_hash()
     }
 }

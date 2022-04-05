@@ -43,7 +43,7 @@ impl Token {
             dai,
             uniswap_v2_factory,
             Key::from(contract_hash),
-            package_hash,
+            Key::from(package_hash),
             purse,
         );
     }
@@ -109,7 +109,7 @@ fn purse() {
 
 #[no_mangle]
 fn package_hash() {
-    let ret: ContractPackageHash = Token::default().get_package_hash();
+    let ret: Key = Token::default().get_package_hash();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 #[no_mangle]
@@ -251,7 +251,7 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "package_hash",
         vec![],
-        ContractPackageHash::cl_type(),
+        Key::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
