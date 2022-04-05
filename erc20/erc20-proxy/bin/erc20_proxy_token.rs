@@ -1,17 +1,17 @@
 #![no_main]
 #![no_std]
 
+#[macro_use]
 extern crate alloc;
-use alloc::{collections::BTreeSet, format, vec};
 
+use alloc::{collections::BTreeSet, format, };
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    contracts::{ContractHash, ContractPackageHash},
-    runtime_args, CLTyped, EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key,
-    Parameter, RuntimeArgs, URef, U256,
+    runtime_args, CLTyped, ContractHash, ContractPackageHash, EntryPoint,
+    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 
 pub mod mappings;

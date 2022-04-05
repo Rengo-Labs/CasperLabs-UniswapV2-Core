@@ -1,14 +1,13 @@
-use casper_engine_test_support::AccountHash;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use test_env::{Sender, TestContract, TestEnv};
+use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U256};
+use test_env::{TestContract, TestEnv};
 
 use crate::pair_instance::PAIRInstance;
 
 const NAME: &str = "ERC20";
 const SYMBOL: &str = "ERC";
 const DECIMALS: u8 = 8;
-const INIT_TOTAL_SUPPLY: u64 = 1000;
 const INIT_TOTAL_SUPPLY_ZERO: u64 = 0;
+const INIT_TOTAL_SUPPLY: u64 = 1000;
 
 fn deploy_wcspr(env: &TestEnv) -> TestContract {
     // deploy wcspr contract
@@ -20,7 +19,7 @@ fn deploy_wcspr(env: &TestEnv) -> TestContract {
         &env,
         "wcspr-token.wasm",
         "wcspr",
-        Sender(owner_wcspr),
+        owner_wcspr,
         runtime_args! {
             "initial_supply" => init_total_supply,
             "name" => "token1",
@@ -39,7 +38,7 @@ fn deploy_factory(env: &TestEnv, owner: AccountHash) -> TestContract {
         &env,
         "factory.wasm",
         "factory",
-        Sender(owner_factory),
+        owner_factory,
         runtime_args! {
             "fee_to_setter" => Key::from(owner)
             // contract_name is passed seperately, so we don't need to pass it here.
@@ -70,7 +69,7 @@ fn deploy() -> (
         &env,
         "flash-swapper.wasm",
         "flash_swapper",
-        Sender(owner),
+        owner,
         runtime_args! {
             "wcspr" => Key::Hash(wcspr.contract_hash()),
             "dai" => Key::Hash(dai.contract_hash()),
@@ -80,7 +79,7 @@ fn deploy() -> (
     let token = PAIRInstance::new(
         &env,
         NAME,
-        Sender(owner),
+        owner,
         NAME,
         SYMBOL,
         DECIMALS,
@@ -89,9 +88,9 @@ fn deploy() -> (
         Key::Hash(factory_contract.contract_hash()),
     );
     let test_contract: TestContract =
-        PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
+        PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), owner);
     let test_contract2: TestContract =
-        PAIRInstance::proxy2(&env, Key::Hash(token.contract_hash()), Sender(owner));
+        PAIRInstance::proxy2(&env, Key::Hash(token.contract_hash()), owner);
 
     (
         env,
@@ -123,7 +122,7 @@ fn deploy1() -> (
         &env,
         "flash-swapper.wasm",
         "flash_swapper",
-        Sender(owner),
+        owner,
         runtime_args! {
             "wcspr" => Key::Hash(wcspr.contract_hash()),
             "dai" => Key::Hash(dai.contract_hash()),
@@ -134,7 +133,7 @@ fn deploy1() -> (
     let token = PAIRInstance::new(
         &env,
         NAME,
-        Sender(owner),
+        owner,
         NAME,
         SYMBOL,
         DECIMALS,
@@ -143,9 +142,9 @@ fn deploy1() -> (
         Key::Hash(factory_contract.contract_hash()),
     );
     let test_contract: TestContract =
-        PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), Sender(owner));
+        PAIRInstance::proxy(&env, Key::Hash(token.contract_hash()), owner);
     let test_contract2: TestContract =
-        PAIRInstance::proxy2(&env, Key::Hash(token.contract_hash()), Sender(owner));
+        PAIRInstance::proxy2(&env, Key::Hash(token.contract_hash()), owner);
 
     (
         env,
@@ -165,7 +164,7 @@ fn deploy_token0(env: &TestEnv) -> TestContract {
         &env,
         "erc20-token.wasm",
         "token0_contract",
-        Sender(token0_owner),
+        token0_owner,
         runtime_args! {
             "initial_supply" => init_total_supply,
             "name" => "token0",
@@ -185,7 +184,7 @@ fn deploy_token1(env: &TestEnv) -> TestContract {
         &env,
         "erc20-token.wasm",
         "token1_contract",
-        Sender(token1_owner),
+        token1_owner,
         runtime_args! {
             "initial_supply" => init_total_supply,
             "name" => "token1",
@@ -221,13 +220,13 @@ fn test_pair_transfer() {
     // TRASNFER CALL IN PROXY USES:- runtime::call_contract() so transfer is being done from proxy to a recipient
 
     // Minting to proxy contract as it is the intermediate caller to transfer
-    token.erc20_mint(Sender(owner), package_hash, amount);
+    token.erc20_mint(owner, package_hash, amount);
 
     assert_eq!(token.balance_of(package_hash), amount);
     assert_eq!(token.balance_of(user), U256::from(0));
 
     // Transfering to user from the proxy contract
-    proxy.transfer(Sender(owner), user, amount);
+    proxy.transfer(owner, user, amount);
 
     assert_eq!(token.balance_of(package_hash), U256::from(0));
     assert_eq!(token.balance_of(user), amount);
@@ -251,14 +250,14 @@ fn test_pair_transfer_with_same_sender_and_recipient() {
     // TRASNFER CALL IN PROXY USES:- runtime::call_contract() so transfer is being done from proxy to a recipient
 
     // Minting to proxy contract as it is the intermediate caller to transfer
-    token.erc20_mint(Sender(owner), package_hash, amount);
+    token.erc20_mint(owner, package_hash, amount);
 
     assert_eq!(token.balance_of(package_hash), amount);
     assert_eq!(token.balance_of(user), U256::from(0));
     assert_eq!(token.balance_of(owner), 1000.into());
 
     // Transfering to user from the proxy contract
-    proxy.transfer(Sender(owner), package_hash, amount);
+    proxy.transfer(owner, package_hash, amount);
 
     assert_eq!(token.balance_of(package_hash), U256::from(100));
 
@@ -278,7 +277,7 @@ fn test_pair_transfer_too_much() {
     let (env, _proxy, _proxy2, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     let amount = U256::from(INIT_TOTAL_SUPPLY) + U256::one();
-    token.transfer(Sender(owner), user, amount);
+    token.transfer(owner, user, amount);
 }
 
 #[test]
@@ -286,7 +285,7 @@ fn test_pair_approve() {
     let (env, _proxy, _proxy2, token, owner, _factory_hash) = deploy();
     let user = env.next_user();
     let amount = 10.into();
-    token.approve(Sender(owner), user, amount);
+    token.approve(owner, user, amount);
     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
     assert_eq!(token.balance_of(user), 0.into());
     assert_eq!(token.allowance(owner, user), amount);
@@ -301,7 +300,7 @@ fn test_pair_initialize() {
     let token0 = Key::Hash(token0.contract_hash());
     let token1 = Key::Hash(token1.contract_hash());
     let factory_hash = Key::Hash(factory_hash.contract_hash());
-    token.initialize(Sender(owner), token0, token1, factory_hash);
+    token.initialize(owner, token0, token1, factory_hash);
     assert_eq!(token.factory_hash(), factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
@@ -312,15 +311,15 @@ fn test_pair_set_treasury_fee_percent() {
     let (_env, _proxy, _proxy2, token, owner, _factory_hash) = deploy();
     assert_eq!(token.treasury_fee(), 3.into());
     let treasury_fee: U256 = 10.into();
-    token.set_treasury_fee_percent(Sender(owner), treasury_fee);
+    token.set_treasury_fee_percent(owner, treasury_fee);
     assert_eq!(token.treasury_fee(), treasury_fee);
     // treasuary fee cannot be more than 30
     let treasury_fee: U256 = 31.into();
-    token.set_treasury_fee_percent(Sender(owner), treasury_fee);
+    token.set_treasury_fee_percent(owner, treasury_fee);
     assert_eq!(token.treasury_fee(), 30.into());
     // treasuary fee cannot be less than 3
     let treasury_fee: U256 = 1.into();
-    token.set_treasury_fee_percent(Sender(owner), treasury_fee);
+    token.set_treasury_fee_percent(owner, treasury_fee);
     assert_eq!(token.treasury_fee(), 3.into());
 }
 
@@ -336,24 +335,14 @@ fn test_pair_skim() {
     let amount0: U256 = 1000.into();
     let amount1: U256 = 1000.into();
 
-    token.initialize(Sender(owner), token0, token1, factory_hash);
+    token.initialize(owner, token0, token1, factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount0,
-    );
-    proxy.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount1,
-    );
-    token.skim(Sender(owner), user);
+    proxy.mint_with_caller(owner, token0, Key::from(token.self_package_hash()), amount0);
+    proxy.mint_with_caller(owner, token1, Key::from(token.self_package_hash()), amount1);
+    token.skim(owner, user);
 }
 
 #[test]
@@ -368,24 +357,14 @@ fn test_pair_mint() {
     let amount0: U256 = 30000.into();
     let amount1: U256 = 30000.into();
 
-    token.initialize(Sender(owner), token0, token1, factory_hash);
+    token.initialize(owner, token0, token1, factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount0,
-    );
-    proxy.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount1,
-    );
-    token.mint_no_ret(Sender(owner), user);
+    proxy.mint_with_caller(owner, token0, Key::from(token.self_package_hash()), amount0);
+    proxy.mint_with_caller(owner, token1, Key::from(token.self_package_hash()), amount1);
+    token.mint_no_ret(owner, user);
 }
 
 #[test]
@@ -400,68 +379,46 @@ fn test_pair_burn() {
     let amount0: U256 = 30000.into();
     let amount1: U256 = 30000.into();
 
-    token.initialize(Sender(owner), token0, token1, factory_hash);
+    token.initialize(owner, token0, token1, factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount0,
-    );
-    proxy.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount1,
-    );
-    proxy.balance_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-    );
-    assert_eq!(proxy.balance(),30000.into());
-    assert_eq!(token.total_supply(),0.into());
-    assert_eq!(token.reserve0(),0.into());
-    token.mint_no_ret(Sender(owner), Key::from(token.self_package_hash()));
-    proxy.balance_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-    );
-    assert_eq!(proxy.balance(),30000.into());
+    proxy.mint_with_caller(owner, token0, Key::from(token.self_package_hash()), amount0);
+    proxy.mint_with_caller(owner, token1, Key::from(token.self_package_hash()), amount1);
+    proxy.balance_with_caller(owner, token1, Key::from(token.self_package_hash()));
+    assert_eq!(proxy.balance(), 30000.into());
+    assert_eq!(token.total_supply(), 0.into());
+    assert_eq!(token.reserve0(), 0.into());
+    token.mint_no_ret(owner, Key::from(token.self_package_hash()));
+    proxy.balance_with_caller(owner, token1, Key::from(token.self_package_hash()));
+    assert_eq!(proxy.balance(), 30000.into());
 
-    assert_eq!(token.total_supply(),30000.into());
-    assert_eq!(token.reserve0(),30000.into());
-    token.burn_no_ret(Sender(owner), user);
-    proxy.balance_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(user),
-    );
-    assert_eq!(proxy.balance(),29000.into());
-    assert_eq!(token.amount0(),29000.into());
-    assert_eq!(token.total_supply(),1000.into());
-    assert_eq!(token.reserve0(),1000.into());
-    assert_eq!(token.reserve1(),1000.into());
-//     proxy.mint_with_caller(
-//         Sender(owner),
-//         token0,
-//         Key::from(token.self_package_hash()),
-//         amount0,
-//     );
-//     proxy.mint_with_caller(
-//         Sender(owner),
-//         token1,
-//         Key::from(token.self_package_hash()),
-//         amount1,
-//     );
-//     token.mint_no_ret(Sender(owner), Key::from(token.self_package_hash()));
-//     assert_eq!(token.total_supply(),31000.into());
-//     assert_eq!(token.reserve0(),1000.into());
-//     assert_eq!(token.reserve1(),1000.into());
+    assert_eq!(token.total_supply(), 30000.into());
+    assert_eq!(token.reserve0(), 30000.into());
+    token.burn_no_ret(owner, user);
+    proxy.balance_with_caller(owner, token1, Key::from(user));
+    assert_eq!(proxy.balance(), 29000.into());
+    assert_eq!(token.amount0(), 29000.into());
+    assert_eq!(token.total_supply(), 1000.into());
+    assert_eq!(token.reserve0(), 1000.into());
+    assert_eq!(token.reserve1(), 1000.into());
+    //     proxy.mint_with_caller(
+    //         owner,
+    //         token0,
+    //         Key::from(token.self_package_hash()),
+    //         amount0,
+    //     );
+    //     proxy.mint_with_caller(
+    //         owner,
+    //         token1,
+    //         Key::from(token.self_package_hash()),
+    //         amount1,
+    //     );
+    //     token.mint_no_ret(owner, Key::from(token.self_package_hash()));
+    //     assert_eq!(token.total_supply(),31000.into());
+    //     assert_eq!(token.reserve0(),1000.into());
+    //     assert_eq!(token.reserve1(),1000.into());
 }
 
 #[test]
@@ -474,23 +431,13 @@ fn test_pair_sync() {
     let token1 = Key::Hash(token1.contract_hash());
     let factory_hash = Key::Hash(factory_hash.contract_hash());
     let amount: U256 = 50.into();
-    token.initialize(Sender(owner), token0, token1, factory_hash);
+    token.initialize(owner, token0, token1, factory_hash);
     assert_eq!(token.factory_hash(), factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
-    proxy.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    proxy.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    token.sync(Sender(owner));
+    proxy.mint_with_caller(owner, token0, Key::from(token.self_package_hash()), amount);
+    proxy.mint_with_caller(owner, token1, Key::from(token.self_package_hash()), amount);
+    token.sync(owner);
     assert_eq!(token.total_supply(), INIT_TOTAL_SUPPLY.into());
     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
     assert_eq!(token.balance_of(user), 0.into());
@@ -514,40 +461,20 @@ fn test_pair_swap() {
     let amount3: U256 = 40.into();
     let data: &str = "";
 
-    token.initialize(Sender(owner), token0, token1, factory_hash);
+    token.initialize(owner, token0, token1, factory_hash);
     assert_eq!(token.token0(), token0);
     assert_eq!(token.token1(), token1);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount0,
-    );
-    proxy.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount1,
-    );
+    proxy.mint_with_caller(owner, token0, Key::from(token.self_package_hash()), amount0);
+    proxy.mint_with_caller(owner, token1, Key::from(token.self_package_hash()), amount1);
 
-    token.sync(Sender(owner));
+    token.sync(owner);
     assert_eq!(token.reserve0(), 2000.into());
     assert_eq!(token.reserve1(), 2000.into());
-    proxy.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    proxy.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    token.swap(Sender(owner), amount2, amount3, user, data);
+    proxy.mint_with_caller(owner, token0, Key::from(token.self_package_hash()), amount);
+    proxy.mint_with_caller(owner, token1, Key::from(token.self_package_hash()), amount);
+    token.swap(owner, amount2, amount3, user, data);
 }
 
 #[test]
@@ -562,19 +489,15 @@ fn test_pair_transfer_from() {
     let allowance = 10.into();
     let amount: U256 = 1.into();
     // Minting to proxy contract as it is the intermediate caller to transfer
-    token.erc20_mint(Sender(owner), package_hash, mint_amount);
+    token.erc20_mint(owner, package_hash, mint_amount);
 
-    proxy.approve(Sender(owner), package_hash2, allowance);
+    proxy.approve(owner, package_hash2, allowance);
     assert_eq!(token.balance_of(owner), 1000.into());
 
-    proxy.allowance_fn(
-        Sender(owner),
-        Key::from(package_hash),
-        Key::from(package_hash2),
-    );
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
     assert_eq!(proxy.allowance_res(), 10.into());
 
-    proxy2.transfer_from(Sender(owner), package_hash.into(), user.into(), amount);
+    proxy2.transfer_from(owner, package_hash.into(), user.into(), amount);
 
     assert_eq!(token.nonce(owner), 0.into());
     assert_eq!(token.nonce(recipient), 0.into());
@@ -601,19 +524,15 @@ fn test_pair_transfer_from_too_much() {
     let allowance = 10.into();
     let amount: U256 = 12.into();
     // Minting to proxy contract as it is the intermediate caller to transfer
-    token.erc20_mint(Sender(owner), package_hash, mint_amount);
+    token.erc20_mint(owner, package_hash, mint_amount);
 
-    proxy.approve(Sender(owner), package_hash2, allowance);
+    proxy.approve(owner, package_hash2, allowance);
     assert_eq!(token.balance_of(owner), 1000.into());
 
-    proxy.allowance_fn(
-        Sender(owner),
-        Key::from(package_hash),
-        Key::from(package_hash2),
-    );
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
     assert_eq!(proxy.allowance_res(), 10.into());
 
-    proxy2.transfer_from(Sender(owner), package_hash.into(), user.into(), amount);
+    proxy2.transfer_from(owner, package_hash.into(), user.into(), amount);
 }
 
 #[test]
@@ -621,7 +540,7 @@ fn test_pair_transfer_from_too_much() {
 fn test_calling_construction() {
     let (_, _proxy, _proxy2, token, owner, factory_hash) = deploy();
     token.constructor(
-        Sender(owner),
+        owner,
         NAME,
         SYMBOL,
         DECIMALS,

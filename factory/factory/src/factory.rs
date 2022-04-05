@@ -111,6 +111,13 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 "initialize",
                 runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
             );
+            // let _ret: () = runtime::call_versioned_contract(
+            //     pair_contract_hash,
+            //     None,
+            //     "initialize",
+            //     runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
+            // );
+            
             // handling the pair creation by updating the storage
             self.set_pair(token0, token1, pair_hash);
             self.set_pair(token1, token0, pair_hash);

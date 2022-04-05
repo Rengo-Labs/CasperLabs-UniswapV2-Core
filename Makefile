@@ -14,16 +14,16 @@ wasm_dest_flash_swapper_path = ${uniswap_core_directory}flash-swapper/flash_swap
 
 all:
 	# Build erc20
-	cd ${erc20_contract} && make build-contract && make build-test-contract && make build-test-contract2
+	cd ${erc20_contract} && make build-contract && make build-proxy-contract
 
 	# Build wcspr
 	cd ${wcspr_contract} && make build-contract && make build-test-contract && make build-test-contract2
 
-	# Build factory
+	Build factory
 	cd ${factory_contract} && make build-contract
 
-	# Build flash swapper
-	cd ${flash_swapper_contract} && make build-contract
+	# # Build flash swapper
+	# cd ${flash_swapper_contract} && make build-contract
 
 	# Build pair
 	cd ${pair_contract} && make build-contract && make build-test-contract && make build-test-contract2
@@ -37,7 +37,7 @@ clean:
 	# clean wcspr
 	cd ${wcspr_contract} && make clean
 
-	# clean factory
+	clean factory
 	cd ${factory_contract} && make clean
 
 	# clean flash swapper
@@ -76,11 +76,11 @@ test:
 	# Test WCSPR
 	cd ${wcspr_contract} && make test
 
-	# Test Factory
-	cd ${factory_contract} && make test
+	# # Test Factory
+	# cd ${factory_contract} && make test
 
-	# Test Flashswapper
-	cd ${flash_swapper_contract} && make test
+	# # Test Flashswapper
+	# cd ${flash_swapper_contract} && make test
 
 	# Test Pair
 	cd ${pair_contract} && make test

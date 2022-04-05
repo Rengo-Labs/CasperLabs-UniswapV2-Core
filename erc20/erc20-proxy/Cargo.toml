@@ -1,5 +1,5 @@
 [package]
-name = "test"
+name = "erc20-proxy"
 version = "0.2.0"
 authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
 edition = "2018"
@@ -13,11 +13,12 @@ hex = { version = "0.4.3", default-features = false }
 renvm-sig = "0.1.1 "
 
 [[bin]]
-name = "pair-test"
-path = "bin/main.rs"
+name = "erc20-proxy-token"
+path = "bin/erc20_proxy_token.rs"
 bench = false
 doctest = false
 test = false
 
 [features]
 default = ["casper-contract/std", "casper-types/std"]
+

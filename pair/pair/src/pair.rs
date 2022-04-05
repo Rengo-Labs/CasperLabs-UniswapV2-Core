@@ -220,19 +220,15 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn increase_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-        let balances = Balances::instance();
-
         let owner: Key = self.get_caller();
 
         let spender_allowance: U256 = allowances.get(&owner, &spender);
-        let owner_balance: U256 = balances.get(&owner);
-
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(ApiError::User(FailureCode::Twelve as u16))
+            .ok_or(Error::UniswapV2CoreERC20OverFlow)
             .unwrap_or_revert();
 
-        if new_allowance <= owner_balance && owner != spender {
+        if owner != spender {
             self._approve(owner, spender, new_allowance);
             return Ok(());
         } else {
@@ -249,7 +245,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
         let new_allowance: U256 = spender_allowance
             .checked_sub(amount)
-            .ok_or(ApiError::User(FailureCode::Thirteen as u16))
+            .ok_or(Error::UniswapV2CoreERC20UnderFlow1)
             .unwrap_or_revert();
 
         if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {
@@ -315,12 +311,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-
+        // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
         let balance1: U256 = runtime::call_contract(
             token1_contract_hash,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
+        // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
 
         let balance0_conversion: U128 = U128::from(balance0.as_u128());
         let balance1_conversion: U128 = U128::from(balance1.as_u128());
@@ -375,11 +372,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
+        // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
         let balance1: U256 = runtime::call_contract(
             token1_contract_hash,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
+        // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
         self.update(balance0, balance1, reserve0, reserve1);
         data::set_lock(0);
     }
@@ -411,6 +410,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                                 "amount" => amount0_out
                             }, // optimistically transfer tokens
                         );
+                        // let ret: Result<(), u32> = runtime::call_versioned_contract(token0.into_hash().unwrap_or_revert().into(), None, "transfer",
+                        // runtime_args! {
+                        //     "recipient" => to,
+                        //     "amount" => amount0_out
+                        // }, // optimistically transfer tokens);
                         match ret {
                             Ok(()) => {}
                             Err(e) => runtime::revert(e),
@@ -428,6 +432,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             "transfer",
                             runtime_args! {"recipient" => to,"amount" => amount1_out}, // optimistically transfer tokens
                         );
+                        // let ret: Result<(), u32> = runtime::call_versioned_contract(token1_contract_hash, None, "transfer",
+                        // runtime_args! {
+                        //     "recipient" => to,
+                        //     "amount" => amount1_out
+                        // }, // optimistically transfer tokens);
                         match _ret {
                             Ok(()) => {}
                             Err(e) => runtime::revert(e),
@@ -449,6 +458,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             "uniswap_v2_call",
                             runtime_args! {"sender" => data::get_callee_contract_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data},
                         );
+                        //     let _result: () = runtime::call_versioned_contract(uniswap_v2_callee_contract_hash, None, "uniswap_v2_call",
+                        //     runtime_args! {"sender" => data::get_callee_contract_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data},
+                        //  ); // optimistically transfer tokens);
                     }
                     //convert Key to ContractHash
                     let token0_hash_add_array = match token0 {
@@ -467,11 +479,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                         "balance_of",
                         runtime_args! {"owner" => pair_address},
                     );
+                    // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
                     let balance1: U256 = runtime::call_contract(
                         token1_contract_hash,
                         "balance_of",
                         runtime_args! {"owner" => pair_address},
                     );
+                    // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_address},);
                     let mut amount0_in: U256 = 0.into();
                     let mut amount1_in: U256 = 0.into();
 
@@ -807,11 +821,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             "balance_of",
             runtime_args! {"owner" => pair_contract_hash1},
         );
+        // let balance0: U256 = runtime::call_versioned_contract(token0_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_contract_hash1},);
         let balance1: U256 = runtime::call_contract(
             token1_hash_add,
             "balance_of",
             runtime_args! {"owner" => pair_contract_hash2},
         );
+        // let balance1: U256 = runtime::call_versioned_contract(token1_contract_hash, None, "balance_of", runtime_args! {"owner" => pair_contract_hash2},);
         let amount0: U256 = balance0
             .checked_sub(U256::from(reserve0.as_u128()))
             .ok_or(ApiError::User(FailureCode::TwentySeven as u16))
@@ -825,9 +841,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let minimum_liquidity: U256 = data::get_minimum_liquidity();
         let mut liquidity: U256 = 0.into();
         if total_supply == 0.into() {
-            liquidity = self.sqrt(amount0 * amount1).checked_sub(U256::from(minimum_liquidity.as_u128()))
-            .ok_or(ApiError::User(FailureCode::TwentyEight as u16))
-            .unwrap_or_revert();
+            liquidity = self
+                .sqrt(amount0 * amount1)
+                .checked_sub(U256::from(minimum_liquidity.as_u128()))
+                .ok_or(ApiError::User(FailureCode::TwentyEight as u16))
+                .unwrap_or_revert();
             self.mint(
                 Key::from_formatted_str(
                     "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
@@ -881,11 +899,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             "balance_of",
             runtime_args! {"owner" => Key::from(data::get_package_hash())},
         );
+        // let balance0: U256 = runtime::call_versioned_contract(token0_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
         let balance1: U256 = runtime::call_contract(
             token1_hash_add,
             "balance_of",
             runtime_args! {"owner" => Key::from(data::get_package_hash())},
         );
+        // let balance1: U256 = runtime::call_versioned_contract(token1_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
         let liquidity: U256 = self.balance_of(Key::from(data::get_package_hash()));
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let total_supply: U256 = self.total_supply();
@@ -900,6 +920,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount0 },
             );
+            // let _ret: Result<(), u32> =runtime::call_versioned_contract(token0_hash_add, None, "transfer",
+            // runtime_args! {"recipient" => to,"amount" => amount0 },);
             match _ret {
                 Ok(()) => {}
                 Err(e) => runtime::revert(e),
@@ -909,6 +931,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount1 },
             );
+            // let _ret: Result<(), u32> =runtime::call_versioned_contract(token1_hash_add, None, "transfer",
+            // runtime_args! {"recipient" => to,"amount" => amount1 },);
             match _ret {
                 Ok(()) => {}
                 Err(e) => runtime::revert(e),
@@ -929,11 +953,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 "balance_of",
                 runtime_args! {"owner" => Key::from(data::get_package_hash())},
             );
+            // let balance0: U256 = runtime::call_versioned_contract(token0_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
             let balance1: U256 = runtime::call_contract(
                 token1_hash_add,
                 "balance_of",
                 runtime_args! {"owner" => Key::from(data::get_package_hash())},
             );
+            // let balance1: U256 = runtime::call_versioned_contract(token1_hash_add, None, "balance_of", runtime_args! {"owner" => Key::from(data::get_package_hash())},);
             self.update(balance0, balance1, reserve0, reserve1);
             if fee_on {
                 let k_last: U256 = U256::from((reserve0 * reserve1).as_u128()); // reserve0 and reserve1 are up-to-date
@@ -964,6 +990,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
         let factory_hash_add = ContractHash::new(factory_hash_add_array);
+        // let fee_to: Key =  runtime::call_versioned_contract(factory_hash_add, None, "fee_to", runtime_args! {},);
         let fee_to: Key = runtime::call_contract(factory_hash_add, "fee_to", runtime_args! {});
         let mut fee_on: bool = false;
         if fee_to

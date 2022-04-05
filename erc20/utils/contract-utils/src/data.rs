@@ -10,7 +10,6 @@ use casper_types::{
     ApiError, CLTyped, Key, URef,
 };
 
-
 pub struct Dict {
     uref: URef,
 }
@@ -80,6 +79,16 @@ pub fn key_to_str(key: &Key) -> String {
 pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
     let mut bytes_a = key_a.to_bytes().unwrap_or_revert();
     let mut bytes_b = key_b.to_bytes().unwrap_or_revert();
+
+    bytes_a.append(&mut bytes_b);
+
+    let bytes = runtime::blake2b(bytes_a);
+    hex::encode(bytes)
+}
+
+pub fn key_and_value_to_str<T: CLTyped + ToBytes>(key: &Key, value: &T) -> String {
+    let mut bytes_a = key.to_bytes().unwrap_or_revert();
+    let mut bytes_b = value.to_bytes().unwrap_or_revert();
 
     bytes_a.append(&mut bytes_b);
 

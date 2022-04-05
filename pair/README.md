@@ -3,8 +3,11 @@
 Implementation of the PAIR Contract for the Casper platform.
 
 ## Usage
+
 ### Install
+
 Make sure `wasm32-unknown-unknown` is installed.
+
 ```
 make prepare
 ```
@@ -13,12 +16,15 @@ It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
 available in your PATH to reduce the size of compiled Wasm.
 
 ### Build Smart Contract
+
 ```
 make build-contract
 ```
 
 ### Test
+
 Test logic and smart contract.
+
 ```
 make test
 ```
@@ -30,12 +36,13 @@ make test
 The `pair` crate contains the implementation of the PAIR Contract and ERC20 standard.
 
 #### PAIR as library
+
 It can be used as a library to create pairs of two erc20 tokens and it can be used to build custom tokens. The code structure allows for easy entry points extensions and overrides.
 
-
 ##### Entry Point override example
+
 The following code shows how to override the `transfer` method to alwasy mint
-one additional token for a sender. 
+one additional token for a sender.
 
 ```rust
 #[derive(Default)]
@@ -58,11 +65,13 @@ impl Pair {
 ```
 
 #### PAIR Vanilla Contract
+
 The library comes with a vanilla implementation of the PAIR contract and ERC20 contract that is
-ready to use. It is implemented in `pair/bin/pair_token.rs` and after 
+ready to use. It is implemented in `pair/bin/pair_token.rs` and after
 compilation the `pair-token.wasm` file is produced.
 
 ### PAIR Tests
+
 The `pair-tests` crate implements multiple integration test scenarios that
 check the compatibility with the ERC20 standard.
 
@@ -76,23 +85,25 @@ Tests are implemented in `pair-tests/src/pair_tests.rs`.
 
 The repository contains 2 utility crates:
 
-* `utils/test-env`
-* `utils/contract-utils`
+- `utils/test-env`
+- `utils/contract-utils`
 
 The utility code after review and adoption should be moved to a separate repo
 and eventually be added to `casper-contract` and `casper-engine-test-support`.
 
 #### Test Env Crate
-`utils/test-env` is a small library written on top of 
+
+`utils/test-env` is a small library written on top of
 `casper-engine-test-support`. It provides two structs:
 
-* `TestEnv` wraps `TestContext` and provides user accounts with initial
+- `TestEnv` wraps `TestContext` and provides user accounts with initial
   CSPR balances. It is implemented using `Arc<Mutex<...>>` so it can
   be copied, especial between `TestContract` instances.
-* `TestContract` wraps an instance of `TestEnv` and simplifies calling
+- `TestContract` wraps an instance of `TestEnv` and simplifies calling
   contracts and reading named keys and dictionaries.
 
 ##### Test Example
+
 ```rust
 struct Token(TestContract);
 
@@ -127,7 +138,7 @@ fn test_multiple_tokens() {
     let env = TestEnv::new();
     let user1 = env.next_user();
     let user2 = env.next_user();
-    
+
     // Deploy multiple instances of the same contract
     // agains a single virtual machine.
     let token1 = Token::new(&env, Sender(user1));
@@ -141,12 +152,13 @@ fn test_multiple_tokens() {
 ```
 
 #### Contract Utils Crate
+
 `utils/contract-utils` contains common building blocks for writing smart
 contracts:
-* `contract_context.rs` provides the `ContractContext` trait that has 
-  `get_caller` and `self_addr` methods.
-* `data.rs` provides helper methods to work with dictionaries and named
-  keys.
-* `admin_control.rs` provides the `AdminControl` trait to support admin
-  list functionality.
 
+- `contract_context.rs` provides the `ContractContext` trait that has
+  `get_caller` and `self_addr` methods.
+- `data.rs` provides helper methods to work with dictionaries and named
+  keys.
+- `admin_control.rs` provides the `AdminControl` trait to support admin
+  list functionality.
