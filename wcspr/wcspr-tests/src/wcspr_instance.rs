@@ -4,9 +4,9 @@ use blake2::{
 };
 use casper_types::{
     bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
-    U512,
+    U512, account::AccountHash
 };
-use test_env::{Sender, TestContract, TestEnv};
+use test_env::{TestContract, TestEnv};
 
 // pub mod constants;
 use crate::constants::*;
@@ -16,7 +16,7 @@ impl WCSPRInstance {
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
-        sender: Sender,
+        sender: AccountHash,
         name: &str,
         symbol: &str,
         decimals: u8,
@@ -38,7 +38,7 @@ impl WCSPRInstance {
         WCSPRInstance(contract)
     }
 
-    pub fn proxy(env: &TestEnv, wcspr: Key, sender: Sender) -> TestContract {
+    pub fn proxy(env: &TestEnv, wcspr: Key, sender: AccountHash) -> TestContract {
         TestContract::new(
             env,
             "wcspr-test.wasm",
@@ -49,7 +49,7 @@ impl WCSPRInstance {
             },
         )
     }
-    pub fn proxy2(env: &TestEnv, wcspr: Key, sender: Sender) -> TestContract {
+    pub fn proxy2(env: &TestEnv, wcspr: Key, sender: AccountHash) -> TestContract {
         TestContract::new(
             env,
             "wcspr-test2.wasm",
@@ -61,7 +61,7 @@ impl WCSPRInstance {
         )
     }
 
-    pub fn constructor(&self, sender: Sender, name: &str, symbol: &str) {
+    pub fn constructor(&self, sender: AccountHash, name: &str, symbol: &str) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -72,7 +72,7 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn transfer<T: Into<Key>>(&self, sender: Sender, recipient: T, amount: U256) {
+    pub fn transfer<T: Into<Key>>(&self, sender: AccountHash, recipient: T, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer",
@@ -83,7 +83,7 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn transfer_from(&self, sender: Sender, owner: Key, recipient: Key, amount: U256) {
+    pub fn transfer_from(&self, sender: AccountHash, owner: Key, recipient: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer_from",
@@ -95,7 +95,7 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn approve<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+    pub fn approve<T: Into<Key>>(&self, sender: AccountHash, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
             "approve",
@@ -106,7 +106,7 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn increase_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+    pub fn increase_allowance<T: Into<Key>>(&self, sender: AccountHash, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
             "increase_allowance",
@@ -117,7 +117,7 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn decrease_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+    pub fn decrease_allowance<T: Into<Key>>(&self, sender: AccountHash, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
             "decrease_allowance",
@@ -141,7 +141,7 @@ impl WCSPRInstance {
             .query_dictionary("allowances", keys_to_str(&owner, &spender))
             .unwrap_or_default()
     }
-    pub fn allowance_fn(&self, sender: Sender, owner: Key, spender: Key) {
+    pub fn allowance_fn(&self, sender: AccountHash, owner: Key, spender: Key) {
         self.0.call_contract(
             sender,
             "allowance",
@@ -152,7 +152,7 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn withdraw(&self, sender: Sender, amount: U512) {
+    pub fn withdraw(&self, sender: AccountHash, amount: U512) {
         self.0.call_contract(
             sender,
             "withdraw",
@@ -164,7 +164,7 @@ impl WCSPRInstance {
         );
     }
 
-    pub fn deposit(&self, sender: Sender, amount: U512, proxy: Key) {
+    pub fn deposit(&self, sender: AccountHash, amount: U512, proxy: Key) {
         self.0.call_contract(
             sender,
             "deposit_session",
@@ -175,7 +175,7 @@ impl WCSPRInstance {
         );
     }
 
-    // pub fn deposit(&self, sender: Sender, amount:U512, purse: URef) {
+    // pub fn deposit(&self, sender: AccountHash, amount:U512, purse: URef) {
     //     self.0.call_contract(sender,"deposit", runtime_args!{
     //         "amount"=>amount,
     //         "purse"=>purse
