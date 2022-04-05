@@ -77,7 +77,6 @@ pub const TO_RUNTIME_ARG_NAME: &str = "to";
 /// Name of `to_purse` runtime argument.
 pub const TO_PURSE_RUNTIME_ARG_NAME: &str = "to_purse";
 
-
 pub const PACKAGE_HASH_RUNTIME_ARG_NAME: &str = "package_hash";
 pub const CONTRACT_HASH_RUNTIME_ARG_NAME: &str = "contract_hash";
 pub const WCSPR_HASH_RUNTIME_ARG_NAME: &str = "wcspr";

@@ -10,7 +10,7 @@ extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec};
 
 use casper_contract::{
-    contract_api::{account, runtime, system, storage},
+    contract_api::{account, runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
@@ -140,7 +140,8 @@ fn increase_allowance() {
         "amount" => amount,
     };
 
-    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "increase_allowance", args);
+    let ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "increase_allowance", args);
+    set_key("result", ret);
 }
 
 #[no_mangle]
@@ -154,7 +155,8 @@ fn decrease_allowance() {
         "amount" => amount,
     };
 
-    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "decrease_allowance", args);
+    let ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "decrease_allowance", args);
+    set_key("result", ret);
 }
 
 #[no_mangle]

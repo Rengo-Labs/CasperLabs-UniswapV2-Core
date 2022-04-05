@@ -21,7 +21,7 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
     let callee_contract = TestContract::new(
         //&env_factory,
         &env,
-        "flash-swapper.wasm",
+        "flashswapper-token.wasm",
         "flash_swapper",
         owner,
         runtime_args! {

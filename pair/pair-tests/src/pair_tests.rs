@@ -67,7 +67,7 @@ fn deploy() -> (
     let dai = deploy_wcspr(&env);
     let callee_contract = TestContract::new(
         &env,
-        "flash-swapper.wasm",
+        "flashswapper-token.wasm",
         "flash_swapper",
         owner,
         runtime_args! {
@@ -120,7 +120,7 @@ fn deploy1() -> (
     let dai = deploy_wcspr(&env);
     let callee_contract = TestContract::new(
         &env,
-        "flash-swapper.wasm",
+        "flashswapper-token.wasm",
         "flash_swapper",
         owner,
         runtime_args! {

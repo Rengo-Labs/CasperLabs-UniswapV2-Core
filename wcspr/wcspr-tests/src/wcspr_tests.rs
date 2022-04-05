@@ -1,5 +1,5 @@
 use crate::wcspr_instance::WCSPRInstance;
-use casper_types::{Key, U256, U512, account::AccountHash};
+use casper_types::{account::AccountHash, Key, U256, U512};
 use test_env::{TestContract, TestEnv};
 
 const NAME: &str = "Wrapped_Casper";
@@ -23,11 +23,9 @@ fn deploy() -> (
     let env = TestEnv::new();
     let owner = env.next_user();
     let token: TestContract = WCSPRInstance::new(&env, NAME, owner, NAME, SYMBOL, DECIMALS);
-    let proxy: TestContract =
-        WCSPRInstance::proxy(&env, Key::Hash(token.contract_hash()), owner);
+    let proxy: TestContract = WCSPRInstance::proxy(&env, Key::Hash(token.contract_hash()), owner);
     // let proxy: TestContract = WCSPRInstance::new(&env, NAME, owner, NAME, SYMBOL, DECIMALS);
-    let proxy2: TestContract =
-        WCSPRInstance::proxy2(&env, Key::Hash(token.contract_hash()), owner);
+    let proxy2: TestContract = WCSPRInstance::proxy2(&env, Key::Hash(token.contract_hash()), owner);
 
     (
         env,
@@ -99,11 +97,7 @@ fn test_wcspr_withdraw() {
     // let amount: U512 = deposit_amount.into();
 
     // first deposit some amount and verify
-    proxy.deposit(
-        owner,
-        deposit_amount.into(),
-        Key::from(proxy_contract_hash),
-    );
+    proxy.deposit(owner, deposit_amount.into(), Key::from(proxy_contract_hash));
     let res: Result<(), u32> = proxy.deposit_result();
     assert_eq!(
         token.balance_of(proxy_package_hash),
@@ -196,28 +190,15 @@ fn test_wcspr_transfer_from() {
 
     // proxy.increase_allowance(owner, recipient, allowance);
     // first deposit some amount and verify
-    proxy.deposit(
-        owner,
-        deposit_amount.into(),
-        Key::from(proxy_contract_hash),
-    );
+    proxy.deposit(owner, deposit_amount.into(), Key::from(proxy_contract_hash));
     let res: Result<(), u32> = proxy.deposit_result();
     assert_eq!(token.balance_of(package_hash), deposit_amount.into()); //+ U256::from(deposit_amount));
     assert_eq!(res.is_ok(), true);
 
     proxy.approve(owner, package_hash2, allowance);
-    proxy.allowance_fn(
-        owner,
-        Key::from(package_hash),
-        Key::from(package_hash2),
-    );
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
     assert_eq!(proxy.allowance_res(), 10.into());
-    proxy2.transfer_from(
-        owner,
-        Key::from(package_hash),
-        Key::from(recipient),
-        amount,
-    );
+    proxy2.transfer_from(owner, Key::from(package_hash), Key::from(recipient), amount);
     assert_eq!(token.balance_of(recipient), amount);
     assert_eq!(
         token.balance_of(package_hash),
@@ -239,33 +220,52 @@ fn test_wcspr_transfer_from_too_much() {
 
     // proxy.increase_allowance(owner, recipient, allowance);
     // first deposit some amount and verify
-    proxy.deposit(
-        owner,
-        deposit_amount.into(),
-        Key::from(proxy_contract_hash),
-    );
+    proxy.deposit(owner, deposit_amount.into(), Key::from(proxy_contract_hash));
     let res: Result<(), u32> = proxy.deposit_result();
     assert_eq!(token.balance_of(package_hash), deposit_amount.into()); //+ U256::from(deposit_amount));
     assert_eq!(res.is_ok(), true);
 
     proxy.approve(owner, package_hash2, allowance);
-    proxy.allowance_fn(
-        owner,
-        Key::from(package_hash),
-        Key::from(package_hash2),
-    );
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
     assert_eq!(proxy.allowance_res(), 10.into());
-    proxy2.transfer_from(
-        owner,
-        Key::from(package_hash),
-        Key::from(recipient),
-        amount,
-    );
+    proxy2.transfer_from(owner, Key::from(package_hash), Key::from(recipient), amount);
     assert_eq!(token.balance_of(recipient), amount);
     assert_eq!(
         token.balance_of(package_hash),
         U256::from(deposit_amount) - amount
     );
+}
+
+#[test]
+fn test_wcspr_increase_allowance() {
+    let (env, token, proxy, proxy2, owner) = deploy();
+    let package_hash = proxy.package_hash_result();
+    let package_hash2 = proxy2.package_hash_result();
+    let amount: U256 = 100.into();
+
+    proxy.increase_allowance(owner, package_hash2, amount);
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
+    assert_eq!(proxy.allowance_res(), 100.into());
+
+    proxy.increase_allowance(owner, package_hash2, amount);
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
+    assert_eq!(proxy.allowance_res(), 200.into());
+}
+
+#[test]
+fn test_wcspr_decrease_allowance() {
+    let (env, token, proxy, proxy2, owner) = deploy();
+    let package_hash = proxy.package_hash_result();
+    let package_hash2 = proxy2.package_hash_result();
+    let amount: U256 = 100.into();
+
+    proxy.increase_allowance(owner, package_hash2, amount + amount);
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
+    assert_eq!(proxy.allowance_res(), 200.into());
+
+    proxy.decrease_allowance(owner, package_hash2, amount);
+    proxy.allowance_fn(owner, Key::from(package_hash), Key::from(package_hash2));
+    assert_eq!(proxy.allowance_res(), 100.into());
 }
 
 #[test]

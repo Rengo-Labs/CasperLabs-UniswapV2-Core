@@ -2,14 +2,14 @@ uckniswap_core_directory = ./
 
 erc20_contract = ${uniswap_core_directory}erc20/
 factory_contract = ${uniswap_core_directory}factory/
-flash_swapper_contract = ${uniswap_core_directory}flash-swapper/
+flash_swapper_contract = ${uniswap_core_directory}flashswapper/
 pair_contract = ${uniswap_core_directory}pair/
 wcspr_contract = ${uniswap_core_directory}wcspr/
 
 wasm_src_path = target/wasm32-unknown-unknown/release/
 wasm_dest_factory_path = ${uniswap_core_directory}factory/factory-tests/wasm/
 wasm_dest_pair_path = ${uniswap_core_directory}pair/pair-tests/wasm/
-wasm_dest_flash_swapper_path = ${uniswap_core_directory}flash-swapper/flash_swapper-tests/wasm/
+wasm_dest_flash_swapper_path = ${uniswap_core_directory}flashswapper/flashswapper-tests/wasm/
 
 
 all:
@@ -19,11 +19,11 @@ all:
 	# Build wcspr
 	cd ${wcspr_contract} && make build-contract && make build-test-contract && make build-test-contract2
 
-	Build factory
+	#Build factory
 	cd ${factory_contract} && make build-contract
 
-	# # Build flash swapper
-	# cd ${flash_swapper_contract} && make build-contract
+	# Build flash swapper
+	cd ${flash_swapper_contract} && make build-contract
 
 	# Build pair
 	cd ${pair_contract} && make build-contract && make build-test-contract && make build-test-contract2
@@ -54,6 +54,7 @@ copy-wasm-file:
 	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_factory_path}
 	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_flash_swapper_path}
 	cp ${erc20_contract}${wasm_src_path}*.wasm ${wasm_dest_pair_path}
+
 	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_factory_path}
 	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_flash_swapper_path}
 	cp ${wcspr_contract}${wasm_src_path}*.wasm ${wasm_dest_pair_path}
@@ -79,8 +80,8 @@ test:
 	# # Test Factory
 	# cd ${factory_contract} && make test
 
-	# # Test Flashswapper
-	# cd ${flash_swapper_contract} && make test
+	# Test Flashswapper
+	cd ${flash_swapper_contract} && make test
 
 	# Test Pair
 	cd ${pair_contract} && make test

@@ -316,7 +316,7 @@ fn decrease_allowance_js_client() {
     let spender: Key = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
 
-    let _ret: Result<(), u32> = Token::default().decrease_allowance(spender, amount);
+    let _ret: Result<(), u32> = Pair::default().decrease_allowance(spender, amount);
 }
 
 /// This function is to mint token against the address that user provided

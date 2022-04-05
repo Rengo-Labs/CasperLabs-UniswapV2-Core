@@ -6,9 +6,6 @@ use casper_types::{ApiError, ContractPackageHash, Key, URef, U256, U512};
 use contract_utils::{get_key, set_key, Dict};
 //use casper_contract::{value::account::PurseId ,contract_api::{runtime,system}, unwrap_or_revert::UnwrapOrRevert};
 
-
-
-
 // Events
 
 pub enum WcsprEvents {
@@ -26,22 +23,22 @@ pub enum WcsprEvents {
 
     Deposit {
         src_purse: URef,
-        amount: U512
+        amount: U512,
     },
 
     Withdraw {
         recipient_purse: URef,
-        amount: U512
-    }
+        amount: U512,
+    },
 }
 
 impl WcsprEvents {
     pub fn type_name(&self) -> String {
         match self {
-            WcsprEvents::Approval{
+            WcsprEvents::Approval {
                 owner: _,
                 spender: _,
-                value: _
+                value: _,
             } => "approve",
 
             WcsprEvents::Transfer {
@@ -52,19 +49,17 @@ impl WcsprEvents {
 
             WcsprEvents::Deposit {
                 src_purse: _,
-                amount: _
+                amount: _,
             } => "deposit",
-            
+
             WcsprEvents::Withdraw {
                 recipient_purse: _,
-                amount: _
-            } => "withdraw"
-        }.to_string()
+                amount: _,
+            } => "withdraw",
+        }
+        .to_string()
     }
 }
-
-
-
 
 pub const BALANCES_DICT: &str = "balances";
 pub const ALLOWANCES_DICT: &str = "allowances";
@@ -75,7 +70,6 @@ pub const SELF_PURSE: &str = "self_purse";
 pub const DECIMALS: &str = "decimals";
 pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
 pub const TOTAL_SUPPLY: &str = "total_supply";
-
 
 #[repr(u16)]
 pub enum ErrorCodes {

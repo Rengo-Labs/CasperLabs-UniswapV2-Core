@@ -3,8 +3,8 @@ use blake2::{
     VarBlake2b,
 };
 use casper_types::{
-    bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, U256,
-    U512, account::AccountHash
+    account::AccountHash, bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key,
+    RuntimeArgs, U256, U512,
 };
 use test_env::{TestContract, TestEnv};
 
@@ -225,6 +225,9 @@ impl WCSPRInstance {
     }
     pub fn allowance_res(&self) -> U256 {
         self.0.query_named_key("allowance".to_string())
+    }
+    pub fn result(&self) -> Result<(), u32> {
+        self.0.query_named_key("result".to_string())
     }
 }
 

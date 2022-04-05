@@ -69,19 +69,15 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn increase_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-        let balances = Balances::instance();
-
         let owner: Key = self.get_caller();
-
         let spender_allowance: U256 = allowances.get(&owner, &spender);
-        let owner_balance: U256 = balances.get(&owner);
 
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
             .ok_or(Error::UniswapV2CoreWCSPROverFlow)
             .unwrap_or_revert();
 
-        if new_allowance <= owner_balance && owner != spender {
+        if owner != spender {
             self._approve(owner, spender, new_allowance);
             return Ok(());
         } else {
@@ -91,9 +87,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn decrease_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-
         let owner: Key = self.get_caller();
-
         let spender_allowance: U256 = allowances.get(&owner, &spender);
 
         let new_allowance: U256 = spender_allowance

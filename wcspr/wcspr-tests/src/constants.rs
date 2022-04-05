@@ -28,7 +28,7 @@ pub const WITHDRAW_TEST_RESULT_KEY_NAME: &str = "withdraw_test_result";
 pub const TRANSFER_TEST_RESULT_KEY_NAME: &str = "transfer_test_result";
 pub const TRANSFER_FROM_TEST_RESULT_KEY_NAME: &str = "transfer_from_test_result";
 pub const ALLOWANCE_KEY_NAME: &str = "allowance";
-pub const BALANCE_OF_KEY_NAME:  &str = "balance_of";
+pub const BALANCE_OF_KEY_NAME: &str = "balance_of";
 
 /// Name of `name` entry point.
 pub const NAME_ENTRY_POINT_NAME: &str = "name";

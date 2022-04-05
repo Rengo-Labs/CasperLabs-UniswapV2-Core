@@ -10,7 +10,6 @@ use casper_types::{
     CLTyped,
 };
 
-
 pub fn get_key<T: FromBytes + CLTyped + Default>(name: &str) -> T {
     match runtime::get_key(name) {
         None => Default::default(),

@@ -225,7 +225,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let spender_allowance: U256 = allowances.get(&owner, &spender);
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(Error::UniswapV2CoreERC20OverFlow)
+            .ok_or(ApiError::User(FailureCode::Twelve as u16))
             .unwrap_or_revert();
 
         if owner != spender {
@@ -245,7 +245,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
         let new_allowance: U256 = spender_allowance
             .checked_sub(amount)
-            .ok_or(Error::UniswapV2CoreERC20UnderFlow1)
+            .ok_or(ApiError::User(FailureCode::Thirteen as u16))
             .unwrap_or_revert();
 
         if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {

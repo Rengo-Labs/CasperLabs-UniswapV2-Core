@@ -17,4 +17,4 @@ erc20/erc20-tests/wasm/*.wasm
 pair/pair-tests/wasm/*.wasm
 factory/factory-tests/wasm/*.wasm
 wcspr/wcspr-tests/wasm/*.wasm
-flash-swapper/flash-swapper-tests/wasm/*.wasm
+flashswapper/flashswapper-tests/wasm/*.wasm

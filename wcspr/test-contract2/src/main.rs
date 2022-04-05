@@ -139,7 +139,8 @@ fn increase_allowance() {
         "amount" => amount,
     };
 
-    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "increase_allowance", args);
+    let ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "increase_allowance", args);
+    set_key("result", ret);
 }
 
 #[no_mangle]
@@ -153,7 +154,8 @@ fn decrease_allowance() {
         "amount" => amount,
     };
 
-    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "decrease_allowance", args);
+    let ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "decrease_allowance", args);
+    set_key("result", ret);
 }
 
 #[no_mangle]
