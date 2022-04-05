@@ -14,19 +14,19 @@ wasm_dest_flash_swapper_path = ${uniswap_core_directory}flash-swapper/flash_swap
 
 all:
 	# Build erc20
-	cd ${erc20_contract} && make build-contract && make build-test-contract && make build-test-contract2
+	cd ${erc20_contract} && make prepare && make build-contract && make build-test-contract && make build-test-contract2
 
 	# Build wcspr
-	cd ${wcspr_contract} && make build-contract && make build-test-contract && make build-test-contract2
+	cd ${wcspr_contract} && make prepare && make build-contract && make build-test-contract && make build-test-contract2
 
 	# Build factory
-	cd ${factory_contract} && make build-contract
+	cd ${factory_contract} && make prepare && make build-contract
 
 	# Build flash swapper
-	cd ${flash_swapper_contract} && make build-contract
+	cd ${flash_swapper_contract} && make prepare && make build-contract
 
 	# Build pair
-	cd ${pair_contract} && make build-contract && make build-test-contract && make build-test-contract2
+	cd ${pair_contract} && make prepare && make build-contract && make build-test-contract && make build-test-contract2
 
 	# copy wasm files
 	make copy-wasm-file
