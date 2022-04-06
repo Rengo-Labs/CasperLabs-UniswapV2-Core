@@ -8,29 +8,33 @@ use contract_utils::{ContractContext, ContractStorage};
 
 use crate::data::{self};
 
-/// Enum for FailureCode, It represents codes for different smart contract errors.
-#[repr(u16)]
-enum FailureCode {
-    /// 65,536 for (Requested pair is not available)
-    Zero = 0,
-    /// 65,537 for (Requested borrow token is not available)
-    One,
-    //  65,538 for (Requested pay token is not available)
-    Two,
-    //  65,539 for (_amount is too big)
-    Three,
-    /// 65,540 for (UniswapV2: OVERFLOW)
-    Four,
-    /// 65,541 for (UniswapV2: UNDERFLOW)
-    Five,
-}
-
 #[repr(u16)]
 pub enum Error {
-    UniswapV2ZeroAddress = 0,
-    UniswapV2PairExists = 1,
-    UniswapV2PermissionedPairAccess = 2,
-    UniswapV2InvalidContractAddress = 3,
+    /// 65,590 for (UniswapV2 Core FlashSwapper Zero Address)
+    UniswapV2CoreFlashSwapperZeroAddress = 55,
+    /// 65,591 for (UniswapV2 Core FlashSwapper Pair Exists)
+    UniswapV2CoreFlashSwapperPairExists = 56,
+    /// 65,592 for (UniswapV2 Core FlashSwapper Permissioned Pair Access)
+    UniswapV2CoreFlashSwapperPermissionedPairAccess = 57,
+    /// 65,593 for (UniswapV2 Core FlashSwapper Invalid Contract Address)
+    UniswapV2CoreFlashSwapperInvalidContractAddress = 58,
+    /// 65,594 for (UniswapV2 Core FlashSwapper UnderFlow)
+    UniswapV2CoreFlashSwapperUnderFlow = 59,
+    /// 65,595 for (UniswapV2 Core FlashSwapper UnderFlow1)
+    UniswapV2CoreFlashSwapperOverFlow1 = 60,
+    /// 65,596 for (UniswapV2 Core FlashSwapper UnderFlow2)
+    UniswapV2CoreFlashSwapperOverFlow2 = 61,
+    /// 65,597 for (UniswapV2 Core FlashSwapper UnderFlow3)
+    UniswapV2CoreFlashSwapperOverFlow3 = 62,
+    /// 65,598 for (UniswapV2 Core FlashSwapper Amount Too Big)
+    UniswapV2CoreFlashSwapperAmountTooBig = 63,
+    /// 65,599 for (UniswapV2 Core FlashSwapper Requested Pay Token Is Not Available)
+    UniswapV2CoreFlashSwapperRequestedPayTokenIsNotAvailable = 64,
+    /// 65,600 for (UniswapV2 Core FlashSwapper Requested Borrow Token Is Not Available)
+    UniswapV2CoreFlashSwapperRequestedBorrowTokenIsNotAvailable = 65,
+    /// 65,601 for (UniswapV2 Core FlashSwapper Requested Requested Pair Is Not Available)
+    UniswapV2CoreFlashSwapperRequestedRequestedPairIsNotAvailable = 66,
+    
 }
 
 impl From<Error> for ApiError {
@@ -111,10 +115,10 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         // access control
         let permissioned_pair_address = data::get_permissioned_pair_address();
         if self.get_caller() != permissioned_pair_address {
-            runtime::revert(Error::UniswapV2PermissionedPairAccess);
+            runtime::revert(Error::UniswapV2CoreFlashSwapperPermissionedPairAccess);
         }
         if _sender != data::get_package_hash() {
-            runtime::revert(Error::UniswapV2InvalidContractAddress);
+            runtime::revert(Error::UniswapV2CoreFlashSwapperInvalidContractAddress);
         }
         let decoded_data_without_commas: Vec<&str> = _data.split(',').collect();
         let _token_borrow_string = format!("{}{}", "hash-", decoded_data_without_commas[1]);
@@ -196,7 +200,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             )
             .unwrap()
         {
-            runtime::revert(Error::UniswapV2ZeroAddress);
+            runtime::revert(Error::UniswapV2CoreFlashSwapperZeroAddress);
         }
         let pair_address_hash_add_array = match pair_address {
             Key::Hash(package) => package,
@@ -296,11 +300,11 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         }
         let fee: U256 = U256::from((_amount * 3) / 997)
             .checked_add(U256::from(1))
-            .ok_or(ApiError::User(FailureCode::Four as u16))
+            .ok_or(Error::UniswapV2CoreFlashSwapperOverFlow1)
             .unwrap_or_revert();
         let amount_to_repay: U256 = _amount
             .checked_add(fee)
-            .ok_or(ApiError::User(FailureCode::Four as u16))
+            .ok_or(Error::UniswapV2CoreFlashSwapperOverFlow2)
             .unwrap_or_revert();
         let token_borrowed: Key;
         let token_to_repay: Key;
@@ -466,7 +470,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             );
         } else {
             // requested pair is not available
-            runtime::revert(ApiError::User(FailureCode::Zero as u16));
+            runtime::revert(Error::UniswapV2CoreFlashSwapperRequestedRequestedPairIsNotAvailable);
         }
     }
 
@@ -539,7 +543,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let amount_to_repay: U256 = ((amount_1000 * pair_balance_token_pay * amount)
             / (amount_997 * pair_balance_token_borrow))
             .checked_add(amount_1)
-            .ok_or(ApiError::User(FailureCode::Four as u16))
+            .ok_or(Error::UniswapV2CoreFlashSwapperOverFlow3)
             .unwrap_or_revert();
         // get the orignal tokens the user requested
         let mut _token_borrowed: Key = Key::from_formatted_str(
@@ -658,7 +662,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 if pair_balance_token_borrow_before >= amount {
                     let pair_balance_token_borrow_after: U256 = pair_balance_token_borrow_before
                         .checked_sub(amount)
-                        .ok_or(ApiError::User(FailureCode::Five as u16))
+                        .ok_or(Error::UniswapV2CoreFlashSwapperUnderFlow)
                         .unwrap_or_revert();
                     //convert Key to ContractPackageHash
                     let wcspr_address_hash_add_array = match wcspr {
@@ -691,15 +695,15 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                     );
                 } else {
                     // _amount is too big
-                    runtime::revert(ApiError::User(FailureCode::Three as u16));
+                    runtime::revert(Error::UniswapV2CoreFlashSwapperAmountTooBig);
                 }
             } else {
                 // Requested pay token is not available
-                runtime::revert(ApiError::User(FailureCode::Two as u16));
+                runtime::revert(Error::UniswapV2CoreFlashSwapperRequestedPayTokenIsNotAvailable);
             }
         } else {
             // Requested borrow token is not available
-            runtime::revert(ApiError::User(FailureCode::One as u16));
+            runtime::revert(Error::UniswapV2CoreFlashSwapperRequestedBorrowTokenIsNotAvailable);
         }
     }
 

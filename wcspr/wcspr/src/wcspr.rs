@@ -10,10 +10,24 @@ use contract_utils::{ContractContext, ContractStorage};
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,540 for UniswapV2CoreWCSPROverFlow
-    UniswapV2CoreWCSPROverFlow = 4,
-    /// 65,541 for UniswapV2CoreWCSPRUnderFlow
-    UniswapV2CoreWCSPRUnderFlow = 5,
+    /// 65,547 for (UniswapV2 Core WCSPR OverFlow1)
+    UniswapV2CoreWCSPROverFlow1 = 11,
+    /// 65,548 for (UniswapV2 Core WCSPR OverFlow2)
+    UniswapV2CoreWCSPROverFlow2 = 12,
+    /// 65,549 for (UniswapV2Core WCSPR Over Flow3)
+    UniswapV2CoreWCSPROverFlow3 = 13,
+    /// 65,550 for (UniswapV2 Core WCSPR OverFlow4)
+    UniswapV2CoreWCSPROverFlow4 = 14,
+    /// 65,551 for (UniswapV2 Core WCSPR OverFlow5)
+    UniswapV2CoreWCSPROverFlow5 = 15,
+    /// 65,552 for (UniswapV2 Core WCSPR UnderFlow1)
+    UniswapV2CoreWCSPRUnderFlow1 = 16,
+    /// 65,552 for (UniswapV2 Core WCSPR UnderFlow2)
+    UniswapV2CoreWCSPRUnderFlow2 = 17,
+    /// 65,553 for (UniswapV2 Core WCSPR UnderFlow3)
+    UniswapV2CoreWCSPRUnderFlow3 = 18,
+    /// 65,554 for (UniswapV2 Core WCSPR UnderFlow4)
+    UniswapV2CoreWCSPRUnderFlow4 = 19,
 }
 
 impl From<Error> for ApiError {
@@ -74,7 +88,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
 
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(Error::UniswapV2CoreWCSPROverFlow)
+            .ok_or(Error::UniswapV2CoreWCSPROverFlow1)
             .unwrap_or_revert();
 
         if owner != spender {
@@ -92,7 +106,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
 
         let new_allowance: U256 = spender_allowance
             .checked_sub(amount)
-            .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
+            .ok_or(Error::UniswapV2CoreWCSPRUnderFlow1)
             .unwrap_or_revert();
 
         if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {
@@ -110,7 +124,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             let spender_allowance: U256 = allowances.get(&owner, &self.get_caller());
             let new_allowance: U256 = spender_allowance
                 .checked_sub(amount)
-                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
+                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow2)
                 .unwrap_or_revert();
             if new_allowance >= 0.into()
                 && new_allowance < spender_allowance
@@ -153,7 +167,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                 &caller,
                 balance
                     .checked_add(amount_to_transfer_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow)
+                    .ok_or(Error::UniswapV2CoreWCSPROverFlow2)
                     .unwrap_or_revert(),
             );
 
@@ -161,7 +175,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_totalsupply(
                 data::get_totalsupply()
                     .checked_add(amount_to_transfer_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow)
+                    .ok_or(Error::UniswapV2CoreWCSPROverFlow3)
                     .unwrap_or_revert(),
             );
 
@@ -205,7 +219,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
                 &caller,
                 balance
                     .checked_sub(cspr_amount_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
+                    .ok_or(Error::UniswapV2CoreWCSPRUnderFlow3)
                     .unwrap_or_revert(),
             );
 
@@ -213,7 +227,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_totalsupply(
                 data::get_totalsupply()
                     .checked_sub(cspr_amount_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow)
+                    .ok_or(Error::UniswapV2CoreWCSPROverFlow4)
                     .unwrap_or_revert(),
             );
 
@@ -244,14 +258,14 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             &sender,
             sender_balance
                 .checked_sub(amount)
-                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
+                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow4)
                 .unwrap_or_revert(),
         );
         balances.set(
             &recipient,
             recipient_balance
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreWCSPROverFlow)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow5)
                 .unwrap_or_revert(),
         );
         self.emit(&WcsprEvents::Transfer {

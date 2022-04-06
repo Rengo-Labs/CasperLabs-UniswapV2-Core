@@ -106,43 +106,70 @@ impl PAIREvent {
     }
 }
 
-/// Enum for FailureCode, It represents codes for different smart contract errors.
 #[repr(u16)]
-pub enum FailureCode {
-    /// 65,536 for (UniswapV2: EXPIRED)
-    Twelve = 12,
-    /// 65,537 for (UniswapV2: FORBIDDEN)
-    Thirteen,
-    /// 65,538 for (signature verification failed)
-    Fourteen,
-    /// 65,539 for (UniswapV2: OVERFLOW)
-    Fifteen,
-    /// 65,540 for (UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT)
-    Sixteen,
-    /// 65,541 for (UniswapV2: INSUFFICIENT_LIQUIDITY)
-    Seventeen,
-    /// 65,542 for (UniswapV2: INVALID_TO)
-    Eighteen,
-    /// 65,543 for (UniswapV2: INSUFFICIENT_INPUT_AMOUNT)
-    Ninteen,
-    /// 65,544 for (UniswapV2: K)
-    Twenty,
-    /// 65,545 for (UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED)
-    TwentyOne,
-    /// 65,546 for (UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED)
-    TwentyTwo,
-    /// 65,547 for (UniswapV2: OVERFLOW)
-    TwentyThree,
-    /// 65,548 for (UniswapV2: UNDERFLOW)
-    TwentyFour,
-    /// 65,549 for (UniswapV2: DENOMINATOR IS ZERO)
-    TwentyFive,
-    /// 65,550 for (UniswapV2: LOCKED)
-    TwentySix,
-    /// 65,551 for (UniswapV2: UNDERFLOW)
-    TwentySeven,
-    /// 65,552 for (UniswapV2: OVERFLOW)
-    TwentyEight,
+pub enum Error {
+    /// 65,563 for (UniswapV2 Core Pair Expire)
+    UniswapV2CorePairExpire = 28,
+    /// 65,564 for (UniswapV2 Core Pair Forbidden)
+    UniswapV2CorePairForbidden = 29,
+    /// 65,565 for (UniswapV2 Core Pair Failed Verification)
+    UniswapV2CorePairFailedVerification = 30,
+    /// 65,566 for (UniswapV2 Core Pair Insufficient Output Amount)
+    UniswapV2CorePairInsufficientOutputAmount = 31,
+    /// 65,567 for (UniswapV2 Core Pair Insufficient Liquidity)
+    UniswapV2CorePairInsufficientLiquidity = 32,
+    /// 65,568 for (UniswapV2 Core Pair Invalid To)
+    UniswapV2CorePairInvalidTo = 33,
+    /// 65,569 for (UniswapV2 Core Pair Insufficient Input Amount)
+    UniswapV2CorePairInsufficientInputAmount = 34,
+    /// 65,570 for (UniswapV2 Core Pair Insufficient Converted Balance)
+    UniswapV2CorePairInsufficientConvertedBalance = 35,
+    /// 65,571 for (UniswapV2 Core Pair Insufficient Liquidity Minted)
+    UniswapV2CorePairInsufficientLiquidityMinted = 36,
+    /// 65,572 for (UniswapV2 Core Pair Insufficient Liquidity Burned)
+    UniswapV2CorePairInsufficientLiquidityBurned = 37,
+    /// 65,573 for (UniswapV2 Core Pair Denominator Is Zero)
+    UniswapV2CorePairDenominatorIsZero = 38,
+    /// 65,574 for (UniswapV2 Core Pair Locked1)
+    UniswapV2CorePairLocked1 = 39,
+    /// 65,575 for (UniswapV2 Core Pair Locked2)
+    UniswapV2CorePairLocked2 = 40,
+    /// 65,576 for (UniswapV2 Core Pair UnderFlow1)
+    UniswapV2CorePairUnderFlow1 = 41,
+    /// 65,577 for (UniswapV2 Core Pair UnderFlow2)
+    UniswapV2CorePairUnderFlow2 = 42,
+    /// 65,578 for (UniswapV2 Core Pair UnderFlow3)
+    UniswapV2CorePairUnderFlow3 = 43,
+    /// 65,579 for (UniswapV2 Core Pair UnderFlow4)
+    UniswapV2CorePairUnderFlow4 = 44,
+    /// 65,580 for (UniswapV2 Core Pair UnderFlow5)
+    UniswapV2CorePairUnderFlow5 = 45,
+    /// 65,581 for (UniswapV2 Core Pair UnderFlow6)
+    UniswapV2CorePairUnderFlow6 = 46,
+    /// 65,582 for (UniswapV2 Core Pair UnderFlow7)
+    UniswapV2CorePairUnderFlow7 = 47,
+    /// 65,583 for (UniswapV2 Core Pair UnderFlow8)
+    UniswapV2CorePairUnderFlow8 = 48,
+    /// 65,584 for (UniswapV2 Core Pair OverFlow)
+    UniswapV2CorePairOverFlow = 49,
+    /// 65,585 for (UniswapV2 Core Pair OverFlow1)
+    UniswapV2CorePairOverFlow1 = 50,
+    /// 65,586 for (UniswapV2 Core Pair OverFlow2)
+    UniswapV2CorePairOverFlow2 = 51,
+    /// 65,587 for (UniswapV2 Core Pair OverFlow3)
+    UniswapV2CorePairOverFlow3 = 52,
+    /// 65,588 for (UniswapV2 Core Pair OverFlo4)
+    UniswapV2CorePairOverFlow4 = 53,
+    /// 65,589 for (UniswapV2 Core Pair OverFlow5)
+    UniswapV2CorePairOverFlow5 = 54,
+
+  
+}
+
+impl From<Error> for ApiError {
+    fn from(error: Error) -> ApiError {
+        ApiError::User(error as u16)
+    }
 }
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
@@ -224,7 +251,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let spender_allowance: U256 = allowances.get(&owner, &spender);
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(ApiError::User(FailureCode::Twelve as u16))
+            .ok_or(Error::UniswapV2CorePairOverFlow1)
             .unwrap_or_revert();
 
         if owner != spender {
@@ -244,7 +271,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
         let new_allowance: U256 = spender_allowance
             .checked_sub(amount)
-            .ok_or(ApiError::User(FailureCode::Thirteen as u16))
+            .ok_or(Error::UniswapV2CorePairUnderFlow1)
             .unwrap_or_revert();
 
         if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {
@@ -262,7 +289,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             let spender_allowance: U256 = allowances.get(&owner, &self.get_caller());
             let new_allowance: U256 = spender_allowance
                 .checked_sub(amount)
-                .ok_or(ApiError::User(FailureCode::Thirteen as u16))
+                .ok_or(Error::UniswapV2CorePairUnderFlow2)
                 .unwrap_or_revert();
             if new_allowance >= 0.into()
                 && new_allowance < spender_allowance
@@ -285,7 +312,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let lock = data::get_lock();
         if lock != 0 {
             //UniswapV2: Locked
-            runtime::revert(ApiError::User(FailureCode::TwentySix as u16));
+            runtime::revert(Error::UniswapV2CorePairLocked1);
         }
         data::set_lock(1);
         let token0: Key = self.get_token0();
@@ -348,7 +375,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let lock = data::get_lock();
         if lock != 0 {
             //UniswapV2: Locked
-            runtime::revert(ApiError::User(FailureCode::TwentySix as u16));
+            runtime::revert(Error::UniswapV2CorePairLocked1);
         }
         data::set_lock(1);
         let token0: Key = self.get_token0();
@@ -513,23 +540,23 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             });
                         } else {
                             //UniswapV2: K
-                            runtime::revert(ApiError::User(FailureCode::Twenty as u16));
+                            runtime::revert(Error::UniswapV2CorePairInsufficientConvertedBalance);
                         }
                     } else {
                         //UniswapV2: INSUFFICIENT_INPUT_AMOUNT
-                        runtime::revert(ApiError::User(FailureCode::Ninteen as u16));
+                        runtime::revert(Error::UniswapV2CorePairInsufficientInputAmount);
                     }
                 } else {
                     //UniswapV2: INVALID_TO
-                    runtime::revert(ApiError::User(FailureCode::Eighteen as u16));
+                    runtime::revert(Error::UniswapV2CorePairInvalidTo);
                 }
             } else {
                 //UniswapV2: INSUFFICIENT_LIQUIDITY
-                runtime::revert(ApiError::User(FailureCode::Seventeen as u16));
+                runtime::revert(Error::UniswapV2CorePairInsufficientLiquidity);
             }
         } else {
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
-            runtime::revert(ApiError::User(FailureCode::Sixteen as u16));
+            runtime::revert(Error::UniswapV2CorePairInsufficientOutputAmount);
         }
     }
 
@@ -632,11 +659,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 });
             } else {
                 //signature verification failed
-                runtime::revert(ApiError::User(FailureCode::Fourteen as u16));
+                runtime::revert(Error::UniswapV2CorePairFailedVerification);
             }
         } else {
             //deadline is equal to or greater than blocktime
-            runtime::revert(ApiError::User(FailureCode::Twelve as u16));
+            runtime::revert(Error::UniswapV2CorePairExpire);
         }
     }
 
@@ -647,13 +674,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             &recipient,
             balance
                 .checked_add(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyThree as u16))
+                .ok_or(Error::UniswapV2CorePairOverFlow2)
                 .unwrap_or_revert(),
         );
         data::set_total_supply(
             self.total_supply()
                 .checked_add(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyThree as u16))
+                .ok_or(Error::UniswapV2CorePairOverFlow3)
                 .unwrap_or_revert(),
         );
         let address_0: Key = Key::from_formatted_str(
@@ -677,13 +704,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 &recipient,
                 balance
                     .checked_sub(amount)
-                    .ok_or(ApiError::User(FailureCode::TwentyFour as u16))
+                    .ok_or(Error::UniswapV2CorePairUnderFlow3)
                     .unwrap_or_revert(),
             );
             data::set_total_supply(
                 self.total_supply()
                     .checked_sub(amount)
-                    .ok_or(ApiError::User(FailureCode::TwentyFour as u16))
+                    .ok_or(Error::UniswapV2CorePairUnderFlow4)
                     .unwrap_or_revert(),
             );
             let address_0: Key = Key::from_formatted_str(
@@ -724,14 +751,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             &sender,
             sender_balance
                 .checked_sub(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyFour as u16))
+                .ok_or(Error::UniswapV2CorePairUnderFlow5)
                 .unwrap_or_revert(),
         );
         balances.set(
             &recipient,
             recipient_balance
                 .checked_add(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyThree as u16))
+                .ok_or(Error::UniswapV2CorePairOverFlow4)
                 .unwrap_or_revert(),
         );
         let eventpair: Key = Key::from(data::get_hash());
@@ -821,11 +848,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         );
         let amount0: U256 = balance0
             .checked_sub(U256::from(reserve0.as_u128()))
-            .ok_or(ApiError::User(FailureCode::TwentySeven as u16))
+            .ok_or(Error::UniswapV2CorePairUnderFlow6)   
             .unwrap_or_revert();
         let amount1: U256 = balance1
             .checked_sub(U256::from(reserve1.as_u128()))
-            .ok_or(ApiError::User(FailureCode::TwentySeven as u16))
+            .ok_or(Error::UniswapV2CorePairUnderFlow7)
             .unwrap_or_revert();
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let total_supply: U256 = self.total_supply(); // gas savings, must be defined here since totalSupply can update in mint_fee
@@ -835,7 +862,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             liquidity = self
                 .sqrt(amount0 * amount1)
                 .checked_sub(U256::from(minimum_liquidity.as_u128()))
-                .ok_or(ApiError::User(FailureCode::TwentyEight as u16))
+                .ok_or(Error::UniswapV2CorePairUnderFlow8)
                 .unwrap_or_revert();
             self.mint(
                 Key::from_formatted_str(
@@ -867,7 +894,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             liquidity // return liquidity
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
-            runtime::revert(ApiError::User(FailureCode::TwentyOne as u16));
+            runtime::revert(Error::UniswapV2CorePairInsufficientLiquidityMinted);
         }
     }
 
@@ -967,7 +994,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             (amount0, amount1)
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED
-            runtime::revert(ApiError::User(FailureCode::TwentyTwo as u16));
+            runtime::revert(Error::UniswapV2CorePairInsufficientLiquidityBurned);
         }
     }
 
@@ -1008,7 +1035,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                         }
                     } else {
                         //UniswapV2: DENOMINATOR IS ZERO
-                        runtime::revert(ApiError::User(FailureCode::TwentyFive as u16));
+                        runtime::revert(Error::UniswapV2CorePairDenominatorIsZero);
                     }
                 }
             }
@@ -1025,7 +1052,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_token1(token1);
         } else {
             //(UniswapV2: FORBIDDEN)
-            runtime::revert(ApiError::User(FailureCode::Thirteen as u16));
+            runtime::revert(Error::UniswapV2CorePairForbidden);
         }
     }
 
@@ -1120,7 +1147,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             });
         } else {
             //UniswapV2: OVERFLOW
-            runtime::revert(ApiError::User(FailureCode::Fifteen as u16));
+            runtime::revert(Error::UniswapV2CorePairOverFlow);
         }
     }
     fn emit(&mut self, pair_event: &PAIREvent) {

@@ -46,15 +46,28 @@ impl ERC20Event {
 
 #[repr(u16)]
 pub enum Error {
+    /// 65,536 for (UniswapV2 Core ERC20 EXPIRED)
     UniswapV2CoreERC20EXPIRED = 0,
-    UniswapV2CoreERC20SignatureVerificatFailed = 1,
-    UniswapV2CoreERC20OverFlow = 2,
-    UniswapV2CoreERC20UnderFlow1 = 3,
-    UniswapV2CoreERC20UnderFlow2 = 29,
-    UniswapV2CoreERC20UnderFlow3 = 30,
-    UniswapV2CoreERC20UnderFlow4 = 31,
-    UniswapV2CoreERC20UnderFlow5 = 32,
-    UniswapV2CoreERC20UnderFlow6 = 33,
+    /// 65,537 for (UniswapV2 Core ERC20 Signature Verificatation Failed)
+    UniswapV2CoreERC20SignatureVerificatationFailed = 1,
+    /// 65,538 for (UniswapV2 Core ERC20 OverFlow1)
+    UniswapV2CoreERC20OverFlow1 = 2,
+    /// 65,539 for (UniswapV2 Core ERC20 OverFlow2)
+    UniswapV2CoreERC20OverFlow2 = 3,
+    /// 65,540 for (UniswapV2 Core ERC20 OverFlow3)
+    UniswapV2CoreERC20OverFlow3 = 4,
+    /// 65,541 for (UniswapV2 Core ERC20 OverFlow4)
+    UniswapV2CoreERC20OverFlow4 = 5,
+    /// 65,542 for (UniswapV2 Core ERC20 UnderFlow1)
+    UniswapV2CoreERC20UnderFlow1 = 6,
+    /// 65,543 for (UniswapV2 Core ERC20 UnderFlow2)
+    UniswapV2CoreERC20UnderFlow2 = 7,
+    /// 65,544 for (UniswapV2 Core ERC20 UnderFlow3)
+    UniswapV2CoreERC20UnderFlow3 = 8,
+    /// 65,545 for (UniswapV2 Core ERC20 UnderFlow4)
+    UniswapV2CoreERC20UnderFlow4 = 9,
+    /// 65,546 for (UniswapV2 Core ERC20 UnderFlow5)
+    UniswapV2CoreERC20UnderFlow5 = 10,
 }
 
 impl From<Error> for ApiError {
@@ -126,7 +139,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         let spender_allowance: U256 = allowances.get(&owner, &spender);
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(Error::UniswapV2CoreERC20OverFlow)
+            .ok_or(Error::UniswapV2CoreERC20OverFlow1)
             .unwrap_or_revert();
 
         if owner != spender {
@@ -278,7 +291,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 });
             } else {
                 //signature verification failed
-                runtime::revert(Error::UniswapV2CoreERC20SignatureVerificatFailed);
+                runtime::revert(Error::UniswapV2CoreERC20SignatureVerificatationFailed);
             }
         } else {
             //deadline is equal to or greater than blocktime
@@ -293,13 +306,13 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
             &recipient,
             balance
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreERC20OverFlow)
+                .ok_or(Error::UniswapV2CoreERC20OverFlow2)
                 .unwrap_or_revert(),
         );
         data::set_total_supply(
             data::total_supply()
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreERC20OverFlow)
+                .ok_or(Error::UniswapV2CoreERC20OverFlow3)
                 .unwrap_or_revert(),
         );
         let address_0: Key = Key::from_formatted_str(
@@ -374,7 +387,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
             &recipient,
             recipient_balance
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreERC20OverFlow)
+                .ok_or(Error::UniswapV2CoreERC20OverFlow4)
                 .unwrap_or_revert(),
         );
         self.emit(&ERC20Event::Transfer {

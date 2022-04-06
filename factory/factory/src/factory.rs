@@ -32,12 +32,22 @@ impl FACTORYEvent {
 }
 #[repr(u16)]
 pub enum Error {
-    UniswapV2FactoryZeroAddress = 6,
-    UniswapV2FactoryPairExists = 7,
-    UniswapV2Forbidden = 8,
-    UniswapV2FactoryIdenticalAddresses = 9,
-    UniswapV2FactoryNotInWhiteList = 10,
-    UniswapV2FactoryNotOwner = 11,
+    /// 65,555 for (UniswapV2 Factory Zero Address)
+    UniswapV2FactoryZeroAddress = 20,
+    /// 65,556 for (UniswapV2 Factory Pair Exists1)
+    UniswapV2FactoryPairExists1 = 21,
+    /// 65,557 for (UniswapV2 Factory Pair Exists2)
+    UniswapV2FactoryPairExists2 = 22,
+    /// 65,558 for (UniswapV2 Factory Forbidden1)
+    UniswapV2FactoryForbidden1 = 23,
+    /// 65,559 for (UniswapV2 Factory Forbidden2)
+    UniswapV2FactoryForbidden2 = 24,
+    /// 65,560 for (UniswapV2 Factory Identical Addresses)
+    UniswapV2FactoryIdenticalAddresses = 25,
+    /// 65,561 for (UniswapV2 Factory Not In White List)
+    UniswapV2FactoryNotInWhiteList = 26,
+    /// 65,562 for (UniswapV2 Factory Not Owner)
+    UniswapV2FactoryNotOwner = 27,
 }
 
 impl From<Error> for ApiError {
@@ -95,10 +105,10 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             let pair_0_1_key: Key = self.get_pair(token0, token1);
             let pair_1_0_key: Key = self.get_pair(token1, token0);
             if pair_0_1_key != address_0 {
-                runtime::revert(Error::UniswapV2FactoryPairExists);
+                runtime::revert(Error::UniswapV2FactoryPairExists1);
             }
             if pair_1_0_key != address_0 {
-                runtime::revert(Error::UniswapV2FactoryPairExists);
+                runtime::revert(Error::UniswapV2FactoryPairExists2);
             }
             //convert Key to ContractHash
             let pair_hash_add_array = match pair_hash {
@@ -140,7 +150,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn set_fee_to(&mut self, fee_to: Key) {
         if self.get_caller() != self.get_fee_to_setter() {
-            runtime::revert(Error::UniswapV2Forbidden);
+            runtime::revert(Error::UniswapV2FactoryForbidden1);
         }
         data::set_fee_to(fee_to);
     }
@@ -151,7 +161,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn set_fee_to_setter(&mut self, fee_to_setter: Key) {
         if self.get_caller() != self.get_fee_to_setter() {
-            runtime::revert(Error::UniswapV2Forbidden);
+            runtime::revert(Error::UniswapV2FactoryForbidden2);
         }
         data::set_fee_to_setter(fee_to_setter);
     }
