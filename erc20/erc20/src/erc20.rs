@@ -48,8 +48,8 @@ impl ERC20Event {
 pub enum Error {
     /// 65,536 for (UniswapV2 Core ERC20 EXPIRED)
     UniswapV2CoreERC20EXPIRED = 0,
-    /// 65,537 for (UniswapV2 Core ERC20 Signature Verificatation Failed)
-    UniswapV2CoreERC20SignatureVerificatationFailed = 1,
+    /// 65,537 for (UniswapV2 Core ERC20 Signature Verification Failed)
+    UniswapV2CoreERC20SignatureVerificationFailed = 1,
     /// 65,538 for (UniswapV2 Core ERC20 OverFlow1)
     UniswapV2CoreERC20OverFlow1 = 2,
     /// 65,539 for (UniswapV2 Core ERC20 OverFlow2)
@@ -291,7 +291,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 });
             } else {
                 //signature verification failed
-                runtime::revert(Error::UniswapV2CoreERC20SignatureVerificatationFailed);
+                runtime::revert(Error::UniswapV2CoreERC20SignatureVerificationFailed);
             }
         } else {
             //deadline is equal to or greater than blocktime
