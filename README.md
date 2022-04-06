@@ -1,3 +1,4 @@
+- [Build and Test][![Rust](https://github.com/Scytalelabs-official/test/actions/workflows/rust.yml/badge.svg?branch=main)](https://github.com/Scytalelabs-official/test/actions/workflows/rust.yml)
 # Uniswap V2 Core - Casper Blockchain
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
