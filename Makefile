@@ -37,7 +37,7 @@ clean:
 	# clean wcspr
 	cd ${wcspr_contract} && make clean
 
-	clean factory
+	#clean factory
 	cd ${factory_contract} && make clean
 
 	# clean flash swapper
@@ -72,7 +72,7 @@ copy-wasm-file:
 # run all tests sequentially
 test:
 	# Test ERC20
-	cd ${erc20_contract} && make test
+	# cd ${erc20_contract} && make test
 
 	# Test WCSPR
 	cd ${wcspr_contract} && make test

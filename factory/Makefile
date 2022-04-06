@@ -1,12 +1,12 @@
-# uniswap_core_directory = ../
+uniswap_core_directory = ../
 
-# erc20_contract = ${uniswap_core_directory}erc20/
-# factory_contract = ${uniswap_core_directory}factory/
-# flash_swapper_contract = ${uniswap_core_directory}flashswapper/
-# pair_contract = ${uniswap_core_directory}pair/
-# wcspr_contract = ${uniswap_core_directory}wcspr/
+erc20_contract = ${uniswap_core_directory}erc20/
+factory_contract = ${uniswap_core_directory}factory/
+flash_swapper_contract = ${uniswap_core_directory}flashswapper/
+pair_contract = ${uniswap_core_directory}pair/
+wcspr_contract = ${uniswap_core_directory}wcspr/
 
-# wasm_src_path = target/wasm32-unknown-unknown/release/
+wasm_src_path = target/wasm32-unknown-unknown/release/
 
 
 prepare:
