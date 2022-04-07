@@ -72,13 +72,13 @@ copy-wasm-file:
 # run all tests sequentially
 test:
 	# Test ERC20
-	# cd ${erc20_contract} && make test
+	cd ${erc20_contract} && make test
 
 	# Test WCSPR
 	cd ${wcspr_contract} && make test
 
-	# # Test Factory
-	# cd ${factory_contract} && make test
+	# Test Factory
+	cd ${factory_contract} && make test
 
 	# Test Flashswapper
 	cd ${flash_swapper_contract} && make test

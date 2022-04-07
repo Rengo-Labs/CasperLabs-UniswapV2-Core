@@ -62,7 +62,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         fee_to_setter: Key,
         all_pairs: Vec<Key>,
         contract_hash: Key,
-        package_hash: ContractPackageHash,
+        package_hash: Key,
     ) {
         data::set_fee_to_setter(fee_to_setter);
         data::set_owner(self.get_caller());
@@ -120,9 +120,9 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 pair_package_hash,
                 None,
                 "initialize",
-                runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
+                runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_package_hash() },
             );
-            
+
             // handling the pair creation by updating the storage
             self.set_pair(token0, token1, pair_hash);
             self.set_pair(token1, token0, pair_hash);
@@ -211,7 +211,11 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    fn get_package_hash(&mut self) -> ContractPackageHash {
-        data::get_package_hash()
+    fn get_package_hash(&mut self) -> [u8; 32] {
+        let ret_add_array = match data::get_package_hash() {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        ret_add_array
     }
 }

@@ -11,7 +11,7 @@ use casper_contract::{
 };
 use casper_types::{
     runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
+    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, ContractPackage,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use factory::{self, FACTORY};
@@ -39,7 +39,7 @@ impl Factory {
             fee_to_setter,
             all_pairs,
             Key::from(contract_hash),
-            package_hash,
+            Key::from(package_hash),
         );
     }
 }
@@ -170,7 +170,7 @@ fn set_white_list() {
 
 #[no_mangle]
 fn package_hash() {
-    let ret: ContractPackageHash = Factory::default().get_package_hash();
+    let ret: [u8; 32] = Factory::default().get_package_hash();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 

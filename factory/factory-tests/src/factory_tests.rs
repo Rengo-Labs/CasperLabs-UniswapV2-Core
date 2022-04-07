@@ -1,6 +1,8 @@
 use std::collections::BTreeMap;
 
-use casper_types::{account::AccountHash, Key, U256, ContractPackageHash, RuntimeArgs,runtime_args};
+use casper_types::{
+    account::AccountHash, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256,
+};
 use test_env::{TestContract, TestEnv};
 
 use crate::factory_instance::FACTORYInstance;
@@ -27,7 +29,7 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
         runtime_args! {
             "wcspr" => Key::Hash(wcspr.package_hash()),
             "dai" => Key::Hash(dai.package_hash()),
-            "uniswap_v2_factory" => token.self_contract_hash()
+            "uniswap_v2_factory" => token.contract_package_hash()
         },
     );
     let pair_contract = TestContract::new(
@@ -40,8 +42,8 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
         "symbol" => symbol,
         "decimals" => decimals,
         "initial_supply" => init_total_supply,
-        "callee_contract_hash" => Key::Hash(callee_contract.contract_hash()),
-        "factory_hash" => token.self_contract_hash(),
+        "callee_package_hash" => Key::Hash(callee_contract.package_hash()),
+        "factory_hash" =>  token.contract_package_hash(),
             // contract_name is passed seperately, so we don't need to pass it here.
         },
     );
