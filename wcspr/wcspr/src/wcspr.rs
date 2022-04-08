@@ -22,11 +22,11 @@ pub enum Error {
     UniswapV2CoreWCSPROverFlow5 = 15,
     /// 65,552 for (UniswapV2 Core WCSPR UnderFlow1)
     UniswapV2CoreWCSPRUnderFlow1 = 16,
-    /// 65,552 for (UniswapV2 Core WCSPR UnderFlow2)
+    /// 65,553 for (UniswapV2 Core WCSPR UnderFlow2)
     UniswapV2CoreWCSPRUnderFlow2 = 17,
-    /// 65,553 for (UniswapV2 Core WCSPR UnderFlow3)
+    /// 65,554 for (UniswapV2 Core WCSPR UnderFlow3)
     UniswapV2CoreWCSPRUnderFlow3 = 18,
-    /// 65,554 for (UniswapV2 Core WCSPR UnderFlow4)
+    /// 65,555 for (UniswapV2 Core WCSPR UnderFlow4)
     UniswapV2CoreWCSPRUnderFlow4 = 19,
 }
 

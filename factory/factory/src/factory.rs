@@ -32,21 +32,21 @@ impl FACTORYEvent {
 }
 #[repr(u16)]
 pub enum Error {
-    /// 65,555 for (UniswapV2 Factory Zero Address)
+    /// 65,556 for (UniswapV2 Factory Zero Address)
     UniswapV2FactoryZeroAddress = 20,
-    /// 65,556 for (UniswapV2 Factory Pair Exists1)
+    /// 65,557 for (UniswapV2 Factory Pair Exists1)
     UniswapV2FactoryPairExists1 = 21,
-    /// 65,557 for (UniswapV2 Factory Pair Exists2)
+    /// 65,558 for (UniswapV2 Factory Pair Exists2)
     UniswapV2FactoryPairExists2 = 22,
-    /// 65,558 for (UniswapV2 Factory Forbidden1)
+    /// 65,559 for (UniswapV2 Factory Forbidden1)
     UniswapV2FactoryForbidden1 = 23,
-    /// 65,559 for (UniswapV2 Factory Forbidden2)
+    /// 65,560 for (UniswapV2 Factory Forbidden2)
     UniswapV2FactoryForbidden2 = 24,
-    /// 65,560 for (UniswapV2 Factory Identical Addresses)
+    /// 65,561 for (UniswapV2 Factory Identical Addresses)
     UniswapV2FactoryIdenticalAddresses = 25,
-    /// 65,561 for (UniswapV2 Factory Not In White List)
+    /// 65,562 for (UniswapV2 Factory Not In White List)
     UniswapV2FactoryNotInWhiteList = 26,
-    /// 65,562 for (UniswapV2 Factory Not Owner)
+    /// 65,563 for (UniswapV2 Factory Not Owner)
     UniswapV2FactoryNotOwner = 27,
 }
 

@@ -108,59 +108,59 @@ impl PAIREvent {
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,563 for (UniswapV2 Core Pair Expire)
+    /// 65,564 for (UniswapV2 Core Pair Expire)
     UniswapV2CorePairExpire = 28,
-    /// 65,564 for (UniswapV2 Core Pair Forbidden)
+    /// 65,565 for (UniswapV2 Core Pair Forbidden)
     UniswapV2CorePairForbidden = 29,
-    /// 65,565 for (UniswapV2 Core Pair Failed Verification)
+    /// 65,566 for (UniswapV2 Core Pair Failed Verification)
     UniswapV2CorePairFailedVerification = 30,
-    /// 65,566 for (UniswapV2 Core Pair Insufficient Output Amount)
+    /// 65,567 for (UniswapV2 Core Pair Insufficient Output Amount)
     UniswapV2CorePairInsufficientOutputAmount = 31,
-    /// 65,567 for (UniswapV2 Core Pair Insufficient Liquidity)
+    /// 65,568 for (UniswapV2 Core Pair Insufficient Liquidity)
     UniswapV2CorePairInsufficientLiquidity = 32,
-    /// 65,568 for (UniswapV2 Core Pair Invalid To)
+    /// 65,569 for (UniswapV2 Core Pair Invalid To)
     UniswapV2CorePairInvalidTo = 33,
-    /// 65,569 for (UniswapV2 Core Pair Insufficient Input Amount)
+    /// 65,570 for (UniswapV2 Core Pair Insufficient Input Amount)
     UniswapV2CorePairInsufficientInputAmount = 34,
-    /// 65,570 for (UniswapV2 Core Pair Insufficient Converted Balance)
+    /// 65,571 for (UniswapV2 Core Pair Insufficient Converted Balance)
     UniswapV2CorePairInsufficientConvertedBalance = 35,
-    /// 65,571 for (UniswapV2 Core Pair Insufficient Liquidity Minted)
+    /// 65,572 for (UniswapV2 Core Pair Insufficient Liquidity Minted)
     UniswapV2CorePairInsufficientLiquidityMinted = 36,
-    /// 65,572 for (UniswapV2 Core Pair Insufficient Liquidity Burned)
+    /// 65,573 for (UniswapV2 Core Pair Insufficient Liquidity Burned)
     UniswapV2CorePairInsufficientLiquidityBurned = 37,
-    /// 65,573 for (UniswapV2 Core Pair Denominator Is Zero)
+    /// 65,574 for (UniswapV2 Core Pair Denominator Is Zero)
     UniswapV2CorePairDenominatorIsZero = 38,
-    /// 65,574 for (UniswapV2 Core Pair Locked1)
+    /// 65,575 for (UniswapV2 Core Pair Locked1)
     UniswapV2CorePairLocked1 = 39,
-    /// 65,575 for (UniswapV2 Core Pair Locked2)
+    /// 65,576 for (UniswapV2 Core Pair Locked2)
     UniswapV2CorePairLocked2 = 40,
-    /// 65,576 for (UniswapV2 Core Pair UnderFlow1)
+    /// 65,577 for (UniswapV2 Core Pair UnderFlow1)
     UniswapV2CorePairUnderFlow1 = 41,
-    /// 65,577 for (UniswapV2 Core Pair UnderFlow2)
+    /// 65,578 for (UniswapV2 Core Pair UnderFlow2)
     UniswapV2CorePairUnderFlow2 = 42,
-    /// 65,578 for (UniswapV2 Core Pair UnderFlow3)
+    /// 65,579 for (UniswapV2 Core Pair UnderFlow3)
     UniswapV2CorePairUnderFlow3 = 43,
-    /// 65,579 for (UniswapV2 Core Pair UnderFlow4)
+    /// 65,580 for (UniswapV2 Core Pair UnderFlow4)
     UniswapV2CorePairUnderFlow4 = 44,
-    /// 65,580 for (UniswapV2 Core Pair UnderFlow5)
+    /// 65,581 for (UniswapV2 Core Pair UnderFlow5)
     UniswapV2CorePairUnderFlow5 = 45,
-    /// 65,581 for (UniswapV2 Core Pair UnderFlow6)
+    /// 65,582 for (UniswapV2 Core Pair UnderFlow6)
     UniswapV2CorePairUnderFlow6 = 46,
     /// 65,582 for (UniswapV2 Core Pair UnderFlow7)
     UniswapV2CorePairUnderFlow7 = 47,
-    /// 65,583 for (UniswapV2 Core Pair UnderFlow8)
+    /// 65,584 for (UniswapV2 Core Pair UnderFlow8)
     UniswapV2CorePairUnderFlow8 = 48,
-    /// 65,584 for (UniswapV2 Core Pair OverFlow)
+    /// 65,585 for (UniswapV2 Core Pair OverFlow)
     UniswapV2CorePairOverFlow = 49,
-    /// 65,585 for (UniswapV2 Core Pair OverFlow1)
+    /// 65,586 for (UniswapV2 Core Pair OverFlow1)
     UniswapV2CorePairOverFlow1 = 50,
-    /// 65,586 for (UniswapV2 Core Pair OverFlow2)
+    /// 65,587 for (UniswapV2 Core Pair OverFlow2)
     UniswapV2CorePairOverFlow2 = 51,
-    /// 65,587 for (UniswapV2 Core Pair OverFlow3)
+    /// 65,588 for (UniswapV2 Core Pair OverFlow3)
     UniswapV2CorePairOverFlow3 = 52,
-    /// 65,588 for (UniswapV2 Core Pair OverFlo4)
+    /// 65,589 for (UniswapV2 Core Pair OverFlo4)
     UniswapV2CorePairOverFlow4 = 53,
-    /// 65,589 for (UniswapV2 Core Pair OverFlow5)
+    /// 65,590 for (UniswapV2 Core Pair OverFlow5)
     UniswapV2CorePairOverFlow5 = 54,
 
   

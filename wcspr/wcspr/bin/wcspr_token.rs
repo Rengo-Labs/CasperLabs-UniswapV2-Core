@@ -229,7 +229,7 @@ fn package_hash() {
 ///
 
 #[no_mangle]
-fn purse() {
+fn self_purse() {
     let ret: URef = Token::default().purse();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
@@ -441,7 +441,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "purse",
+        "self_purse",
         vec![],
         URef::cl_type(),
         EntryPointAccess::Public,
