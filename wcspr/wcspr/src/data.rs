@@ -68,7 +68,7 @@ pub const SYMBOL: &str = "symbol";
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const SELF_PURSE: &str = "self_purse";
 pub const DECIMALS: &str = "decimals";
-pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
+pub const CONTRACT_PACKAGE_HASH: &str = "self_package_hash";
 pub const TOTAL_SUPPLY: &str = "total_supply";
 
 #[repr(u16)]

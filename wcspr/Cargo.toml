@@ -5,6 +5,8 @@ members = [
   "test-contract",
   "test-contract2",
   "wcspr-tests",
+  "purse-proxy",
+  "invalid-purse-proxy"
 ]
 
 [profile.release]

@@ -13,7 +13,9 @@ use casper_types::{
     U512,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
-use wcspr::{self, WCSPR};
+use wcspr::{
+    data, {self, WCSPR},
+};
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);
@@ -316,6 +318,17 @@ fn decrease_allowance_js_client() {
 
     let _ret: Result<(), u32> = Token::default().decrease_allowance(spender, amount);
 }
+#[no_mangle]
+fn get_main_purse() {
+    let ret: URef = data::get_self_purse();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+#[no_mangle]
+fn get_main_purse_balance() {
+    let ret: U512 = system::get_purse_balance(data::get_self_purse()).unwrap_or_revert();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
@@ -497,6 +510,20 @@ fn get_entry_points() -> EntryPoints {
         "package_hash",
         vec![],
         ContractPackageHash::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_main_purse",
+        vec![],
+        CLType::URef,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_main_purse_balance",
+        vec![],
+        CLType::U512,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));

@@ -4,12 +4,14 @@ use blake2::{
 };
 use casper_types::{
     account::AccountHash, bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key,
-    RuntimeArgs, U256, U512,
+    RuntimeArgs, URef, U256, U512,
 };
 use test_env::{TestContract, TestEnv};
 
 // pub mod constants;
 use crate::constants::*;
+pub const PURSE_PROXY_WASM_SRC: &str = "purse-proxy.wasm";
+pub const INVALID_PURSE_PROXY_WASM_SRC: &str = "invalid-purse-proxy.wasm";
 
 pub struct WCSPRInstance(TestContract);
 impl WCSPRInstance {
@@ -175,6 +177,19 @@ impl WCSPRInstance {
         );
     }
 
+    // gets wcspr's main purse
+    pub fn get_main_purse(&self, sender: AccountHash) -> URef {
+        self.0
+            .call_contract(sender, "get_main_purse", runtime_args! {});
+        self.result()
+    }
+    // gets wcspr's main purse's balance
+    pub fn get_main_purse_balance(&self, sender: AccountHash) -> U512 {
+        self.0
+            .call_contract(sender, "get_main_purse_balance", runtime_args! {});
+        self.result()
+    }
+
     // pub fn deposit(&self, sender: AccountHash, amount:U512, purse: URef) {
     //     self.0.call_contract(sender,"deposit", runtime_args!{
     //         "amount"=>amount,
@@ -195,18 +210,24 @@ impl WCSPRInstance {
         self.0
             .query_named_key(TRANSFER_TEST_RESULT_KEY_NAME.to_string())
     }
-
+    // for test contract
     pub fn package_hash_result(&self) -> ContractPackageHash {
         self.0.query_named_key(PACKAGE_HASH_KEY_NAME.to_string())
     }
 
+    // for test contract
     pub fn contract_hash_result(&self) -> ContractHash {
         self.0.query_named_key(CONTRACT_HASH_KEY_NAME.to_string())
     }
-
+    // for wcspr
     pub fn self_contract_hash_result(&self) -> Key {
         self.0
             .query_named_key(SELF_CONTRACT_HASH_KEY_NAME.to_string())
+    }
+    // for wcspr
+    pub fn self_package_hash_result(&self) -> ContractPackageHash {
+        self.0
+            .query_named_key(SELF_PACKAGE_HASH_KEY_NAME.to_string())
     }
 
     pub fn transfer_from_result(&self) -> Result<(), u32> {
@@ -226,7 +247,7 @@ impl WCSPRInstance {
     pub fn allowance_res(&self) -> U256 {
         self.0.query_named_key("allowance".to_string())
     }
-    pub fn result(&self) -> Result<(), u32> {
+    pub fn result<T: casper_types::bytesrepr::FromBytes + casper_types::CLTyped>(&self) -> T {
         self.0.query_named_key("result".to_string())
     }
 }
@@ -246,4 +267,44 @@ pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
     let mut ret = [0u8; 32];
     hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
     hex::encode(ret)
+}
+
+pub fn deploy_purse_proxy(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    destination_package_hash: Key,
+    destination_entrypoint: &str,
+) -> TestContract {
+    TestContract::new(
+        env,
+        PURSE_PROXY_WASM_SRC,
+        "deposit-purse-proxy",
+        sender,
+        runtime_args! {
+            "destination_package_hash"=> destination_package_hash,
+            "amount"=>amount,
+            "destination_entrypoint" => destination_entrypoint
+        },
+    )
+}
+
+pub fn deploy_invalid_purse_proxy(
+    env: &TestEnv,
+    sender: AccountHash,
+    amount: U512,
+    destination_package_hash: Key,
+    destination_entrypoint: &str,
+) -> TestContract {
+    TestContract::new(
+        env,
+        INVALID_PURSE_PROXY_WASM_SRC,
+        "invalid-deposit-purse-proxy",
+        sender,
+        runtime_args! {
+            "destination_package_hash"=> destination_package_hash,
+            "amount"=>amount,
+            "destination_entrypoint" => destination_entrypoint
+        },
+    )
 }

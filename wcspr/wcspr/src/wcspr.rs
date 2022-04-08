@@ -150,43 +150,38 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             return Err(5); // Amount to transfer is 0
         }
 
-        if cspr_amount >= amount_to_transfer {
-            // save received cspr
-            let _ = system::transfer_from_purse_to_purse(
-                purse,
-                contract_self_purse,
-                amount_to_transfer,
-                None,
-            ); // transfers native cspr from source purse to destination purse
+        let _ = system::transfer_from_purse_to_purse(
+            purse,
+            contract_self_purse,
+            amount_to_transfer,
+            None,
+        )
+        .unwrap_or_revert(); // transfers native cspr from source purse to destination purse
 
-            // mint wcspr for the caller
-            let caller = self.get_caller();
-            let balances = Balances::instance();
-            let balance = balances.get(&caller);
-            balances.set(
-                &caller,
-                balance
-                    .checked_add(amount_to_transfer_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow2)
-                    .unwrap_or_revert(),
-            );
+        // mint wcspr for the caller
+        let caller = self.get_caller();
+        let balances = Balances::instance();
+        let balance = balances.get(&caller);
+        balances.set(
+            &caller,
+            balance
+                .checked_add(amount_to_transfer_u256)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow2)
+                .unwrap_or_revert(),
+        );
 
-            // update total supply
-            data::set_totalsupply(
-                data::get_totalsupply()
-                    .checked_add(amount_to_transfer_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow3)
-                    .unwrap_or_revert(),
-            );
+        // update total supply
+        data::set_totalsupply(
+            data::get_totalsupply()
+                .checked_add(amount_to_transfer_u256)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow3)
+                .unwrap_or_revert(),
+        );
 
-            self.emit(&WcsprEvents::Deposit {
-                src_purse: purse,
-                amount: amount_to_transfer,
-            });
-        } else {
-            return Err(2); // insufficient balance
-                           // runtime::revert(MintError::InsufficientFunds);
-        }
+        self.emit(&WcsprEvents::Deposit {
+            src_purse: purse,
+            amount: amount_to_transfer,
+        });
 
         Ok(())
     }
@@ -202,42 +197,36 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         }
 
         let contract_main_purse = data::get_self_purse();
-        let main_purse_balance: U512 =
-            system::get_purse_balance(contract_main_purse).unwrap_or_revert();
 
-        if balance >= cspr_amount_u256 && amount <= main_purse_balance.into() {
-            system::transfer_from_purse_to_purse(
-                // transfer native cspr from purse to account
-                contract_main_purse,
-                recipient_purse,
-                amount,
-                None,
-            )
-            .unwrap_or_revert();
+        system::transfer_from_purse_to_purse(
+            // transfer native cspr from purse to account
+            contract_main_purse,
+            recipient_purse,
+            amount,
+            None,
+        )
+        .unwrap_or_revert();
 
-            balances.set(
-                &caller,
-                balance
-                    .checked_sub(cspr_amount_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPRUnderFlow3)
-                    .unwrap_or_revert(),
-            );
+        balances.set(
+            &caller,
+            balance
+                .checked_sub(cspr_amount_u256)
+                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow3)
+                .unwrap_or_revert(),
+        );
 
-            // update total supply
-            data::set_totalsupply(
-                data::get_totalsupply()
-                    .checked_sub(cspr_amount_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow4)
-                    .unwrap_or_revert(),
-            );
+        // update total supply
+        data::set_totalsupply(
+            data::get_totalsupply()
+                .checked_sub(cspr_amount_u256)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow4)
+                .unwrap_or_revert(),
+        );
 
-            self.emit(&WcsprEvents::Withdraw {
-                recipient_purse: recipient_purse,
-                amount: amount,
-            });
-        } else {
-            return Err(2); // insufficient Balance
-        }
+        self.emit(&WcsprEvents::Withdraw {
+            recipient_purse: recipient_purse,
+            amount: amount,
+        });
 
         Ok(())
     }

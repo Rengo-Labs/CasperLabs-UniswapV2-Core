@@ -6,8 +6,8 @@ name = "test"
 version = "0.1.0"
 
 [dependencies]
-casper-contract = "1.4.3"
-casper-types = "1.4.6"
+casper-contract = "1.4.4"
+casper-types = "1.5.0"
 
 [[bin]]
 bench = false
