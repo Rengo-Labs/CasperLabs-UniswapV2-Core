@@ -1,7 +1,7 @@
 use casper_types::{account::AccountHash, Key, U256};
 use test_env::{TestContract, TestEnv};
 
-use crate::erc20_instance::{ERC20Instance};
+use crate::erc20_instance::ERC20Instance;
 
 const NAME: &str = "ERC20";
 const SYMBOL: &str = "ERC";

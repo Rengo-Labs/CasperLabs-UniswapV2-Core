@@ -10,8 +10,9 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, ContractPackage,
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackage, ContractPackageHash,
+    EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs,
+    URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
 use factory::{self, FACTORY};
@@ -51,7 +52,7 @@ fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
 
-   Factory::default().constructor(fee_to_setter, all_pairs, contract_hash, package_hash);
+    Factory::default().constructor(fee_to_setter, all_pairs, contract_hash, package_hash);
 }
 
 /// This function is to return the fee to's hash
@@ -176,13 +177,11 @@ fn package_hash() {
 
 #[no_mangle]
 fn call() {
-
     // Contract name must be same for all new versions of the contracts
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-    
+
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
-
         // Build new package with initial a first version of the contract.
         let (package_hash, access_token) = storage::create_contract_package_at_hash();
         let (contract_hash, _) =
@@ -237,17 +236,18 @@ fn call() {
             &format!("{}_package_access_token", contract_name),
             access_token.into(),
         );
-    }
-    else {          // this is a contract upgrade
+    } else {
+        // this is a contract upgrade
 
-        let package_hash: ContractPackageHash = runtime::get_key(&format!("{}_package_hash", contract_name))
-                                                            .unwrap_or_revert()
-                                                            .into_hash()
-                                                            .unwrap()
-                                                            .into();
+        let package_hash: ContractPackageHash =
+            runtime::get_key(&format!("{}_package_hash", contract_name))
+                .unwrap_or_revert()
+                .into_hash()
+                .unwrap()
+                .into();
 
         let (contract_hash, _): (ContractHash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
         // update contract hash
         runtime::put_key(
@@ -260,7 +260,6 @@ fn call() {
         );
     }
 }
-
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();

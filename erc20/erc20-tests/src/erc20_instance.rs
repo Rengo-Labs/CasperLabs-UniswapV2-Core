@@ -215,14 +215,17 @@ impl ERC20Instance {
             .query_dictionary("allowances", keys_to_str(&owner, &spender))
             .unwrap_or_default()
     }
-    pub fn allowance_package_hash<T: Into<Key>>(&self, owner: ContractPackageHash, spender: T) -> U256 {
+    pub fn allowance_package_hash<T: Into<Key>>(
+        &self,
+        owner: ContractPackageHash,
+        spender: T,
+    ) -> U256 {
         let owner: Key = owner.into();
         let spender: Key = spender.into();
         self.0
             .query_dictionary("allowances", keys_to_str(&owner, &spender))
             .unwrap_or_default()
     }
-    
 
     pub fn name(&self) -> String {
         self.0.query_named_key(String::from("name"))
@@ -265,10 +268,12 @@ impl ERC20Instance {
     }
 
     pub fn increase_allowance_res(&self) -> Result<(), u32> {
-        self.0.query_named_key("increase_allowance_result".to_string())
+        self.0
+            .query_named_key("increase_allowance_result".to_string())
     }
     pub fn decrease_allowance_res(&self) -> Result<(), u32> {
-        self.0.query_named_key("decrease_allowance_result".to_string())
+        self.0
+            .query_named_key("decrease_allowance_result".to_string())
     }
 
     pub fn meta(&self) -> Meta {

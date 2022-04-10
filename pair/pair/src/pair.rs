@@ -162,8 +162,6 @@ pub enum Error {
     UniswapV2CorePairOverFlow4 = 53,
     /// 65,590 for (UniswapV2 Core Pair OverFlow5)
     UniswapV2CorePairOverFlow5 = 54,
-
-  
 }
 
 impl From<Error> for ApiError {
@@ -848,7 +846,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         );
         let amount0: U256 = balance0
             .checked_sub(U256::from(reserve0.as_u128()))
-            .ok_or(Error::UniswapV2CorePairUnderFlow6)   
+            .ok_or(Error::UniswapV2CorePairUnderFlow6)
             .unwrap_or_revert();
         let amount1: U256 = balance1
             .checked_sub(U256::from(reserve1.as_u128()))

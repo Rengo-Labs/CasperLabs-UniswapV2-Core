@@ -337,13 +337,28 @@ fn test_pair_skim() {
     let amount0: U256 = 1000.into();
     let amount1: U256 = 1000.into();
 
-    token.initialize(owner, token0_package_hash, token1_package_hash, factory_hash);
+    token.initialize(
+        owner,
+        token0_package_hash,
+        token1_package_hash,
+        factory_hash,
+    );
     assert_eq!(token.token0(), token0_package_hash);
     assert_eq!(token.token1(), token1_package_hash);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(owner, token0_contract_hash, Key::from(token.self_package_hash()), amount0);
-    proxy.mint_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()), amount1);
+    proxy.mint_with_caller(
+        owner,
+        token0_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount0,
+    );
+    proxy.mint_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount1,
+    );
     token.skim(owner, user);
 }
 
@@ -353,7 +368,7 @@ fn test_pair_mint() {
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
-    
+
     let token0_contract_hash = Key::Hash(token0.contract_hash());
     let token1_contract_hash = Key::Hash(token1.contract_hash());
     let token0_package_hash = Key::Hash(token0.package_hash());
@@ -362,13 +377,28 @@ fn test_pair_mint() {
     let amount0: U256 = 30000.into();
     let amount1: U256 = 30000.into();
 
-    token.initialize(owner, token0_package_hash, token1_package_hash, factory_hash);
+    token.initialize(
+        owner,
+        token0_package_hash,
+        token1_package_hash,
+        factory_hash,
+    );
     assert_eq!(token.token0(), token0_package_hash);
     assert_eq!(token.token1(), token1_package_hash);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(owner, token0_contract_hash, Key::from(token.self_package_hash()), amount0);
-    proxy.mint_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()), amount1);
+    proxy.mint_with_caller(
+        owner,
+        token0_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount0,
+    );
+    proxy.mint_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount1,
+    );
     token.mint_no_ret(owner, user);
 }
 
@@ -386,19 +416,42 @@ fn test_pair_burn() {
     let amount0: U256 = 30000.into();
     let amount1: U256 = 30000.into();
 
-    token.initialize(owner, token0_package_hash, token1_package_hash, factory_hash);
+    token.initialize(
+        owner,
+        token0_package_hash,
+        token1_package_hash,
+        factory_hash,
+    );
     assert_eq!(token.token0(), token0_package_hash);
     assert_eq!(token.token1(), token1_package_hash);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(owner, token0_contract_hash, Key::from(token.self_package_hash()), amount0);
-    proxy.mint_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()), amount1);
-    proxy.balance_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()));
+    proxy.mint_with_caller(
+        owner,
+        token0_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount0,
+    );
+    proxy.mint_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount1,
+    );
+    proxy.balance_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+    );
     assert_eq!(proxy.balance(), 30000.into());
     assert_eq!(token.total_supply(), 0.into());
     assert_eq!(token.reserve0(), 0.into());
     token.mint_no_ret(owner, Key::from(token.self_package_hash()));
-    proxy.balance_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()));
+    proxy.balance_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+    );
     assert_eq!(proxy.balance(), 30000.into());
 
     assert_eq!(token.total_supply(), 30000.into());
@@ -434,19 +487,34 @@ fn test_pair_sync() {
     let user = env.next_user();
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
-    
+
     let token0_contract_hash = Key::Hash(token0.contract_hash());
     let token1_contract_hash = Key::Hash(token1.contract_hash());
     let token0_package_hash = Key::Hash(token0.package_hash());
     let token1_package_hash = Key::Hash(token1.package_hash());
     let factory_hash = Key::Hash(factory_hash.package_hash());
     let amount: U256 = 50.into();
-    token.initialize(owner, token0_package_hash, token1_package_hash, factory_hash);
+    token.initialize(
+        owner,
+        token0_package_hash,
+        token1_package_hash,
+        factory_hash,
+    );
     assert_eq!(token.factory_hash(), factory_hash);
     assert_eq!(token.token0(), token0_package_hash);
     assert_eq!(token.token1(), token1_package_hash);
-    proxy.mint_with_caller(owner, token0_contract_hash, Key::from(token.self_package_hash()), amount);
-    proxy.mint_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()), amount);
+    proxy.mint_with_caller(
+        owner,
+        token0_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount,
+    );
+    proxy.mint_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount,
+    );
     token.sync(owner);
     assert_eq!(token.total_supply(), INIT_TOTAL_SUPPLY.into());
     assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
@@ -473,19 +541,44 @@ fn test_pair_swap() {
     let amount3: U256 = 40.into();
     let data: &str = "";
 
-    token.initialize(owner, token0_package_hash, token1_package_hash, factory_hash);
+    token.initialize(
+        owner,
+        token0_package_hash,
+        token1_package_hash,
+        factory_hash,
+    );
     assert_eq!(token.token0(), token0_package_hash);
     assert_eq!(token.token1(), token1_package_hash);
     assert_eq!(token.factory_hash(), factory_hash);
 
-    proxy.mint_with_caller(owner, token0_contract_hash, Key::from(token.self_package_hash()), amount0);
-    proxy.mint_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()), amount1);
+    proxy.mint_with_caller(
+        owner,
+        token0_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount0,
+    );
+    proxy.mint_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount1,
+    );
 
     token.sync(owner);
     assert_eq!(token.reserve0(), 2000.into());
     assert_eq!(token.reserve1(), 2000.into());
-    proxy.mint_with_caller(owner, token0_contract_hash, Key::from(token.self_package_hash()), amount);
-    proxy.mint_with_caller(owner, token1_contract_hash, Key::from(token.self_package_hash()), amount);
+    proxy.mint_with_caller(
+        owner,
+        token0_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount,
+    );
+    proxy.mint_with_caller(
+        owner,
+        token1_contract_hash,
+        Key::from(token.self_package_hash()),
+        amount,
+    );
     token.swap(owner, amount2, amount3, user, data);
 }
 

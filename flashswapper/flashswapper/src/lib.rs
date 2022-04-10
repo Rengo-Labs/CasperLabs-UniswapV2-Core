@@ -2,8 +2,8 @@
 extern crate alloc;
 
 pub mod data;
-mod flashswapper;
 pub mod event;
+mod flashswapper;
 
 pub use contract_utils;
 pub use flashswapper::{Error, FLASHSWAPPER};

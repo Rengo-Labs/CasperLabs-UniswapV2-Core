@@ -34,7 +34,6 @@ pub enum Error {
     UniswapV2CoreFlashSwapperRequestedBorrowTokenIsNotAvailable = 65,
     /// 65,602 for (UniswapV2 Core FlashSwapper Requested Requested Pair Is Not Available)
     UniswapV2CoreFlashSwapperRequestedRequestedPairIsNotAvailable = 66,
-    
 }
 
 impl From<Error> for ApiError {

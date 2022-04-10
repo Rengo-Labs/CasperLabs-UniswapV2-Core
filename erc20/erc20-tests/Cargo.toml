@@ -11,8 +11,8 @@ casper-engine-test-support = { version = "2.0.3", features = ["test-support"] }
 casper-execution-engine = "1.4.2"
 casper-types = "1.4.4"
 casper-hashing = "1.4.3"
-test-env = { path = "../utils/test-env" }
-contract-utils = { path = "../utils/contract-utils" }
+test-env = { path = "../../utils/test-env" }
+contract-utils = { path = "../../utils/contract-utils" }
 hex = "0.4.3"
 blake2 = "0.9.1"
 

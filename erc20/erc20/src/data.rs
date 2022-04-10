@@ -10,7 +10,7 @@ use casper_contract::{
 use casper_types::{system::CallStackElement, ContractPackageHash, Key, URef, U256};
 use contract_utils::{get_key, key_to_str, set_key, Dict};
 
-use crate::{event::ERC20Event, };
+use crate::event::ERC20Event;
 
 const BALANCES_DICT: &str = "balances";
 pub const NONCES_DICT: &str = "nonces";
@@ -25,7 +25,6 @@ pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const DOMAIN_SEPARATOR: &str = "domain_separator";
 pub const PERMIT_TYPE_HASH: &str = "permit_type_hash";
 pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
-
 
 pub struct Balances {
     dict: Dict,

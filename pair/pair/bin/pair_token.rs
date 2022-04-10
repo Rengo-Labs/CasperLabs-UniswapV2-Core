@@ -269,7 +269,6 @@ fn increase_allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
-
 /// This function is to increase the amount of tokens approved for a spender by an owner for jsClient
 ///
 /// # Parameters
