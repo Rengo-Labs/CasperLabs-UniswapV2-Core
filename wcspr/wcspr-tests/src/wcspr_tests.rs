@@ -76,6 +76,7 @@ fn test_wcspr_deposit() {
 }
 
 #[test]
+#[should_panic]
 fn test_wcspr_deposit_too_much() {
     let (env, token, proxy, _, owner) = deploy();
     let depositor = env.next_user();
