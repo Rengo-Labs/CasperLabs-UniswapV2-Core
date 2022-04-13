@@ -1,6 +1,6 @@
 use casper_contract::contract_api::runtime;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{ApiError, ContractPackageHash, Key, URef};
+use casper_types::{ApiError, Key, URef};
 use contract_utils::{get_key, set_key};
 
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";

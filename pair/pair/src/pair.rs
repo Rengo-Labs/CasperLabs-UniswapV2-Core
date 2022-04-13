@@ -525,7 +525,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             >= (reserve0_conversion * reserve1_conversion * reserve_multiply)
                         {
                             self.update(balance0, balance1, reserve0, reserve1);
-                            let eventpair: Key = Key::from(data::get_hash());
+                            let eventpair: Key = Key::from(data::get_package_hash());
                             self.emit(&PAIREvent::Swap {
                                 sender: self.get_caller(),
                                 amount0_in: amount0_in,
@@ -685,7 +685,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
         )
         .unwrap();
-        let eventpair: Key = Key::from(data::get_hash());
+        let eventpair: Key = Key::from(data::get_package_hash());
         self.emit(&PAIREvent::Transfer {
             from: address_0,
             to: recipient,
@@ -715,7 +715,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
             )
             .unwrap();
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Transfer {
                 from: recipient,
                 to: address_0,
@@ -759,7 +759,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 .ok_or(Error::UniswapV2CorePairOverFlow4)
                 .unwrap_or_revert(),
         );
-        let eventpair: Key = Key::from(data::get_hash());
+        let eventpair: Key = Key::from(data::get_package_hash());
         self.emit(&PAIREvent::Transfer {
             from: sender,
             to: recipient,
@@ -882,7 +882,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 data::set_k_last(k_last);
             }
             data::set_liquidity(liquidity); // return liquidity
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Mint {
                 sender: self.get_caller(),
                 amount0: amount0,
@@ -981,7 +981,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             }
             data::set_amount0(amount0);
             data::set_amount1(amount1);
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Burn {
                 sender: self.get_caller(),
                 amount0: amount0,
@@ -1137,7 +1137,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_reserve0(reserve0_conversion);
             data::set_reserve1(reserve1_conversion);
             data::set_block_timestamp_last(block_timestamp);
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Sync {
                 reserve0: reserve0_conversion,
                 reserve1: reserve1_conversion,

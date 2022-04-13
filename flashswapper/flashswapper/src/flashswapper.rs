@@ -1,5 +1,5 @@
 use alloc::{format, string::String, vec::Vec};
-use casper_contract::contract_api::runtime::{self, call_contract};
+use casper_contract::contract_api::runtime::{self};
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
 use casper_types::{
     runtime_args, ApiError, ContractPackageHash, Key, RuntimeArgs, URef, U256, U512,

@@ -4,13 +4,13 @@
 #[macro_use]
 extern crate alloc;
 
-use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec::Vec};
+use alloc::{boxed::Box, collections::BTreeSet, format,  vec::Vec};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackage, ContractPackageHash,
+    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash,
     EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs,
     URef, U256,
 };
@@ -171,7 +171,7 @@ fn set_white_list() {
 
 #[no_mangle]
 fn package_hash() {
-    let ret: [u8; 32] = Factory::default().get_package_hash();
+    let ret: ContractPackageHash = Factory::default().get_package_hash();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 

@@ -4,9 +4,7 @@ use alloc::collections::BTreeMap;
 use alloc::{string::String, vec::Vec};
 use casper_contract::contract_api::runtime;
 use casper_contract::contract_api::storage;
-use casper_types::{
-    runtime_args, ApiError, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef, U256,
-};
+use casper_types::{runtime_args, ApiError, ContractPackageHash, Key, RuntimeArgs, URef, U256};
 use contract_utils::{ContractContext, ContractStorage};
 
 pub enum FACTORYEvent {
@@ -110,7 +108,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             if pair_1_0_key != address_0 {
                 runtime::revert(Error::UniswapV2FactoryPairExists2);
             }
-            //convert Key to ContractHash
+            //convert Key to ContractPackageHash
             let pair_hash_add_array = match pair_hash {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
@@ -187,7 +185,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn emit(&mut self, factory_event: &FACTORYEvent) {
         let mut events = Vec::new();
-        let package = data::get_package_hash();
+        let package = self.get_package_hash();
         match factory_event {
             FACTORYEvent::PairCreated {
                 token0,
@@ -211,11 +209,11 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    fn get_package_hash(&mut self) -> [u8; 32] {
-        let ret_add_array = match data::get_package_hash() {
+    fn get_package_hash(&mut self) -> ContractPackageHash {
+        let package_hash_add_array = match data::get_package_hash() {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        ret_add_array
+        ContractPackageHash::new(package_hash_add_array)
     }
 }

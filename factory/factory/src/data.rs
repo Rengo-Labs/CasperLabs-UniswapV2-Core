@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{ContractPackageHash, Key};
+use casper_types::Key;
 use contract_utils::{get_key, set_key, Dict};
 
 pub const WHITELISTS_DICT: &str = "white_lists";
