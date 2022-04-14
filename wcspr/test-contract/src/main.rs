@@ -10,7 +10,7 @@ extern crate alloc;
 use alloc::{collections::BTreeSet, format, vec};
 
 use casper_contract::{
-    contract_api::{account, runtime, system, storage},
+    contract_api::{account, runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{
@@ -140,7 +140,8 @@ fn increase_allowance() {
         "amount" => amount,
     };
 
-    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "increase_allowance", args);
+    let ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "increase_allowance", args);
+    set_key("result", ret);
 }
 
 #[no_mangle]
@@ -154,7 +155,8 @@ fn decrease_allowance() {
         "amount" => amount,
     };
 
-    let _ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "decrease_allowance", args);
+    let ret: Result<(), u32> = runtime::call_contract(wcspr_hash, "decrease_allowance", args);
+    set_key("result", ret);
 }
 
 #[no_mangle]
@@ -170,6 +172,28 @@ fn approve() {
     let _ret: () = runtime::call_contract(wcspr_hash, "approve", args);
 }
 
+#[no_mangle]
+fn get_main_purse() {
+    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+    let ret: URef = runtime::call_contract(wcspr_hash, "get_main_purse", runtime_args! {});
+    set_key("result", ret);
+}
+
+#[no_mangle]
+fn get_main_purse_balance() {
+    let wcspr_hash: ContractHash = get_key(&WCSPR_HASH_KEY_NAME);
+    let ret: U512 = runtime::call_contract(wcspr_hash, "get_main_purse_balance", runtime_args! {});
+    set_key("result", ret);
+}
+
+// get balance of any purse
+#[no_mangle]
+fn get_purse_balance() {
+    let main_purse: URef = runtime::get_named_arg("purse");
+    let ret: U512 = system::get_purse_balance(main_purse).unwrap_or_revert();
+    set_key("result", ret);
+}
+
 // ================================== Helper functions ============================ //
 fn _create_hash_from_key(key: Key) -> ContractHash {
     ContractHash::from(key.into_hash().unwrap_or_default())
@@ -178,6 +202,27 @@ fn _create_hash_from_key(key: Key) -> ContractHash {
 // ================================ Test Contract Construction =========================== //
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_main_purse",
+        vec![],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_main_purse_balance",
+        vec![],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_purse_balance",
+        vec![],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![

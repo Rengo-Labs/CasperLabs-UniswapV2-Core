@@ -29,7 +29,7 @@ pub const TOKEN1: &str = "token1";
 pub const LIQUIDITY: &str = "liquidity";
 pub const AMOUNT0: &str = "amount0";
 pub const AMOUNT1: &str = "amount1";
-pub const CALLEE_CONTRACT_HASH: &str = "callee_contract_hash";
+pub const CALLEE_PACKAGE_HASH: &str = "callee_package_hash";
 pub const LOCK: &str = "lock";
 
 pub struct Balances {
@@ -279,12 +279,12 @@ pub fn get_amount1() -> U256 {
     get_key(AMOUNT1).unwrap_or_revert()
 }
 
-pub fn set_callee_contract_hash(callee_contract_hash: Key) {
-    set_key(CALLEE_CONTRACT_HASH, callee_contract_hash);
+pub fn set_callee_package_hash(callee_package_hash: Key) {
+    set_key(CALLEE_PACKAGE_HASH, callee_package_hash);
 }
 
-pub fn get_callee_contract_hash() -> Key {
-    get_key(CALLEE_CONTRACT_HASH).unwrap_or_revert()
+pub fn get_callee_package_hash() -> Key {
+    get_key(CALLEE_PACKAGE_HASH).unwrap_or_revert()
 }
 
 pub fn set_lock(lock: u64) {

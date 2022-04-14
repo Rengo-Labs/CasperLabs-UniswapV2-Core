@@ -10,8 +10,7 @@ use crate::alloc::string::ToString;
 use alloc::collections::BTreeMap;
 use casper_types::system::mint::Error as MintError;
 use casper_types::{
-    runtime_args, ApiError, BlockTime, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef,
-    U128, U256,
+    runtime_args, ApiError, BlockTime, ContractPackageHash, Key, RuntimeArgs, URef, U128, U256,
 };
 use contract_utils::{set_key, ContractContext, ContractStorage};
 use cryptoxide::ed25519;
@@ -107,43 +106,68 @@ impl PAIREvent {
     }
 }
 
-/// Enum for FailureCode, It represents codes for different smart contract errors.
 #[repr(u16)]
-pub enum FailureCode {
-    /// 65,536 for (UniswapV2: EXPIRED)
-    Twelve = 12,
-    /// 65,537 for (UniswapV2: FORBIDDEN)
-    Thirteen,
-    /// 65,538 for (signature verification failed)
-    Fourteen,
-    /// 65,539 for (UniswapV2: OVERFLOW)
-    Fifteen,
-    /// 65,540 for (UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT)
-    Sixteen,
-    /// 65,541 for (UniswapV2: INSUFFICIENT_LIQUIDITY)
-    Seventeen,
-    /// 65,542 for (UniswapV2: INVALID_TO)
-    Eighteen,
-    /// 65,543 for (UniswapV2: INSUFFICIENT_INPUT_AMOUNT)
-    Ninteen,
-    /// 65,544 for (UniswapV2: K)
-    Twenty,
-    /// 65,545 for (UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED)
-    TwentyOne,
-    /// 65,546 for (UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED)
-    TwentyTwo,
-    /// 65,547 for (UniswapV2: OVERFLOW)
-    TwentyThree,
-    /// 65,548 for (UniswapV2: UNDERFLOW)
-    TwentyFour,
-    /// 65,549 for (UniswapV2: DENOMINATOR IS ZERO)
-    TwentyFive,
-    /// 65,550 for (UniswapV2: LOCKED)
-    TwentySix,
-    /// 65,551 for (UniswapV2: UNDERFLOW)
-    TwentySeven,
-    /// 65,552 for (UniswapV2: OVERFLOW)
-    TwentyEight,
+pub enum Error {
+    /// 65,564 for (UniswapV2 Core Pair Expire)
+    UniswapV2CorePairExpire = 28,
+    /// 65,565 for (UniswapV2 Core Pair Forbidden)
+    UniswapV2CorePairForbidden = 29,
+    /// 65,566 for (UniswapV2 Core Pair Failed Verification)
+    UniswapV2CorePairFailedVerification = 30,
+    /// 65,567 for (UniswapV2 Core Pair Insufficient Output Amount)
+    UniswapV2CorePairInsufficientOutputAmount = 31,
+    /// 65,568 for (UniswapV2 Core Pair Insufficient Liquidity)
+    UniswapV2CorePairInsufficientLiquidity = 32,
+    /// 65,569 for (UniswapV2 Core Pair Invalid To)
+    UniswapV2CorePairInvalidTo = 33,
+    /// 65,570 for (UniswapV2 Core Pair Insufficient Input Amount)
+    UniswapV2CorePairInsufficientInputAmount = 34,
+    /// 65,571 for (UniswapV2 Core Pair Insufficient Converted Balance)
+    UniswapV2CorePairInsufficientConvertedBalance = 35,
+    /// 65,572 for (UniswapV2 Core Pair Insufficient Liquidity Minted)
+    UniswapV2CorePairInsufficientLiquidityMinted = 36,
+    /// 65,573 for (UniswapV2 Core Pair Insufficient Liquidity Burned)
+    UniswapV2CorePairInsufficientLiquidityBurned = 37,
+    /// 65,574 for (UniswapV2 Core Pair Denominator Is Zero)
+    UniswapV2CorePairDenominatorIsZero = 38,
+    /// 65,575 for (UniswapV2 Core Pair Locked1)
+    UniswapV2CorePairLocked1 = 39,
+    /// 65,576 for (UniswapV2 Core Pair Locked2)
+    UniswapV2CorePairLocked2 = 40,
+    /// 65,577 for (UniswapV2 Core Pair UnderFlow1)
+    UniswapV2CorePairUnderFlow1 = 41,
+    /// 65,578 for (UniswapV2 Core Pair UnderFlow2)
+    UniswapV2CorePairUnderFlow2 = 42,
+    /// 65,579 for (UniswapV2 Core Pair UnderFlow3)
+    UniswapV2CorePairUnderFlow3 = 43,
+    /// 65,580 for (UniswapV2 Core Pair UnderFlow4)
+    UniswapV2CorePairUnderFlow4 = 44,
+    /// 65,581 for (UniswapV2 Core Pair UnderFlow5)
+    UniswapV2CorePairUnderFlow5 = 45,
+    /// 65,582 for (UniswapV2 Core Pair UnderFlow6)
+    UniswapV2CorePairUnderFlow6 = 46,
+    /// 65,582 for (UniswapV2 Core Pair UnderFlow7)
+    UniswapV2CorePairUnderFlow7 = 47,
+    /// 65,584 for (UniswapV2 Core Pair UnderFlow8)
+    UniswapV2CorePairUnderFlow8 = 48,
+    /// 65,585 for (UniswapV2 Core Pair OverFlow)
+    UniswapV2CorePairOverFlow = 49,
+    /// 65,586 for (UniswapV2 Core Pair OverFlow1)
+    UniswapV2CorePairOverFlow1 = 50,
+    /// 65,587 for (UniswapV2 Core Pair OverFlow2)
+    UniswapV2CorePairOverFlow2 = 51,
+    /// 65,588 for (UniswapV2 Core Pair OverFlow3)
+    UniswapV2CorePairOverFlow3 = 52,
+    /// 65,589 for (UniswapV2 Core Pair OverFlo4)
+    UniswapV2CorePairOverFlow4 = 53,
+    /// 65,590 for (UniswapV2 Core Pair OverFlow5)
+    UniswapV2CorePairOverFlow5 = 54,
+}
+
+impl From<Error> for ApiError {
+    fn from(error: Error) -> ApiError {
+        ApiError::User(error as u16)
+    }
 }
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
@@ -165,7 +189,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         k_last: U256,
         treasury_fee: U256,
         minimum_liquidity: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         lock: u64,
     ) {
         data::set_name(name);
@@ -184,7 +208,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_k_last(k_last);
         data::set_treasury_fee(treasury_fee);
         data::set_minimum_liquidity(minimum_liquidity);
-        data::set_callee_contract_hash(callee_contract_hash);
+        data::set_callee_package_hash(callee_package_hash);
         data::set_lock(lock);
         Nonces::init();
         let nonces = Nonces::instance();
@@ -220,19 +244,15 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn increase_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-        let balances = Balances::instance();
-
         let owner: Key = self.get_caller();
 
         let spender_allowance: U256 = allowances.get(&owner, &spender);
-        let owner_balance: U256 = balances.get(&owner);
-
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(ApiError::User(FailureCode::Twelve as u16))
+            .ok_or(Error::UniswapV2CorePairOverFlow1)
             .unwrap_or_revert();
 
-        if new_allowance <= owner_balance && owner != spender {
+        if owner != spender {
             self._approve(owner, spender, new_allowance);
             return Ok(());
         } else {
@@ -249,7 +269,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
         let new_allowance: U256 = spender_allowance
             .checked_sub(amount)
-            .ok_or(ApiError::User(FailureCode::Thirteen as u16))
+            .ok_or(Error::UniswapV2CorePairUnderFlow1)
             .unwrap_or_revert();
 
         if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {
@@ -267,7 +287,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             let spender_allowance: U256 = allowances.get(&owner, &self.get_caller());
             let new_allowance: U256 = spender_allowance
                 .checked_sub(amount)
-                .ok_or(ApiError::User(FailureCode::Thirteen as u16))
+                .ok_or(Error::UniswapV2CorePairUnderFlow2)
                 .unwrap_or_revert();
             if new_allowance >= 0.into()
                 && new_allowance < spender_allowance
@@ -290,7 +310,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let lock = data::get_lock();
         if lock != 0 {
             //UniswapV2: Locked
-            runtime::revert(ApiError::User(FailureCode::TwentySix as u16));
+            runtime::revert(Error::UniswapV2CorePairLocked1);
         }
         data::set_lock(1);
         let token0: Key = self.get_token0();
@@ -298,26 +318,27 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let reserve0: U128 = data::get_reserve0();
         let reserve1: U128 = data::get_reserve1();
         let pair_address: Key = Key::from(data::get_package_hash());
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let token0_hash_add_array = match token0 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-        //convert Key to ContractHash
+        let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+        //convert Key to ContractPackageHash
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
-            token0_contract_hash,
+        let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
+            token0_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-
-        let balance1: U256 = runtime::call_contract(
-            token1_contract_hash,
+        let balance1: U256 = runtime::call_versioned_contract(
+            token1_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
@@ -325,15 +346,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let balance0_conversion: U128 = U128::from(balance0.as_u128());
         let balance1_conversion: U128 = U128::from(balance1.as_u128());
 
-        let _ret: Result<(), u32> = runtime::call_contract(
-            token0_contract_hash,
+        let _ret: Result<(), u32> = runtime::call_versioned_contract(
+            token0_package_hash,
+            None,
             "transfer",
             runtime_args! {"recipient" => to,"amount" => U256::from((balance0_conversion - reserve0).as_u128())},
         );
         match _ret {
             Ok(()) => {
-                let _ret: Result<(), u32> = runtime::call_contract(
-                    token1_contract_hash,
+                let _ret: Result<(), u32> = runtime::call_versioned_contract(
+                    token1_package_hash,
+                    None,
                     "transfer",
                     runtime_args! {"recipient" => to,"amount" => U256::from((balance1_conversion - reserve1).as_u128()), },
                 );
@@ -350,7 +373,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let lock = data::get_lock();
         if lock != 0 {
             //UniswapV2: Locked
-            runtime::revert(ApiError::User(FailureCode::TwentySix as u16));
+            runtime::revert(Error::UniswapV2CorePairLocked1);
         }
         data::set_lock(1);
         let token0: Key = self.get_token0();
@@ -358,25 +381,27 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let reserve0: U128 = data::get_reserve0();
         let reserve1: U128 = data::get_reserve1();
         let pair_address: Key = Key::from(data::get_package_hash());
-        //convert Key to ContractHash
+        //convert Key to ContractPackageHash
         let token0_hash_add_array = match token0 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-        //convert Key to ContractHash
+        let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+        //convert Key to ContractPackageHash
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
-            token0_contract_hash,
+        let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
+            token0_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
-        let balance1: U256 = runtime::call_contract(
-            token1_contract_hash,
+        let balance1: U256 = runtime::call_versioned_contract(
+            token1_package_hash,
+            None,
             "balance_of",
             runtime_args! {"owner" => pair_address},
         );
@@ -396,15 +421,16 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 let token1: Key = self.get_token1();
                 if to != token0 && to != token1 {
                     if amount0_out > zero {
-                        //convert Key to ContractHash
+                        //convert Key to ContractPackageHash
                         // let token0_hash_add_array = match token0 {
                         //     Key::Hash(package) => package,
                         //     _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                         // };
-                        // let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-                        let ret: Result<(), u32> = runtime::call_contract(
-                            // token0_contract_hash,
+                        // let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+                        let ret: Result<(), u32> = runtime::call_versioned_contract(
+                            // token0_package_hash,
                             token0.into_hash().unwrap_or_revert().into(),
+                            None,
                             "transfer",
                             runtime_args! {
                                 "recipient" => to,
@@ -417,14 +443,15 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                         }
                     }
                     if amount1_out > zero {
-                        //convert Key to ContractHash
+                        //convert Key to ContractPackageHash
                         let token1_hash_add_array = match token1 {
                             Key::Hash(package) => package,
                             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                         };
-                        let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-                        let _ret: Result<(), u32> = runtime::call_contract(
-                            token1_contract_hash,
+                        let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+                        let _ret: Result<(), u32> = runtime::call_versioned_contract(
+                            token1_package_hash,
+                            None,
                             "transfer",
                             runtime_args! {"recipient" => to,"amount" => amount1_out}, // optimistically transfer tokens
                         );
@@ -435,40 +462,43 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                     }
                     if data.len() > 0 {
                         let uniswap_v2_callee_address: Key = to;
-                        //convert Key to ContractHash
+                        //convert Key to ContractPackageHash
                         let uniswap_v2_callee_address_hash_add_array =
                             match uniswap_v2_callee_address {
                                 Key::Hash(package) => package,
                                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                             };
-                        let uniswap_v2_callee_contract_hash =
-                            ContractHash::new(uniswap_v2_callee_address_hash_add_array);
+                        let uniswap_v2_callee_package_hash =
+                            ContractPackageHash::new(uniswap_v2_callee_address_hash_add_array);
 
-                        let _result: () = runtime::call_contract(
-                            uniswap_v2_callee_contract_hash,
+                        let _result: () = runtime::call_versioned_contract(
+                            uniswap_v2_callee_package_hash,
+                            None,
                             "uniswap_v2_call",
-                            runtime_args! {"sender" => data::get_callee_contract_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data},
+                            runtime_args! {"sender" => data::get_callee_package_hash(),"amount0" => amount0_out,"amount1" => amount1_out,"data" => data},
                         );
                     }
-                    //convert Key to ContractHash
+                    //convert Key to ContractPackageHash
                     let token0_hash_add_array = match token0 {
                         Key::Hash(package) => package,
                         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                     };
-                    let token0_contract_hash = ContractHash::new(token0_hash_add_array);
-                    //convert Key to ContractHash
+                    let token0_package_hash = ContractPackageHash::new(token0_hash_add_array);
+                    //convert Key to ContractPackageHash
                     let token1_hash_add_array = match token1 {
                         Key::Hash(package) => package,
                         _ => runtime::revert(ApiError::UnexpectedKeyVariant),
                     };
-                    let token1_contract_hash = ContractHash::new(token1_hash_add_array);
-                    let balance0: U256 = runtime::call_contract(
-                        token0_contract_hash,
+                    let token1_package_hash = ContractPackageHash::new(token1_hash_add_array);
+                    let balance0: U256 = runtime::call_versioned_contract(
+                        token0_package_hash,
+                        None,
                         "balance_of",
                         runtime_args! {"owner" => pair_address},
                     );
-                    let balance1: U256 = runtime::call_contract(
-                        token1_contract_hash,
+                    let balance1: U256 = runtime::call_versioned_contract(
+                        token1_package_hash,
+                        None,
                         "balance_of",
                         runtime_args! {"owner" => pair_address},
                     );
@@ -495,7 +525,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             >= (reserve0_conversion * reserve1_conversion * reserve_multiply)
                         {
                             self.update(balance0, balance1, reserve0, reserve1);
-                            let eventpair: Key = Key::from(data::get_hash());
+                            let eventpair: Key = Key::from(data::get_package_hash());
                             self.emit(&PAIREvent::Swap {
                                 sender: self.get_caller(),
                                 amount0_in: amount0_in,
@@ -508,23 +538,23 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             });
                         } else {
                             //UniswapV2: K
-                            runtime::revert(ApiError::User(FailureCode::Twenty as u16));
+                            runtime::revert(Error::UniswapV2CorePairInsufficientConvertedBalance);
                         }
                     } else {
                         //UniswapV2: INSUFFICIENT_INPUT_AMOUNT
-                        runtime::revert(ApiError::User(FailureCode::Ninteen as u16));
+                        runtime::revert(Error::UniswapV2CorePairInsufficientInputAmount);
                     }
                 } else {
                     //UniswapV2: INVALID_TO
-                    runtime::revert(ApiError::User(FailureCode::Eighteen as u16));
+                    runtime::revert(Error::UniswapV2CorePairInvalidTo);
                 }
             } else {
                 //UniswapV2: INSUFFICIENT_LIQUIDITY
-                runtime::revert(ApiError::User(FailureCode::Seventeen as u16));
+                runtime::revert(Error::UniswapV2CorePairInsufficientLiquidity);
             }
         } else {
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
-            runtime::revert(ApiError::User(FailureCode::Sixteen as u16));
+            runtime::revert(Error::UniswapV2CorePairInsufficientOutputAmount);
         }
     }
 
@@ -627,11 +657,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 });
             } else {
                 //signature verification failed
-                runtime::revert(ApiError::User(FailureCode::Fourteen as u16));
+                runtime::revert(Error::UniswapV2CorePairFailedVerification);
             }
         } else {
             //deadline is equal to or greater than blocktime
-            runtime::revert(ApiError::User(FailureCode::Twelve as u16));
+            runtime::revert(Error::UniswapV2CorePairExpire);
         }
     }
 
@@ -642,20 +672,20 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             &recipient,
             balance
                 .checked_add(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyThree as u16))
+                .ok_or(Error::UniswapV2CorePairOverFlow2)
                 .unwrap_or_revert(),
         );
         data::set_total_supply(
             self.total_supply()
                 .checked_add(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyThree as u16))
+                .ok_or(Error::UniswapV2CorePairOverFlow3)
                 .unwrap_or_revert(),
         );
         let address_0: Key = Key::from_formatted_str(
             "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
         )
         .unwrap();
-        let eventpair: Key = Key::from(data::get_hash());
+        let eventpair: Key = Key::from(data::get_package_hash());
         self.emit(&PAIREvent::Transfer {
             from: address_0,
             to: recipient,
@@ -672,20 +702,20 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 &recipient,
                 balance
                     .checked_sub(amount)
-                    .ok_or(ApiError::User(FailureCode::TwentyFour as u16))
+                    .ok_or(Error::UniswapV2CorePairUnderFlow3)
                     .unwrap_or_revert(),
             );
             data::set_total_supply(
                 self.total_supply()
                     .checked_sub(amount)
-                    .ok_or(ApiError::User(FailureCode::TwentyFour as u16))
+                    .ok_or(Error::UniswapV2CorePairUnderFlow4)
                     .unwrap_or_revert(),
             );
             let address_0: Key = Key::from_formatted_str(
                 "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
             )
             .unwrap();
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Transfer {
                 from: recipient,
                 to: address_0,
@@ -719,17 +749,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             &sender,
             sender_balance
                 .checked_sub(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyFour as u16))
+                .ok_or(Error::UniswapV2CorePairUnderFlow5)
                 .unwrap_or_revert(),
         );
         balances.set(
             &recipient,
             recipient_balance
                 .checked_add(amount)
-                .ok_or(ApiError::User(FailureCode::TwentyThree as u16))
+                .ok_or(Error::UniswapV2CorePairOverFlow4)
                 .unwrap_or_revert(),
         );
-        let eventpair: Key = Key::from(data::get_hash());
+        let eventpair: Key = Key::from(data::get_package_hash());
         self.emit(&PAIREvent::Transfer {
             from: sender,
             to: recipient,
@@ -790,44 +820,48 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let token0: Key = data::get_token0();
         let token1: Key = data::get_token1();
-        let pair_contract_hash1: Key = Key::from(data::get_package_hash());
-        let pair_contract_hash2: Key = Key::from(data::get_package_hash());
+        let pair_package_hash1: Key = Key::from(data::get_package_hash());
+        let pair_package_hash2: Key = Key::from(data::get_package_hash());
         let token0_hash_add_array = match token0 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_hash_add = ContractHash::new(token0_hash_add_array);
+        let token0_hash_add = ContractPackageHash::new(token0_hash_add_array);
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_hash_add = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
+        let token1_hash_add = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
             token0_hash_add,
+            None,
             "balance_of",
-            runtime_args! {"owner" => pair_contract_hash1},
+            runtime_args! {"owner" => pair_package_hash1},
         );
-        let balance1: U256 = runtime::call_contract(
+        let balance1: U256 = runtime::call_versioned_contract(
             token1_hash_add,
+            None,
             "balance_of",
-            runtime_args! {"owner" => pair_contract_hash2},
+            runtime_args! {"owner" => pair_package_hash2},
         );
         let amount0: U256 = balance0
             .checked_sub(U256::from(reserve0.as_u128()))
-            .ok_or(ApiError::User(FailureCode::TwentySeven as u16))
+            .ok_or(Error::UniswapV2CorePairUnderFlow6)
             .unwrap_or_revert();
         let amount1: U256 = balance1
             .checked_sub(U256::from(reserve1.as_u128()))
-            .ok_or(ApiError::User(FailureCode::TwentySeven as u16))
+            .ok_or(Error::UniswapV2CorePairUnderFlow7)
             .unwrap_or_revert();
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let total_supply: U256 = self.total_supply(); // gas savings, must be defined here since totalSupply can update in mint_fee
         let minimum_liquidity: U256 = data::get_minimum_liquidity();
         let mut liquidity: U256 = 0.into();
         if total_supply == 0.into() {
-            liquidity = self.sqrt(amount0 * amount1).checked_sub(U256::from(minimum_liquidity.as_u128()))
-            .ok_or(ApiError::User(FailureCode::TwentyEight as u16))
-            .unwrap_or_revert();
+            liquidity = self
+                .sqrt(amount0 * amount1)
+                .checked_sub(U256::from(minimum_liquidity.as_u128()))
+                .ok_or(Error::UniswapV2CorePairUnderFlow8)
+                .unwrap_or_revert();
             self.mint(
                 Key::from_formatted_str(
                     "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
@@ -848,7 +882,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 data::set_k_last(k_last);
             }
             data::set_liquidity(liquidity); // return liquidity
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Mint {
                 sender: self.get_caller(),
                 amount0: amount0,
@@ -858,7 +892,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             liquidity // return liquidity
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
-            runtime::revert(ApiError::User(FailureCode::TwentyOne as u16));
+            runtime::revert(Error::UniswapV2CorePairInsufficientLiquidityMinted);
         }
     }
 
@@ -870,19 +904,21 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token0_hash_add = ContractHash::new(token0_hash_add_array);
+        let token0_hash_add = ContractPackageHash::new(token0_hash_add_array);
         let token1_hash_add_array = match token1 {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let token1_hash_add = ContractHash::new(token1_hash_add_array);
-        let balance0: U256 = runtime::call_contract(
+        let token1_hash_add = ContractPackageHash::new(token1_hash_add_array);
+        let balance0: U256 = runtime::call_versioned_contract(
             token0_hash_add,
+            None,
             "balance_of",
             runtime_args! {"owner" => Key::from(data::get_package_hash())},
         );
-        let balance1: U256 = runtime::call_contract(
+        let balance1: U256 = runtime::call_versioned_contract(
             token1_hash_add,
+            None,
             "balance_of",
             runtime_args! {"owner" => Key::from(data::get_package_hash())},
         );
@@ -895,8 +931,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             self.burn(Key::from(data::get_package_hash()), liquidity);
             // set_key("amount0",amount0);
             // set_key("amount1",amount1);
-            let _ret: Result<(), u32> = runtime::call_contract(
+            let _ret: Result<(), u32> = runtime::call_versioned_contract(
                 token0_hash_add,
+                None,
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount0 },
             );
@@ -904,8 +941,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 Ok(()) => {}
                 Err(e) => runtime::revert(e),
             }
-            let _ret: Result<(), u32> = runtime::call_contract(
+            let _ret: Result<(), u32> = runtime::call_versioned_contract(
                 token1_hash_add,
+                None,
                 "transfer",
                 runtime_args! {"recipient" => to,"amount" => amount1 },
             );
@@ -918,19 +956,21 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let token0_hash_add = ContractHash::new(token0_hash_add_array);
+            let token0_hash_add = ContractPackageHash::new(token0_hash_add_array);
             let token1_hash_add_array = match token1 {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let token1_hash_add = ContractHash::new(token1_hash_add_array);
-            let balance0: U256 = runtime::call_contract(
+            let token1_hash_add = ContractPackageHash::new(token1_hash_add_array);
+            let balance0: U256 = runtime::call_versioned_contract(
                 token0_hash_add,
+                None,
                 "balance_of",
                 runtime_args! {"owner" => Key::from(data::get_package_hash())},
             );
-            let balance1: U256 = runtime::call_contract(
+            let balance1: U256 = runtime::call_versioned_contract(
                 token1_hash_add,
+                None,
                 "balance_of",
                 runtime_args! {"owner" => Key::from(data::get_package_hash())},
             );
@@ -941,7 +981,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             }
             data::set_amount0(amount0);
             data::set_amount1(amount1);
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Burn {
                 sender: self.get_caller(),
                 amount0: amount0,
@@ -952,7 +992,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             (amount0, amount1)
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED
-            runtime::revert(ApiError::User(FailureCode::TwentyTwo as u16));
+            runtime::revert(Error::UniswapV2CorePairInsufficientLiquidityBurned);
         }
     }
 
@@ -963,8 +1003,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             Key::Hash(package) => package,
             _ => runtime::revert(ApiError::UnexpectedKeyVariant),
         };
-        let factory_hash_add = ContractHash::new(factory_hash_add_array);
-        let fee_to: Key = runtime::call_contract(factory_hash_add, "fee_to", runtime_args! {});
+        let factory_hash_add = ContractPackageHash::new(factory_hash_add_array);
+        let fee_to: Key =
+            runtime::call_versioned_contract(factory_hash_add, None, "fee_to", runtime_args! {});
         let mut fee_on: bool = false;
         if fee_to
             != Key::from_formatted_str(
@@ -992,7 +1033,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                         }
                     } else {
                         //UniswapV2: DENOMINATOR IS ZERO
-                        runtime::revert(ApiError::User(FailureCode::TwentyFive as u16));
+                        runtime::revert(Error::UniswapV2CorePairDenominatorIsZero);
                     }
                 }
             }
@@ -1009,7 +1050,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_token1(token1);
         } else {
             //(UniswapV2: FORBIDDEN)
-            runtime::revert(ApiError::User(FailureCode::Thirteen as u16));
+            runtime::revert(Error::UniswapV2CorePairForbidden);
         }
     }
 
@@ -1096,7 +1137,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             data::set_reserve0(reserve0_conversion);
             data::set_reserve1(reserve1_conversion);
             data::set_block_timestamp_last(block_timestamp);
-            let eventpair: Key = Key::from(data::get_hash());
+            let eventpair: Key = Key::from(data::get_package_hash());
             self.emit(&PAIREvent::Sync {
                 reserve0: reserve0_conversion,
                 reserve1: reserve1_conversion,
@@ -1104,7 +1145,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             });
         } else {
             //UniswapV2: OVERFLOW
-            runtime::revert(ApiError::User(FailureCode::Fifteen as u16));
+            runtime::revert(Error::UniswapV2CorePairOverFlow);
         }
     }
     fn emit(&mut self, pair_event: &PAIREvent) {

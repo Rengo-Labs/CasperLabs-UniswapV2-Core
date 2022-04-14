@@ -6,8 +6,8 @@ name = "test"
 version = "0.1.0"
 
 [dependencies]
-casper-contract = "1.3.2"
-casper-types = "1.3.2"
+casper-contract = "1.4.4"
+casper-types = "1.5.0"
 
 [[bin]]
 bench = false
@@ -16,8 +16,8 @@ name = "wcspr-test"
 path = "src/main.rs"
 test = false
 
-[features]
-default = ["casper-contract/std", "casper-types/std"]
+# [features]
+# default = ["casper-contract/std", "casper-types/std"]
 
 [profile.release]
 codegen-units = 1

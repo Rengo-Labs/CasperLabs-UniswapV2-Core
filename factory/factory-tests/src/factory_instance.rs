@@ -1,9 +1,14 @@
+use std::collections::BTreeMap;
+
 use blake2::{
     digest::{Update, VariableOutput},
     VarBlake2b,
 };
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs};
-use test_env::{Sender, TestContract, TestEnv};
+use casper_types::{
+    account::AccountHash, bytesrepr::ToBytes, runtime_args, CLTyped, ContractPackageHash, Key,
+    RuntimeArgs, U256,
+};
+use test_env::{TestContract, TestEnv};
 
 pub struct FACTORYInstance(pub TestContract);
 
@@ -11,7 +16,7 @@ impl FACTORYInstance {
     pub fn new<T: Into<Key>>(
         env: &TestEnv,
         contract_name: &str,
-        sender: Sender,
+        sender: AccountHash,
         fee_to_setter: T,
     ) -> FACTORYInstance {
         FACTORYInstance(TestContract::new(
@@ -25,7 +30,7 @@ impl FACTORYInstance {
         ))
     }
 
-    pub fn constructor<T: Into<Key>>(&self, sender: Sender, fee_to_setter: T) {
+    pub fn constructor<T: Into<Key>>(&self, sender: AccountHash, fee_to_setter: T) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -35,7 +40,7 @@ impl FACTORYInstance {
         );
     }
 
-    pub fn set_fee_to_setter<T: Into<Key>>(&self, sender: Sender, fee_to_setter: T) {
+    pub fn set_fee_to_setter<T: Into<Key>>(&self, sender: AccountHash, fee_to_setter: T) {
         self.0.call_contract(
             sender,
             "set_fee_to_setter",
@@ -45,7 +50,7 @@ impl FACTORYInstance {
         );
     }
 
-    pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T) {
+    pub fn set_fee_to<T: Into<Key>>(&self, sender: AccountHash, fee_to: T) {
         self.0.call_contract(
             sender,
             "set_fee_to",
@@ -55,7 +60,13 @@ impl FACTORYInstance {
         );
     }
 
-    pub fn create_pair<T: Into<Key>>(&self, sender: Sender, token_a: T, token_b: T, pair_hash: T) {
+    pub fn create_pair<T: Into<Key>>(
+        &self,
+        sender: AccountHash,
+        token_a: T,
+        token_b: T,
+        pair_hash: T,
+    ) {
         self.0.call_contract(
             sender,
             "create_pair",
@@ -67,7 +78,7 @@ impl FACTORYInstance {
         );
     }
 
-    pub fn set_white_list<T: Into<Key>>(&self, sender: Sender, white_list: T) {
+    pub fn set_white_list<T: Into<Key>>(&self, sender: AccountHash, white_list: T) {
         self.0.call_contract(
             sender,
             "set_white_list",
@@ -85,6 +96,11 @@ impl FACTORYInstance {
 
     pub fn self_contract_hash(&self) -> Key {
         self.0.query_named_key(String::from("self_contract_hash"))
+    }
+
+    pub fn contract_package_hash(&self) -> Key {
+        self.0
+            .query_named_key(String::from("contract_package_hash"))
     }
 
     pub fn fee_to(&self) -> Key {

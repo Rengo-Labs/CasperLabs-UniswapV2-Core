@@ -1,4 +1,6 @@
+use crate::alloc::string::ToString;
 use crate::data::{self, Allowances, Balances, Nonces};
+use alloc::collections::BTreeMap;
 use alloc::{format, string::String, vec::Vec};
 use casper_contract::contract_api::storage;
 use casper_contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
@@ -10,9 +12,6 @@ use contract_utils::{set_key, ContractContext, ContractStorage};
 use cryptoxide::ed25519;
 use hex::encode;
 use renvm_sig::{hash_message, keccak256};
-
-use crate::alloc::string::ToString;
-use alloc::collections::BTreeMap;
 
 pub enum ERC20Event {
     Approval {
@@ -47,19 +46,28 @@ impl ERC20Event {
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,536 for UniswapV2CoreERC20EXPIRED
+    /// 65,536 for (UniswapV2 Core ERC20 EXPIRED)
     UniswapV2CoreERC20EXPIRED = 0,
-    /// 65,537 for UniswapV2CoreERC20SignatureVerificatFailed
-    UniswapV2CoreERC20SignatureVerificatFailed = 1,
-    /// 65,539 for UniswapV2CoreERC20OverFlow
-    UniswapV2CoreERC20OverFlow = 2,
-    /// 65,539 for UniswapV2CoreERC20UnderFlow
-    UniswapV2CoreERC20UnderFlow1 = 3,
-    UniswapV2CoreERC20UnderFlow2 = 29,
-    UniswapV2CoreERC20UnderFlow3 = 30,
-    UniswapV2CoreERC20UnderFlow4 = 31,
-    UniswapV2CoreERC20UnderFlow5 = 32,
-    UniswapV2CoreERC20UnderFlow6 = 33,
+    /// 65,537 for (UniswapV2 Core ERC20 Signature Verification Failed)
+    UniswapV2CoreERC20SignatureVerificationFailed = 1,
+    /// 65,538 for (UniswapV2 Core ERC20 OverFlow1)
+    UniswapV2CoreERC20OverFlow1 = 2,
+    /// 65,539 for (UniswapV2 Core ERC20 OverFlow2)
+    UniswapV2CoreERC20OverFlow2 = 3,
+    /// 65,540 for (UniswapV2 Core ERC20 OverFlow3)
+    UniswapV2CoreERC20OverFlow3 = 4,
+    /// 65,541 for (UniswapV2 Core ERC20 OverFlow4)
+    UniswapV2CoreERC20OverFlow4 = 5,
+    /// 65,542 for (UniswapV2 Core ERC20 UnderFlow1)
+    UniswapV2CoreERC20UnderFlow1 = 6,
+    /// 65,543 for (UniswapV2 Core ERC20 UnderFlow2)
+    UniswapV2CoreERC20UnderFlow2 = 7,
+    /// 65,544 for (UniswapV2 Core ERC20 UnderFlow3)
+    UniswapV2CoreERC20UnderFlow3 = 8,
+    /// 65,545 for (UniswapV2 Core ERC20 UnderFlow4)
+    UniswapV2CoreERC20UnderFlow4 = 9,
+    /// 65,546 for (UniswapV2 Core ERC20 UnderFlow5)
+    UniswapV2CoreERC20UnderFlow5 = 10,
 }
 
 impl From<Error> for ApiError {
@@ -74,6 +82,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         name: String,
         symbol: String,
         decimals: u8,
+        initial_supply: U256,
         domain_separator: String,
         permit_type_hash: String,
         contract_hash: Key,
@@ -81,16 +90,17 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     ) {
         data::set_name(name);
         data::set_symbol(symbol);
-        data::set_decimals(decimals);
         data::set_domain_separator(domain_separator);
         data::set_permit_type_hash(permit_type_hash);
+        data::set_total_supply(initial_supply);
+        data::set_decimals(decimals);
         data::set_hash(contract_hash);
         data::set_package_hash(package_hash);
         Nonces::init();
         let nonces = Nonces::instance();
         nonces.set(&Key::from(self.get_caller()), U256::from(0));
-        Balances::init();
         Allowances::init();
+        Balances::init();
     }
 
     fn balance_of(&mut self, owner: Key) -> U256 {
@@ -124,19 +134,15 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn increase_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-        let balances = Balances::instance();
-
         let owner: Key = self.get_caller();
 
         let spender_allowance: U256 = allowances.get(&owner, &spender);
-        let owner_balance: U256 = balances.get(&owner);
-
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(Error::UniswapV2CoreERC20OverFlow)
+            .ok_or(Error::UniswapV2CoreERC20OverFlow1)
             .unwrap_or_revert();
 
-        if new_allowance <= owner_balance && owner != spender {
+        if owner != spender {
             self._approve(owner, spender, new_allowance);
             return Ok(());
         } else {
@@ -285,7 +291,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
                 });
             } else {
                 //signature verification failed
-                runtime::revert(Error::UniswapV2CoreERC20SignatureVerificatFailed);
+                runtime::revert(Error::UniswapV2CoreERC20SignatureVerificationFailed);
             }
         } else {
             //deadline is equal to or greater than blocktime
@@ -300,13 +306,13 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
             &recipient,
             balance
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreERC20OverFlow)
+                .ok_or(Error::UniswapV2CoreERC20OverFlow2)
                 .unwrap_or_revert(),
         );
         data::set_total_supply(
             data::total_supply()
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreERC20OverFlow)
+                .ok_or(Error::UniswapV2CoreERC20OverFlow3)
                 .unwrap_or_revert(),
         );
         let address_0: Key = Key::from_formatted_str(
@@ -381,7 +387,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
             &recipient,
             recipient_balance
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreERC20OverFlow)
+                .ok_or(Error::UniswapV2CoreERC20OverFlow4)
                 .unwrap_or_revert(),
         );
         self.emit(&ERC20Event::Transfer {

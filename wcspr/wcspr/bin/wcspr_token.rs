@@ -13,7 +13,9 @@ use casper_types::{
     U512,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
-use wcspr::{self, WCSPR};
+use wcspr::{
+    data, {self, WCSPR},
+};
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);
@@ -159,7 +161,7 @@ fn deposit() {
 ///
 /// * `amount` - A U256 that holds the amount for deposit
 ///
-/// 
+///
 #[no_mangle]
 fn deposit_no_return() {
     let amount: U512 = runtime::get_named_arg("amount");
@@ -229,7 +231,7 @@ fn package_hash() {
 ///
 
 #[no_mangle]
-fn purse() {
+fn self_purse() {
     let ret: URef = Token::default().purse();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
@@ -268,6 +270,22 @@ fn increase_allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to increase the amount of tokens approved for a spender by an owner
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to increment approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn increase_allowance_js_client() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let _ret: Result<(), u32> = Token::default().increase_allowance(spender, amount);
+}
+
 /// This function is to decrease the amount of tokens approved for a spender by an owner
 ///
 /// # Parameters
@@ -282,6 +300,33 @@ fn decrease_allowance() {
     let amount: U256 = runtime::get_named_arg("amount");
 
     let ret: Result<(), u32> = Token::default().decrease_allowance(spender, amount);
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+/// This function is to decrease the amount of tokens approved for a spender by an owner
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to decrement approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn decrease_allowance_js_client() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let _ret: Result<(), u32> = Token::default().decrease_allowance(spender, amount);
+}
+#[no_mangle]
+fn get_main_purse() {
+    let ret: URef = data::get_self_purse();
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+#[no_mangle]
+fn get_main_purse_balance() {
+    let ret: U512 = system::get_purse_balance(data::get_self_purse()).unwrap_or_revert();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
@@ -409,7 +454,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "purse",
+        "self_purse",
         vec![],
         URef::cl_type(),
         EntryPointAccess::Public,
@@ -429,6 +474,16 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "increase_allowance_js_client",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "decrease_allowance",
         vec![
             Parameter::new("spender", Key::cl_type()),
@@ -442,9 +497,33 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+        "decrease_allowance_js_client",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
         "package_hash",
         vec![],
         ContractPackageHash::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_main_purse",
+        vec![],
+        CLType::URef,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_main_purse_balance",
+        vec![],
+        CLType::U512,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -453,13 +532,11 @@ fn get_entry_points() -> EntryPoints {
 
 #[no_mangle]
 fn call() {
-
     // Contract name must be same for all new versions of the contracts
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
-    
         // Build new package with initial a first version of the contract.
         let (package_hash, access_token) = storage::create_contract_package_at_hash();
         let (contract_hash, _) =
@@ -519,17 +596,18 @@ fn call() {
             access_token.into(),
         );
         runtime::put_key(&format!("{}_contract_purse", contract_name), purse.into());
-    }
-    else {          // this is a contract upgrade
+    } else {
+        // this is a contract upgrade
 
-        let package_hash: ContractPackageHash = runtime::get_key(&format!("{}_package_hash", contract_name))
-                                                            .unwrap_or_revert()
-                                                            .into_hash()
-                                                            .unwrap()
-                                                            .into();
+        let package_hash: ContractPackageHash =
+            runtime::get_key(&format!("{}_package_hash", contract_name))
+                .unwrap_or_revert()
+                .into_hash()
+                .unwrap()
+                .into();
 
         let (contract_hash, _): (ContractHash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
         // update contract hash
         runtime::put_key(

@@ -5,6 +5,7 @@ pub const PACKAGE_HASH_KEY_NAME: &str = "package_hash";
 pub const CONTRACT_HASH_KEY_NAME: &str = "contract_hash";
 pub const WCSPR_HASH_KEY_NAME: &str = "wcspr_hash";
 pub const SELF_CONTRACT_HASH_KEY_NAME: &str = "self_contract_hash";
+pub const SELF_PACKAGE_HASH_KEY_NAME: &str = "self_package_hash";
 
 /// Name of named-key for `name`.
 pub const NAME_KEY_NAME: &str = "name";
@@ -28,7 +29,7 @@ pub const WITHDRAW_TEST_RESULT_KEY_NAME: &str = "withdraw_test_result";
 pub const TRANSFER_TEST_RESULT_KEY_NAME: &str = "transfer_test_result";
 pub const TRANSFER_FROM_TEST_RESULT_KEY_NAME: &str = "transfer_from_test_result";
 pub const ALLOWANCE_KEY_NAME: &str = "allowance";
-pub const BALANCE_OF_KEY_NAME:  &str = "balance_of";
+pub const BALANCE_OF_KEY_NAME: &str = "balance_of";
 
 /// Name of `name` entry point.
 pub const NAME_ENTRY_POINT_NAME: &str = "name";

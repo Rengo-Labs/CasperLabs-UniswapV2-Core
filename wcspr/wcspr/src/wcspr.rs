@@ -10,10 +10,24 @@ use contract_utils::{ContractContext, ContractStorage};
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,540 for UniswapV2CoreWCSPROverFlow
-    UniswapV2CoreWCSPROverFlow = 4,
-    /// 65,541 for UniswapV2CoreWCSPRUnderFlow
-    UniswapV2CoreWCSPRUnderFlow = 5,
+    /// 65,547 for (UniswapV2 Core WCSPR OverFlow1)
+    UniswapV2CoreWCSPROverFlow1 = 11,
+    /// 65,548 for (UniswapV2 Core WCSPR OverFlow2)
+    UniswapV2CoreWCSPROverFlow2 = 12,
+    /// 65,549 for (UniswapV2Core WCSPR Over Flow3)
+    UniswapV2CoreWCSPROverFlow3 = 13,
+    /// 65,550 for (UniswapV2 Core WCSPR OverFlow4)
+    UniswapV2CoreWCSPROverFlow4 = 14,
+    /// 65,551 for (UniswapV2 Core WCSPR OverFlow5)
+    UniswapV2CoreWCSPROverFlow5 = 15,
+    /// 65,552 for (UniswapV2 Core WCSPR UnderFlow1)
+    UniswapV2CoreWCSPRUnderFlow1 = 16,
+    /// 65,553 for (UniswapV2 Core WCSPR UnderFlow2)
+    UniswapV2CoreWCSPRUnderFlow2 = 17,
+    /// 65,554 for (UniswapV2 Core WCSPR UnderFlow3)
+    UniswapV2CoreWCSPRUnderFlow3 = 18,
+    /// 65,555 for (UniswapV2 Core WCSPR UnderFlow4)
+    UniswapV2CoreWCSPRUnderFlow4 = 19,
 }
 
 impl From<Error> for ApiError {
@@ -69,19 +83,15 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn increase_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-        let balances = Balances::instance();
-
         let owner: Key = self.get_caller();
-
         let spender_allowance: U256 = allowances.get(&owner, &spender);
-        let owner_balance: U256 = balances.get(&owner);
 
         let new_allowance: U256 = spender_allowance
             .checked_add(amount)
-            .ok_or(Error::UniswapV2CoreWCSPROverFlow)
+            .ok_or(Error::UniswapV2CoreWCSPROverFlow1)
             .unwrap_or_revert();
 
-        if new_allowance <= owner_balance && owner != spender {
+        if owner != spender {
             self._approve(owner, spender, new_allowance);
             return Ok(());
         } else {
@@ -91,14 +101,12 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn decrease_allowance(&mut self, spender: Key, amount: U256) -> Result<(), u32> {
         let allowances = Allowances::instance();
-
         let owner: Key = self.get_caller();
-
         let spender_allowance: U256 = allowances.get(&owner, &spender);
 
         let new_allowance: U256 = spender_allowance
             .checked_sub(amount)
-            .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
+            .ok_or(Error::UniswapV2CoreWCSPRUnderFlow1)
             .unwrap_or_revert();
 
         if new_allowance >= 0.into() && new_allowance < spender_allowance && owner != spender {
@@ -116,7 +124,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             let spender_allowance: U256 = allowances.get(&owner, &self.get_caller());
             let new_allowance: U256 = spender_allowance
                 .checked_sub(amount)
-                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
+                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow2)
                 .unwrap_or_revert();
             if new_allowance >= 0.into()
                 && new_allowance < spender_allowance
@@ -142,43 +150,38 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             return Err(5); // Amount to transfer is 0
         }
 
-        if cspr_amount >= amount_to_transfer {
-            // save received cspr
-            let _ = system::transfer_from_purse_to_purse(
-                purse,
-                contract_self_purse,
-                amount_to_transfer,
-                None,
-            ); // transfers native cspr from source purse to destination purse
+        let _ = system::transfer_from_purse_to_purse(
+            purse,
+            contract_self_purse,
+            amount_to_transfer,
+            None,
+        )
+        .unwrap_or_revert(); // transfers native cspr from source purse to destination purse
 
-            // mint wcspr for the caller
-            let caller = self.get_caller();
-            let balances = Balances::instance();
-            let balance = balances.get(&caller);
-            balances.set(
-                &caller,
-                balance
-                    .checked_add(amount_to_transfer_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow)
-                    .unwrap_or_revert(),
-            );
+        // mint wcspr for the caller
+        let caller = self.get_caller();
+        let balances = Balances::instance();
+        let balance = balances.get(&caller);
+        balances.set(
+            &caller,
+            balance
+                .checked_add(amount_to_transfer_u256)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow2)
+                .unwrap_or_revert(),
+        );
 
-            // update total supply
-            data::set_totalsupply(
-                data::get_totalsupply()
-                    .checked_add(amount_to_transfer_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow)
-                    .unwrap_or_revert(),
-            );
+        // update total supply
+        data::set_totalsupply(
+            data::get_totalsupply()
+                .checked_add(amount_to_transfer_u256)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow3)
+                .unwrap_or_revert(),
+        );
 
-            self.emit(&WcsprEvents::Deposit {
-                src_purse: purse,
-                amount: amount_to_transfer,
-            });
-        } else {
-            return Err(2); // insufficient balance
-                           // runtime::revert(MintError::InsufficientFunds);
-        }
+        self.emit(&WcsprEvents::Deposit {
+            src_purse: purse,
+            amount: amount_to_transfer,
+        });
 
         Ok(())
     }
@@ -194,42 +197,36 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         }
 
         let contract_main_purse = data::get_self_purse();
-        let main_purse_balance: U512 =
-            system::get_purse_balance(contract_main_purse).unwrap_or_revert();
 
-        if balance >= cspr_amount_u256 && amount <= main_purse_balance.into() {
-            system::transfer_from_purse_to_purse(
-                // transfer native cspr from purse to account
-                contract_main_purse,
-                recipient_purse,
-                amount,
-                None,
-            )
-            .unwrap_or_revert();
+        system::transfer_from_purse_to_purse(
+            // transfer native cspr from purse to account
+            contract_main_purse,
+            recipient_purse,
+            amount,
+            None,
+        )
+        .unwrap_or_revert();
 
-            balances.set(
-                &caller,
-                balance
-                    .checked_sub(cspr_amount_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
-                    .unwrap_or_revert(),
-            );
+        balances.set(
+            &caller,
+            balance
+                .checked_sub(cspr_amount_u256)
+                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow3)
+                .unwrap_or_revert(),
+        );
 
-            // update total supply
-            data::set_totalsupply(
-                data::get_totalsupply()
-                    .checked_sub(cspr_amount_u256)
-                    .ok_or(Error::UniswapV2CoreWCSPROverFlow)
-                    .unwrap_or_revert(),
-            );
+        // update total supply
+        data::set_totalsupply(
+            data::get_totalsupply()
+                .checked_sub(cspr_amount_u256)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow4)
+                .unwrap_or_revert(),
+        );
 
-            self.emit(&WcsprEvents::Withdraw {
-                recipient_purse: recipient_purse,
-                amount: amount,
-            });
-        } else {
-            return Err(2); // insufficient Balance
-        }
+        self.emit(&WcsprEvents::Withdraw {
+            recipient_purse: recipient_purse,
+            amount: amount,
+        });
 
         Ok(())
     }
@@ -250,14 +247,14 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
             &sender,
             sender_balance
                 .checked_sub(amount)
-                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow)
+                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow4)
                 .unwrap_or_revert(),
         );
         balances.set(
             &recipient,
             recipient_balance
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CoreWCSPROverFlow)
+                .ok_or(Error::UniswapV2CoreWCSPROverFlow5)
                 .unwrap_or_revert(),
         );
         self.emit(&WcsprEvents::Transfer {

@@ -1,6 +1,9 @@
-use casper_engine_test_support::AccountHash;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use test_env::{Sender, TestContract, TestEnv};
+use std::collections::BTreeMap;
+
+use casper_types::{
+    account::AccountHash, runtime_args, ContractPackageHash, Key, RuntimeArgs, U256,
+};
+use test_env::{TestContract, TestEnv};
 
 use crate::factory_instance::FACTORYInstance;
 
@@ -10,7 +13,7 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
     let env = TestEnv::new();
     let owner = env.next_user();
     let _env_pair = TestEnv::new();
-    let token = FACTORYInstance::new(&env, NAME_FACTORY, Sender(owner), owner);
+    let token = FACTORYInstance::new(&env, NAME_FACTORY, owner, owner);
     let wcspr = deploy_wcspr(&env);
     let dai = deploy_dai(&env);
     let name: &str = "ERC20";
@@ -20,27 +23,27 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
     let callee_contract = TestContract::new(
         //&env_factory,
         &env,
-        "flash-swapper.wasm",
+        "flashswapper-token.wasm",
         "flash_swapper",
-        Sender(owner),
+        owner,
         runtime_args! {
-            "wcspr" => Key::Hash(wcspr.contract_hash()),
-            "dai" => Key::Hash(dai.contract_hash()),
-            "uniswap_v2_factory" => token.self_contract_hash()
+            "wcspr" => Key::Hash(wcspr.package_hash()),
+            "dai" => Key::Hash(dai.package_hash()),
+            "uniswap_v2_factory" => token.contract_package_hash()
         },
     );
     let pair_contract = TestContract::new(
         &env,
         "pair-token.wasm",
         "Pair",
-        Sender(owner),
+        owner,
         runtime_args! {
         "name" => name,
         "symbol" => symbol,
         "decimals" => decimals,
         "initial_supply" => init_total_supply,
-        "callee_contract_hash" => Key::Hash(callee_contract.contract_hash()),
-        "factory_hash" => token.self_contract_hash(),
+        "callee_package_hash" => Key::Hash(callee_contract.package_hash()),
+        "factory_hash" =>  token.contract_package_hash(),
             // contract_name is passed seperately, so we don't need to pass it here.
         },
     );
@@ -57,7 +60,7 @@ fn deploy_token0(env: &TestEnv) -> TestContract {
         &env,
         "erc20-token.wasm",
         "token0_contract",
-        Sender(token0_owner),
+        token0_owner,
         runtime_args! {
         "initial_supply" => init_total_supply,
         "name" => "token0",
@@ -77,7 +80,7 @@ fn deploy_token1(env: &TestEnv) -> TestContract {
         &env,
         "erc20-token.wasm",
         "token1_contract",
-        Sender(token1_owner),
+        token1_owner,
         runtime_args! {
         "initial_supply" => init_total_supply,
         "name" => "token1",
@@ -97,7 +100,7 @@ fn deploy_wcspr(env: &TestEnv) -> TestContract {
         &env,
         "wcspr-token.wasm",
         "wcspr_contract",
-        Sender(wcspr_owner),
+        wcspr_owner,
         runtime_args! {
         "initial_supply" => init_total_supply,
         "name" => "wcspr",
@@ -116,7 +119,7 @@ fn deploy_dai(env: &TestEnv) -> TestContract {
         &env,
         "wcspr-token.wasm",
         "dai_contract",
-        Sender(dai_owner),
+        dai_owner,
         runtime_args! {
         "initial_supply" => init_total_supply,
         "name" => "dai",
@@ -138,7 +141,7 @@ fn test_factory_set_fee_to_setter() {
     let (env, token, owner, _pair_hash) = deploy();
     let user = env.next_user();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
-    token.set_fee_to_setter(Sender(owner), user);
+    token.set_fee_to_setter(owner, user);
     assert_eq!(token.fee_to_setter(), Key::Account(user));
 }
 
@@ -147,7 +150,7 @@ fn test_factory_set_fee_to() {
     let (env, token, owner, _pair_hash) = deploy();
     let user = env.next_user();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
-    token.set_fee_to(Sender(owner), user);
+    token.set_fee_to(owner, user);
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     assert_eq!(token.fee_to(), Key::Account(user));
 }
@@ -158,16 +161,16 @@ fn test_factory_create_pair() {
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     let token0 = deploy_token0(&env);
     let token1 = deploy_token1(&env);
-    let token0 = Key::Hash(token0.contract_hash());
-    let token1 = Key::Hash(token1.contract_hash());
-    let pair_hash = Key::Hash(pair_hash.contract_hash());
+    let token0 = Key::Hash(token0.package_hash());
+    let token1 = Key::Hash(token1.package_hash());
+    let pair_hash = Key::Hash(pair_hash.package_hash());
     let user = env.next_user();
-    token.set_white_list(Sender(owner), Key::Account(user));
+    token.set_white_list(owner, Key::Account(user));
     assert_eq!(
         token.get_white_lists(Key::Account(user)),
         Key::Account(user)
     );
-    token.create_pair(Sender(user), token0, token1, pair_hash);
+    token.create_pair(user, token0, token1, pair_hash);
     let pair_0_1: Key = token.get_pair(token0, token1);
     let pair_1_0: Key = token.get_pair(token1, token0);
     let all_pairs: Vec<Key> = token.all_pairs();
@@ -182,13 +185,13 @@ fn test_factory_set_white_list() {
     let (env, token, owner, _pair_hash) = deploy();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     let user = env.next_user();
-    token.set_white_list(Sender(owner), Key::Account(user));
+    token.set_white_list(owner, Key::Account(user));
 
     assert_eq!(
         token.get_white_lists(Key::Account(user)),
         Key::Account(user)
     );
-    token.set_white_list(Sender(owner), Key::Account(owner));
+    token.set_white_list(owner, Key::Account(owner));
     assert_eq!(
         token.get_white_lists(Key::Account(owner)),
         Key::Account(owner)
@@ -201,7 +204,7 @@ fn test_factory_set_white_list_with_non_owner() {
     let (env, token, owner, _pair_hash) = deploy();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     let user = env.next_user();
-    token.set_white_list(Sender(user), Key::Account(user));
+    token.set_white_list(user, Key::Account(user));
 }
 
 #[test]
@@ -209,5 +212,5 @@ fn test_factory_set_white_list_with_non_owner() {
 fn test_calling_construction() {
     let (env, token, owner, _pair_hash) = deploy();
     let user = env.next_user();
-    token.constructor(Sender(owner), user);
+    token.constructor(owner, user);
 }

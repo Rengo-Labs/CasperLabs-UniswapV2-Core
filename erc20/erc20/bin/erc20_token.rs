@@ -1,8 +1,10 @@
 #![no_main]
 #![no_std]
 
+#[macro_use]
 extern crate alloc;
-use alloc::{boxed::Box, collections::BTreeSet, format, string::String, vec};
+
+use alloc::{boxed::Box, collections::BTreeSet, format, string::String};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
@@ -12,7 +14,7 @@ use casper_types::{
     EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
 };
 use contract_utils::{ContractContext, OnChainContractStorage};
-use erc20::{self, ERC20};
+use erc20::ERC20;
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);
@@ -24,7 +26,6 @@ impl ContractContext<OnChainContractStorage> for Token {
 }
 
 impl ERC20<OnChainContractStorage> for Token {}
-
 impl Token {
     fn constructor(
         &mut self,
@@ -42,6 +43,7 @@ impl Token {
             name,
             symbol,
             decimals,
+            initial_supply,
             domain_separator,
             permit_type_hash,
             Key::from(contract_hash),
@@ -53,14 +55,15 @@ impl Token {
 
 #[no_mangle]
 fn constructor() {
-    let name: String = runtime::get_named_arg("name");
-    let symbol: String = runtime::get_named_arg("symbol");
+    let name = runtime::get_named_arg::<String>("name");
+    let symbol = runtime::get_named_arg::<String>("symbol");
     let decimals: u8 = runtime::get_named_arg("decimals");
     let initial_supply: U256 = runtime::get_named_arg("initial_supply");
     let domain_separator: String = runtime::get_named_arg("domain_separator");
     let permit_type_hash: String = runtime::get_named_arg("permit_type_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
+
     Token::default().constructor(
         name,
         symbol,
@@ -298,6 +301,22 @@ fn increase_allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to increase the amount of tokens approved for a spender by an owner for jsClient
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to increment approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn increase_allowance_js_client() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let _ret: Result<(), u32> = Token::default().increase_allowance(spender, amount);
+}
+
 /// This function is to decrease the amount of tokens approved for a spender by an owner
 ///
 /// # Parameters
@@ -315,6 +334,22 @@ fn decrease_allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to decrease the amount of tokens approved for a spender by an owner for jsClient
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to decrement approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn decrease_allowance_js_client() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let _ret: Result<(), u32> = Token::default().decrease_allowance(spender, amount);
+}
+
 /// This function is to fetch a Contract Package Hash
 ///
 
@@ -322,6 +357,103 @@ fn decrease_allowance() {
 fn package_hash() {
     let ret: ContractPackageHash = Token::default().get_package_hash();
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+#[no_mangle]
+fn call() {
+    // Contract name must be same for all new versions of the contracts
+    let contract_name: String = runtime::get_named_arg("contract_name");
+
+    // If this is the first deployment
+    if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
+        // Build new package with initial a first version of the contract.
+        let (package_hash, access_token) = storage::create_contract_package_at_hash();
+        let (contract_hash, _) =
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+        // Read arguments for the constructor call.
+        let name: String = runtime::get_named_arg("name");
+        let symbol: String = runtime::get_named_arg("symbol");
+
+        let decimals: u8 = runtime::get_named_arg("decimals");
+        let initial_supply: U256 = runtime::get_named_arg("initial_supply");
+
+        let (domain_separator, permit_type_hash) =
+            Token::default().get_permit_type_and_domain_separator(&name, contract_hash);
+
+        // Prepare constructor args
+        let constructor_args = runtime_args! {
+            "name" => name,
+            "symbol" => symbol,
+             "decimals" => decimals,
+             "initial_supply" => initial_supply,
+             "domain_separator" => domain_separator,
+             "permit_type_hash" => permit_type_hash,
+             "contract_hash" => contract_hash,
+             "package_hash"=> package_hash
+
+        };
+
+        // Add the constructor group to the package hash with a single URef.
+        let constructor_access: URef =
+            storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
+                .unwrap_or_revert()
+                .pop()
+                .unwrap_or_revert();
+
+        // Call the constructor entry point
+        let _: () =
+            runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+
+        // Remove all URefs from the constructor group, so no one can call it for the second time.
+        let mut urefs = BTreeSet::new();
+        urefs.insert(constructor_access);
+        storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
+            .unwrap_or_revert();
+
+        // Store contract in the account's named keys.
+        runtime::put_key(
+            &format!("{}_package_hash", contract_name),
+            package_hash.into(),
+        );
+        runtime::put_key(
+            &format!("{}_package_hash_wrapped", contract_name),
+            storage::new_uref(package_hash).into(),
+        );
+        runtime::put_key(
+            &format!("{}_contract_hash", contract_name),
+            contract_hash.into(),
+        );
+        runtime::put_key(
+            &format!("{}_contract_hash_wrapped", contract_name),
+            storage::new_uref(contract_hash).into(),
+        );
+        runtime::put_key(
+            &format!("{}_package_access_token", contract_name),
+            access_token.into(),
+        );
+    } else {
+        // this is a contract upgrade
+
+        let package_hash: ContractPackageHash =
+            runtime::get_key(&format!("{}_package_hash", contract_name))
+                .unwrap_or_revert()
+                .into_hash()
+                .unwrap()
+                .into();
+
+        let (contract_hash, _): (ContractHash, _) =
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+
+        // update contract hash
+        runtime::put_key(
+            &format!("{}_contract_hash", contract_name),
+            contract_hash.into(),
+        );
+        runtime::put_key(
+            &format!("{}_contract_hash_wrapped", contract_name),
+            storage::new_uref(contract_hash).into(),
+        );
+    }
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -342,6 +474,7 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
         EntryPointType::Contract,
     ));
+
     entry_points.add_entry_point(EntryPoint::new(
         "transfer",
         vec![
@@ -492,103 +625,25 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-
+    entry_points.add_entry_point(EntryPoint::new(
+        "increase_allowance_js_client",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "decrease_allowance_js_client",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
     entry_points
-}
-
-#[no_mangle]
-fn call() {
-
-    // Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-
-    // If this is the first deployment
-    if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
-    
-        // Build new package with initial a first version of the contract.
-        let (package_hash, access_token) = storage::create_contract_package_at_hash();
-        let (contract_hash, _) =
-            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
-
-        let name: String = runtime::get_named_arg("name");
-        let symbol: String = runtime::get_named_arg("symbol");
-        let decimals: u8 = runtime::get_named_arg("decimals");
-        let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-
-        let (domain_separator, permit_type_hash) =
-            Token::default().get_permit_type_and_domain_separator(&name, contract_hash);
-
-        // Prepare constructor args
-        let constructor_args = runtime_args! {
-            "name" => name,
-            "symbol" => symbol,
-            "decimals" => decimals,
-            "initial_supply" => initial_supply,
-            "domain_separator" => domain_separator,
-            "permit_type_hash" => permit_type_hash,
-            "contract_hash" => contract_hash,
-            "package_hash"=> package_hash
-
-        };
-
-        // Add the constructor group to the package hash with a single URef.
-        let constructor_access: URef =
-            storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
-                .unwrap_or_revert()
-                .pop()
-                .unwrap_or_revert();
-
-        // Call the constructor entry point
-        let _: () =
-            runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
-
-        // Remove all URefs from the constructor group, so no one can call it for the second time.
-        let mut urefs = BTreeSet::new();
-        urefs.insert(constructor_access);
-        storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
-            .unwrap_or_revert();
-
-        // Store contract in the account's named keys.
-        runtime::put_key(
-            &format!("{}_package_hash", contract_name),
-            package_hash.into(),
-        );
-        runtime::put_key(
-            &format!("{}_package_hash_wrapped", contract_name),
-            storage::new_uref(package_hash).into(),
-        );
-        runtime::put_key(
-            &format!("{}_contract_hash", contract_name),
-            contract_hash.into(),
-        );
-        runtime::put_key(
-            &format!("{}_contract_hash_wrapped", contract_name),
-            storage::new_uref(contract_hash).into(),
-        );
-        runtime::put_key(
-            &format!("{}_package_access_token", contract_name),
-            access_token.into(),
-        );
-    }
-    else {          // this is a contract upgrade
-
-        let package_hash: ContractPackageHash = runtime::get_key(&format!("{}_package_hash", contract_name))
-                                                            .unwrap_or_revert()
-                                                            .into_hash()
-                                                            .unwrap()
-                                                            .into();
-
-        let (contract_hash, _): (ContractHash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
-
-        // update contract hash
-        runtime::put_key(
-            &format!("{}_contract_hash", contract_name),
-            contract_hash.into(),
-        );
-        runtime::put_key(
-            &format!("{}_contract_hash_wrapped", contract_name),
-            storage::new_uref(contract_hash).into(),
-        );
-    }
 }

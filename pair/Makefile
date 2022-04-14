@@ -1,14 +1,3 @@
-uniswap_core_directory = ../
-
-erc20_contract = ${uniswap_core_directory}erc20/
-factory_contract = ${uniswap_core_directory}factory/
-flash_swapper_contract = ${uniswap_core_directory}flash-swapper/
-pair_contract = ${uniswap_core_directory}pair/
-wcspr_contract = ${uniswap_core_directory}wcspr/
-
-wasm_src_path = target/wasm32-unknown-unknown/release/
-
-
 prepare:
 	rustup target add wasm32-unknown-unknown
 
@@ -29,10 +18,6 @@ test-only:
 
 copy-wasm-file-to-test:
 	cp target/wasm32-unknown-unknown/release/*.wasm pair-tests/wasm
-	cp ${flash_swapper_contract}${wasm_src_path}*.wasm pair-tests/wasm
-	cp ${factory_contract}${wasm_src_path}*.wasm pair-tests/wasm
-	cp ${wcspr_contract}${wasm_src_path}*.wasm pair-tests/wasm
-	cp ${erc20_contract}${wasm_src_path}*.wasm pair-tests/wasm
 
 test: build-contract build-test-contract build-test-contract2 copy-wasm-file-to-test test-only
 

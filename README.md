@@ -81,11 +81,11 @@ There are 5 contracts in this folder
     - [```all_pairs_length```](#factory-all-pairs)
     - [```set_fee_to```](#factory-set-fee-to)
     - [```set_fee_to_setter```](#factory-set-fee-to-setter)
-- [Deploying FLASH SWAPPER contract manually](#deploying-flash-swapper-contract-manually)
-  - [Manual Deployment](#flash-swapper-manual-deployment)
-  - [Entry Point methods](#flash-swapper-entry-point-methods)
-    - [```start_swap```](#flash-swapper-start-swap)
-    - [```uniswap_v2_call```](#flash-swapper-uniswap-v2-call)
+- [Deploying FLASH SWAPPER contract manually](#deploying-flashswapper-contract-manually)
+  - [Manual Deployment](#flashswapper-manual-deployment)
+  - [Entry Point methods](#flashswapper-entry-point-methods)
+    - [```start_swap```](#flashswapper-start-swap)
+    - [```uniswap_v2_call```](#flashswapper-uniswap-v2-call)
 
 
 
@@ -1060,7 +1060,7 @@ Wcspr | Testnet | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1
 Dai | Testnet | `hash-ffb8fa3073c7623484f76d79bc8baad110b24936b92d5ebc854d401895e88c95` | Casper Association
 
 
-### Manual Deployment <a id="flash-swapper-manual-deployment"></a>
+### Manual Deployment <a id="flashswapper-manual-deployment"></a>
 
 For manual deployments of these contracts, following are the commands.
 
@@ -1107,11 +1107,11 @@ sudo casper-client put-deploy \
     --session-arg="contract_name:string='contract_name'"
 ```
 
-## Entry Point methods <a id="flash-swapper-entry-point-methods"></a>
+## Entry Point methods <a id="flashswapper-entry-point-methods"></a>
 
 Following are the Flash Swapper's entry point methods.
 
-- #### start_swap <a id="flash-swapper-start-swap"></a>
+- #### start_swap <a id="flashswapper-start-swap"></a>
 This method will start swap.
 <br>Special Instructions: The user needs to call this (start_swap) method first to call the `uniswap_v2_call` method.
 `Start_swap` method will further call 3 methods
@@ -1136,7 +1136,7 @@ user_data | String
 This method **returns** nothing.
 
 
-- #### uniswap_v2_call <a id="flash-swapper-uniswap-v2-call"></a>
+- #### uniswap_v2_call <a id="flashswapper-uniswap-v2-call"></a>
 This method is called by `swap` method of `pair contract`.
 <br>the sender must be a `Flash Swapper Contract` hash if user data has some value.
 `Uniswap_v2_call` must be called from a contract. Users cannot directly invoke this method.

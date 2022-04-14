@@ -1,6 +1,6 @@
 use alloc::vec::Vec;
 use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{ContractPackageHash, Key};
+use casper_types::Key;
 use contract_utils::{get_key, set_key, Dict};
 
 pub const WHITELISTS_DICT: &str = "white_lists";
@@ -115,11 +115,11 @@ pub fn get_all_pairs() -> Vec<Key> {
     get_key(ALL_PAIRS).unwrap_or_revert()
 }
 
-pub fn set_package_hash(package_hash: ContractPackageHash) {
+pub fn set_package_hash(package_hash: Key) {
     set_key(CONTRACT_PACKAGE_HASH, package_hash);
 }
 
-pub fn get_package_hash() -> ContractPackageHash {
+pub fn get_package_hash() -> Key {
     get_key(CONTRACT_PACKAGE_HASH).unwrap_or_revert()
 }
 

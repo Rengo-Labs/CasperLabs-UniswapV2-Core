@@ -4,9 +4,7 @@ use alloc::collections::BTreeMap;
 use alloc::{string::String, vec::Vec};
 use casper_contract::contract_api::runtime;
 use casper_contract::contract_api::storage;
-use casper_types::{
-    runtime_args, ApiError, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef, U256,
-};
+use casper_types::{runtime_args, ApiError, ContractPackageHash, Key, RuntimeArgs, URef, U256};
 use contract_utils::{ContractContext, ContractStorage};
 
 pub enum FACTORYEvent {
@@ -32,12 +30,22 @@ impl FACTORYEvent {
 }
 #[repr(u16)]
 pub enum Error {
-    UniswapV2FactoryZeroAddress = 6,
-    UniswapV2FactoryPairExists = 7,
-    UniswapV2Forbidden = 8,
-    UniswapV2FactoryIdenticalAddresses = 9,
-    UniswapV2FactoryNotInWhiteList = 10,
-    UniswapV2FactoryNotOwner = 11,
+    /// 65,556 for (UniswapV2 Factory Zero Address)
+    UniswapV2FactoryZeroAddress = 20,
+    /// 65,557 for (UniswapV2 Factory Pair Exists1)
+    UniswapV2FactoryPairExists1 = 21,
+    /// 65,558 for (UniswapV2 Factory Pair Exists2)
+    UniswapV2FactoryPairExists2 = 22,
+    /// 65,559 for (UniswapV2 Factory Forbidden1)
+    UniswapV2FactoryForbidden1 = 23,
+    /// 65,560 for (UniswapV2 Factory Forbidden2)
+    UniswapV2FactoryForbidden2 = 24,
+    /// 65,561 for (UniswapV2 Factory Identical Addresses)
+    UniswapV2FactoryIdenticalAddresses = 25,
+    /// 65,562 for (UniswapV2 Factory Not In White List)
+    UniswapV2FactoryNotInWhiteList = 26,
+    /// 65,563 for (UniswapV2 Factory Not Owner)
+    UniswapV2FactoryNotOwner = 27,
 }
 
 impl From<Error> for ApiError {
@@ -52,7 +60,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         fee_to_setter: Key,
         all_pairs: Vec<Key>,
         contract_hash: Key,
-        package_hash: ContractPackageHash,
+        package_hash: Key,
     ) {
         data::set_fee_to_setter(fee_to_setter);
         data::set_owner(self.get_caller());
@@ -95,22 +103,24 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             let pair_0_1_key: Key = self.get_pair(token0, token1);
             let pair_1_0_key: Key = self.get_pair(token1, token0);
             if pair_0_1_key != address_0 {
-                runtime::revert(Error::UniswapV2FactoryPairExists);
+                runtime::revert(Error::UniswapV2FactoryPairExists1);
             }
             if pair_1_0_key != address_0 {
-                runtime::revert(Error::UniswapV2FactoryPairExists);
+                runtime::revert(Error::UniswapV2FactoryPairExists2);
             }
-            //convert Key to ContractHash
+            //convert Key to ContractPackageHash
             let pair_hash_add_array = match pair_hash {
                 Key::Hash(package) => package,
                 _ => runtime::revert(ApiError::UnexpectedKeyVariant),
             };
-            let pair_contract_hash = ContractHash::new(pair_hash_add_array);
-            let _ret: () = runtime::call_contract(
-                pair_contract_hash,
+            let pair_package_hash = ContractPackageHash::new(pair_hash_add_array);
+            let _ret: () = runtime::call_versioned_contract(
+                pair_package_hash,
+                None,
                 "initialize",
-                runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_hash() },
+                runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => data::get_package_hash() },
             );
+
             // handling the pair creation by updating the storage
             self.set_pair(token0, token1, pair_hash);
             self.set_pair(token1, token0, pair_hash);
@@ -138,7 +148,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn set_fee_to(&mut self, fee_to: Key) {
         if self.get_caller() != self.get_fee_to_setter() {
-            runtime::revert(Error::UniswapV2Forbidden);
+            runtime::revert(Error::UniswapV2FactoryForbidden1);
         }
         data::set_fee_to(fee_to);
     }
@@ -149,7 +159,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn set_fee_to_setter(&mut self, fee_to_setter: Key) {
         if self.get_caller() != self.get_fee_to_setter() {
-            runtime::revert(Error::UniswapV2Forbidden);
+            runtime::revert(Error::UniswapV2FactoryForbidden2);
         }
         data::set_fee_to_setter(fee_to_setter);
     }
@@ -175,7 +185,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
     fn emit(&mut self, factory_event: &FACTORYEvent) {
         let mut events = Vec::new();
-        let package = data::get_package_hash();
+        let package = self.get_package_hash();
         match factory_event {
             FACTORYEvent::PairCreated {
                 token0,
@@ -200,6 +210,10 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn get_package_hash(&mut self) -> ContractPackageHash {
-        data::get_package_hash()
+        let package_hash_add_array = match data::get_package_hash() {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        ContractPackageHash::new(package_hash_add_array)
     }
 }

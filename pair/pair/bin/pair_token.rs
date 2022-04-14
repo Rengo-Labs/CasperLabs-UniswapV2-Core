@@ -49,7 +49,7 @@ impl Pair {
         k_last: U256,
         treasury_fee: U256,
         minimum_liquidity: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         factory_hash: Key,
         lock: u64,
     ) {
@@ -71,7 +71,7 @@ impl Pair {
             k_last,
             treasury_fee,
             minimum_liquidity,
-            callee_contract_hash,
+            callee_package_hash,
             lock,
         );
         PAIR::mint(self, self.get_caller(), initial_supply);
@@ -96,7 +96,7 @@ fn constructor() {
     let k_last: U256 = runtime::get_named_arg("k_last"); // reserve0 * reserve1, as of immediately after the most recent liquidity event
     let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
     let minimum_liquidity: U256 = runtime::get_named_arg("minimum_liquidity");
-    let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
+    let callee_package_hash: Key = runtime::get_named_arg("callee_package_hash");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
     let lock: u64 = runtime::get_named_arg("lock");
     Pair::default().constructor(
@@ -116,7 +116,7 @@ fn constructor() {
         k_last,
         treasury_fee,
         minimum_liquidity,
-        callee_contract_hash,
+        callee_package_hash,
         factory_hash,
         lock,
     );
@@ -269,6 +269,22 @@ fn increase_allowance() {
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
 }
 
+/// This function is to increase the amount of tokens approved for a spender by an owner for jsClient
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to increment approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn increase_allowance_js_client() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let _ret: Result<(), u32> = Pair::default().increase_allowance(spender, amount);
+}
+
 /// This function is to decrease the amount of tokens approved for a spender by an owner
 ///
 /// # Parameters
@@ -284,6 +300,22 @@ fn decrease_allowance() {
 
     let ret: Result<(), u32> = Pair::default().decrease_allowance(spender, amount);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+
+/// This function is to decrease the amount of tokens approved for a spender by an owner for jsClient
+///
+/// # Parameters
+///
+/// * `amount` - Number of tokens to decrement approval of tokens by for spender
+///
+/// * `spender` - A Key that holds the account address of the user
+///
+#[no_mangle]
+fn decrease_allowance_js_client() {
+    let spender: Key = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+
+    let _ret: Result<(), u32> = Pair::default().decrease_allowance(spender, amount);
 }
 
 /// This function is to mint token against the address that user provided
@@ -504,7 +536,7 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("k_last", U256::cl_type()), // reserve0 * reserve1, as of immediately after the most recent liquidity event
             Parameter::new("treasury_fee", U256::cl_type()),
             Parameter::new("minimum_liquidity", U256::cl_type()),
-            Parameter::new("callee_contract_hash", Key::cl_type()),
+            Parameter::new("callee_package_hash", Key::cl_type()),
             Parameter::new("factory_hash", Key::cl_type()),
             Parameter::new("lock", u64::cl_type()),
         ],
@@ -612,6 +644,26 @@ fn get_entry_points() -> EntryPoints {
             ok: Box::new(CLType::Unit),
             err: Box::new(CLType::U32),
         },
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "increase_allowance_js_client",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "decrease_allowance_js_client",
+        vec![
+            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -747,13 +799,11 @@ fn get_entry_points() -> EntryPoints {
 
 #[no_mangle]
 fn call() {
-
     // Store contract in the account's named keys. Contract name must be same for all new versions of the contracts
     let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-    
+
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
-
         // Build new package with initial a first version of the contract.
         let (package_hash, access_token) = storage::create_contract_package_at_hash();
         let (contract_hash, _) =
@@ -762,7 +812,7 @@ fn call() {
         let symbol: String = runtime::get_named_arg("symbol");
         let decimals: u8 = runtime::get_named_arg("decimals");
         let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-        let callee_contract_hash: Key = runtime::get_named_arg("callee_contract_hash");
+        let callee_package_hash: Key = runtime::get_named_arg("callee_package_hash");
         let factory_hash: Key = runtime::get_named_arg("factory_hash");
         let eip_712_domain: &str =
             "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
@@ -811,7 +861,7 @@ fn call() {
             "k_last" => k_last,
             "treasury_fee" => treasury_fee,
             "minimum_liquidity" => minimum_liquidity,
-            "callee_contract_hash" => callee_contract_hash,
+            "callee_package_hash" => callee_package_hash,
             "factory_hash" => factory_hash,
             "lock"=>lock
         };
@@ -854,17 +904,18 @@ fn call() {
             &format!("{}_package_access_token", contract_name),
             access_token.into(),
         );
-    }
-    else {          // this is a contract upgrade
+    } else {
+        // this is a contract upgrade
 
-        let package_hash: ContractPackageHash = runtime::get_key(&format!("{}_package_hash", contract_name))
-                                                            .unwrap_or_revert()
-                                                            .into_hash()
-                                                            .unwrap()
-                                                            .into();
+        let package_hash: ContractPackageHash =
+            runtime::get_key(&format!("{}_package_hash", contract_name))
+                .unwrap_or_revert()
+                .into_hash()
+                .unwrap()
+                .into();
 
         let (contract_hash, _): (ContractHash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
         // update contract hash
         runtime::put_key(

@@ -3,9 +3,10 @@ use blake2::{
     VarBlake2b,
 };
 use casper_types::{
-    bytesrepr::ToBytes, runtime_args, ContractPackageHash, Key, RuntimeArgs, U128, U256,
+    account::AccountHash, bytesrepr::ToBytes, runtime_args, ContractPackageHash, Key, RuntimeArgs,
+    U128, U256,
 };
-use test_env::{Sender, TestContract, TestEnv};
+use test_env::{TestContract, TestEnv};
 
 pub struct PAIRInstance(TestContract);
 
@@ -14,7 +15,7 @@ impl PAIRInstance {
         PAIRInstance(pair)
     }
 
-    pub fn proxy(env: &TestEnv, pair: Key, sender: Sender) -> TestContract {
+    pub fn proxy(env: &TestEnv, pair: Key, sender: AccountHash) -> TestContract {
         TestContract::new(
             env,
             "pair-test.wasm",
@@ -25,7 +26,7 @@ impl PAIRInstance {
             },
         )
     }
-    pub fn proxy2(env: &TestEnv, pair: Key, sender: Sender) -> TestContract {
+    pub fn proxy2(env: &TestEnv, pair: Key, sender: AccountHash) -> TestContract {
         TestContract::new(
             env,
             "pair-test2.wasm",
@@ -40,12 +41,12 @@ impl PAIRInstance {
     pub fn new(
         env: &TestEnv,
         contract_name: &str,
-        sender: Sender,
+        sender: AccountHash,
         name: &str,
         symbol: &str,
         decimals: u8,
         supply: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         factory_hash: Key,
     ) -> TestContract {
         TestContract::new(
@@ -58,7 +59,7 @@ impl PAIRInstance {
                 "name" => name,
                 "symbol" => symbol,
                 "decimals" => decimals,
-                "callee_contract_hash" => callee_contract_hash,
+                "callee_package_hash" => callee_package_hash,
                 "factory_hash" => factory_hash
             },
         )
@@ -66,12 +67,12 @@ impl PAIRInstance {
 
     pub fn constructor(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         name: &str,
         symbol: &str,
         decimals: u8,
         initial_supply: U256,
-        callee_contract_hash: Key,
+        callee_package_hash: Key,
         factory_hash: Key,
     ) {
         self.0.call_contract(
@@ -82,7 +83,7 @@ impl PAIRInstance {
                 "name" => name,
                 "symbol" => symbol,
                 "decimals" => decimals,
-                "callee_contract_hash" => callee_contract_hash,
+                "callee_package_hash" => callee_package_hash,
                 "factory_hash" => factory_hash
             },
         );
@@ -108,7 +109,7 @@ impl PAIRInstance {
             .unwrap_or_default()
     }
 
-    pub fn transfer<T: Into<Key>>(&self, sender: Sender, recipient: T, amount: U256) {
+    pub fn transfer<T: Into<Key>>(&self, sender: AccountHash, recipient: T, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer",
@@ -119,7 +120,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn transfer_from(&self, sender: Sender, owner: Key, recipient: Key, amount: U256) {
+    pub fn transfer_from(&self, sender: AccountHash, owner: Key, recipient: Key, amount: U256) {
         self.0.call_contract(
             sender,
             "transfer_from",
@@ -131,7 +132,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn allowance_fn(&self, sender: Sender, owner: Key, spender: Key) {
+    pub fn allowance_fn(&self, sender: AccountHash, owner: Key, spender: Key) {
         self.0.call_contract(
             sender,
             "allowance",
@@ -142,7 +143,7 @@ impl PAIRInstance {
         );
     }
     // Factory Method
-    pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T, factory_hash: Key) {
+    pub fn set_fee_to<T: Into<Key>>(&self, sender: AccountHash, fee_to: T, factory_hash: Key) {
         self.0.call_contract(
             sender,
             "set_fee_to",
@@ -152,7 +153,13 @@ impl PAIRInstance {
             },
         );
     }
-    pub fn mint_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, to: Key, amount: U256) {
+    pub fn mint_with_caller<T: Into<Key>>(
+        &self,
+        sender: AccountHash,
+        caller: T,
+        to: Key,
+        amount: U256,
+    ) {
         self.0.call_contract(
             sender,
             "mint_with_caller",
@@ -163,7 +170,7 @@ impl PAIRInstance {
             },
         );
     }
-    pub fn balance_with_caller<T: Into<Key>>(&self, sender: Sender, caller: T, owner: Key) {
+    pub fn balance_with_caller<T: Into<Key>>(&self, sender: AccountHash, caller: T, owner: Key) {
         self.0.call_contract(
             sender,
             "balance_with_caller",
@@ -174,7 +181,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn approve<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+    pub fn approve<T: Into<Key>>(&self, sender: AccountHash, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
             "approve",
@@ -185,7 +192,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn increase_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+    pub fn increase_allowance<T: Into<Key>>(&self, sender: AccountHash, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
             "increase_allowance",
@@ -196,7 +203,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn decrease_allowance<T: Into<Key>>(&self, sender: Sender, spender: T, amount: U256) {
+    pub fn decrease_allowance<T: Into<Key>>(&self, sender: AccountHash, spender: T, amount: U256) {
         self.0.call_contract(
             sender,
             "decrease_allowance",
@@ -207,7 +214,13 @@ impl PAIRInstance {
         );
     }
 
-    pub fn initialize<T: Into<Key>>(&self, sender: Sender, token0: T, token1: T, factory_hash: T) {
+    pub fn initialize<T: Into<Key>>(
+        &self,
+        sender: AccountHash,
+        token0: T,
+        token1: T,
+        factory_hash: T,
+    ) {
         self.0.call_contract(
             sender,
             "initialize",
@@ -219,7 +232,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn set_treasury_fee_percent(&self, sender: Sender, treasury_fee: U256) {
+    pub fn set_treasury_fee_percent(&self, sender: AccountHash, treasury_fee: U256) {
         self.0.call_contract(
             sender,
             "set_treasury_fee_percent",
@@ -229,7 +242,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn erc20_mint<T: Into<Key>>(&self, sender: Sender, to: T, amount: U256) {
+    pub fn erc20_mint<T: Into<Key>>(&self, sender: AccountHash, to: T, amount: U256) {
         self.0.call_contract(
             sender,
             "erc20_mint",
@@ -240,11 +253,11 @@ impl PAIRInstance {
         );
     }
 
-    pub fn sync(&self, sender: Sender) {
+    pub fn sync(&self, sender: AccountHash) {
         self.0.call_contract(sender, "sync", runtime_args! {});
     }
 
-    pub fn skim<T: Into<Key>>(&self, sender: Sender, to: T) {
+    pub fn skim<T: Into<Key>>(&self, sender: AccountHash, to: T) {
         self.0.call_contract(
             sender,
             "skim",
@@ -255,7 +268,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn mint_no_ret<T: Into<Key>>(&self, sender: Sender, to: T) {
+    pub fn mint_no_ret<T: Into<Key>>(&self, sender: AccountHash, to: T) {
         self.0.call_contract(
             sender,
             "mint_no_ret",
@@ -265,7 +278,7 @@ impl PAIRInstance {
         );
     }
 
-    pub fn burn_no_ret<T: Into<Key>>(&self, sender: Sender, to: T) {
+    pub fn burn_no_ret<T: Into<Key>>(&self, sender: AccountHash, to: T) {
         self.0.call_contract(
             sender,
             "burn_no_ret",
@@ -277,7 +290,7 @@ impl PAIRInstance {
 
     pub fn swap<T: Into<Key>>(
         &self,
-        sender: Sender,
+        sender: AccountHash,
         amount0: U256,
         amount1: U256,
         to: T,
@@ -368,8 +381,8 @@ impl PAIRInstance {
         self.0.query_named_key(String::from("amount1"))
     }
 
-    pub fn callee_contract_hash(&self) -> Key {
-        self.0.query_named_key(String::from("callee_contract_hash"))
+    pub fn callee_package_hash(&self) -> Key {
+        self.0.query_named_key(String::from("callee_package_hash"))
     }
 
     pub fn factory_hash(&self) -> Key {
