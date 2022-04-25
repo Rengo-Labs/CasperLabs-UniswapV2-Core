@@ -10,6 +10,9 @@ There are 5 contracts in this folder
 4) FLASH SWAPPER Contract
 5) WCSPR Contract
 
+## Error Codes List
+https://docs.google.com/document/d/1gWQ3rlti59PuyohknkbpP59exC0YtNGuYDMQyuBDUws/edit?usp=sharing
+
 ## Table of contents
 
 - [Interacting with the contract](#interacting-with-the-contract)
