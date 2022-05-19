@@ -734,39 +734,32 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32> {
-        if sender == recipient {
-            return Err(4); // Same sender recipient error
+        if sender != recipient && amount != 0.into() {
+            let balances: Balances = Balances::instance();
+            let sender_balance: U256 = balances.get(&sender);
+            let recipient_balance: U256 = balances.get(&recipient);
+            balances.set(
+                &sender,
+                sender_balance
+                    .checked_sub(amount)
+                    .ok_or(Error::UniswapV2CorePairUnderFlow5)
+                    .unwrap_or_revert(),
+            );
+            balances.set(
+                &recipient,
+                recipient_balance
+                    .checked_add(amount)
+                    .ok_or(Error::UniswapV2CorePairOverFlow4)
+                    .unwrap_or_revert(),
+            );
+            let eventpair: Key = Key::from(data::get_package_hash());
+            self.emit(&PAIREvent::Transfer {
+                from: sender,
+                to: recipient,
+                value: amount,
+                pair: eventpair,
+            });
         }
-
-        if amount.is_zero() {
-            return Err(5); // Amount to transfer is 0
-        }
-
-        let balances: Balances = Balances::instance();
-        let sender_balance: U256 = balances.get(&sender);
-        let recipient_balance: U256 = balances.get(&recipient);
-        balances.set(
-            &sender,
-            sender_balance
-                .checked_sub(amount)
-                .ok_or(Error::UniswapV2CorePairUnderFlow5)
-                .unwrap_or_revert(),
-        );
-        balances.set(
-            &recipient,
-            recipient_balance
-                .checked_add(amount)
-                .ok_or(Error::UniswapV2CorePairOverFlow4)
-                .unwrap_or_revert(),
-        );
-        let eventpair: Key = Key::from(data::get_package_hash());
-        self.emit(&PAIREvent::Transfer {
-            from: sender,
-            to: recipient,
-            value: amount,
-            pair: eventpair,
-        });
-
         Ok(())
     }
 

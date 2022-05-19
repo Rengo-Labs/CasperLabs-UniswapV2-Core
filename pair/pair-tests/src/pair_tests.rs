@@ -240,7 +240,6 @@ fn test_pair_transfer() {
 }
 
 #[test]
-#[should_panic]
 fn test_pair_transfer_with_same_sender_and_recipient() {
     let (env, proxy, _proxy, token, owner, _factory_hash) = deploy();
     let package_hash = proxy.package_hash_result();
