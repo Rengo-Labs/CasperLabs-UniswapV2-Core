@@ -118,26 +118,27 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn transfer_from(&mut self, owner: Key, recipient: Key, amount: U256) -> Result<(), u32> {
-        let ret: Result<(), u32> = self.make_transfer(owner, recipient, amount);
-        if ret.is_ok() {
-            let allowances = Allowances::instance();
-            let spender_allowance: U256 = allowances.get(&owner, &self.get_caller());
-            let new_allowance: U256 = spender_allowance
-                .checked_sub(amount)
-                .ok_or(Error::UniswapV2CoreWCSPRUnderFlow2)
-                .unwrap_or_revert();
-            if new_allowance >= 0.into()
-                && new_allowance < spender_allowance
-                && owner != self.get_caller()
-            {
-                self._approve(owner, self.get_caller(), new_allowance);
-                return Ok(());
-            } else {
-                return Err(4);
+        if owner != recipient && amount != 0.into() {
+            let ret: Result<(), u32> = self.make_transfer(owner, recipient, amount);
+            if ret.is_ok() {
+                let allowances = Allowances::instance();
+                let spender_allowance: U256 = allowances.get(&owner, &self.get_caller());
+                let new_allowance: U256 = spender_allowance
+                    .checked_sub(amount)
+                    .ok_or(Error::UniswapV2CoreWCSPRUnderFlow2)
+                    .unwrap_or_revert();
+                if new_allowance >= 0.into()
+                    && new_allowance < spender_allowance
+                    && owner != self.get_caller()
+                {
+                    self._approve(owner, self.get_caller(), new_allowance);
+                    return Ok(());
+                } else {
+                    return Err(4);
+                }
             }
         }
-
-        ret
+        Ok(())
     }
 
     fn deposit(&mut self, amount_to_transfer: U512, purse: URef) -> Result<(), u32> {
