@@ -26,4 +26,3 @@ Workflow for bug fixes:
 * Do your changes on your fork
 * Make sure to add or update relevant test cases
 * Create a pull request, with a suitable title and description, referring to the related issue
-
