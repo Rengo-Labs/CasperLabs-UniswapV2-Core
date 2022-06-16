@@ -10,30 +10,30 @@ use crate::data::{self};
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,591 for (UniswapV2 Core FlashSwapper Zero Address)
-    UniswapV2CoreFlashSwapperZeroAddress = 55,
-    /// 65,592 for (UniswapV2 Core FlashSwapper Pair Exists)
-    UniswapV2CoreFlashSwapperPairExists = 56,
-    /// 65,593 for (UniswapV2 Core FlashSwapper Permissioned Pair Access)
-    UniswapV2CoreFlashSwapperPermissionedPairAccess = 57,
-    /// 65,594 for (UniswapV2 Core FlashSwapper Invalid Contract Address)
-    UniswapV2CoreFlashSwapperInvalidContractAddress = 58,
-    /// 65,595 for (UniswapV2 Core FlashSwapper UnderFlow)
-    UniswapV2CoreFlashSwapperUnderFlow = 59,
-    /// 65,596 for (UniswapV2 Core FlashSwapper UnderFlow1)
-    UniswapV2CoreFlashSwapperOverFlow1 = 60,
-    /// 65,597 for (UniswapV2 Core FlashSwapper UnderFlow2)
-    UniswapV2CoreFlashSwapperOverFlow2 = 61,
-    /// 65,598 for (UniswapV2 Core FlashSwapper UnderFlow3)
-    UniswapV2CoreFlashSwapperOverFlow3 = 62,
-    /// 65,599 for (UniswapV2 Core FlashSwapper Amount Too Big)
-    UniswapV2CoreFlashSwapperAmountTooBig = 63,
-    /// 65,600 for (UniswapV2 Core FlashSwapper Requested Pay Token Is Not Available)
-    UniswapV2CoreFlashSwapperRequestedPayTokenIsNotAvailable = 64,
-    /// 65,601 for (UniswapV2 Core FlashSwapper Requested Borrow Token Is Not Available)
-    UniswapV2CoreFlashSwapperRequestedBorrowTokenIsNotAvailable = 65,
-    /// 65,602 for (UniswapV2 Core FlashSwapper Requested Requested Pair Is Not Available)
-    UniswapV2CoreFlashSwapperRequestedRequestedPairIsNotAvailable = 66,
+    /// 65,641 for (UniswapV2 Core FlashSwapper Zero Address)
+    UniswapV2CoreFlashSwapperZeroAddress = 105,
+    /// 65,642 for (UniswapV2 Core FlashSwapper Pair Exists)
+    UniswapV2CoreFlashSwapperPairExists = 106,
+    /// 65,643 for (UniswapV2 Core FlashSwapper Permissioned Pair Access)
+    UniswapV2CoreFlashSwapperPermissionedPairAccess = 107,
+    /// 65,644 for (UniswapV2 Core FlashSwapper Invalid Contract Address)
+    UniswapV2CoreFlashSwapperInvalidContractAddress = 108,
+    /// 65,645 for (UniswapV2 Core FlashSwapper UnderFlow)
+    UniswapV2CoreFlashSwapperUnderFlow = 109,
+    /// 65,646 for (UniswapV2 Core FlashSwapper UnderFlow1)
+    UniswapV2CoreFlashSwapperOverFlow1 = 110,
+    /// 65,647 for (UniswapV2 Core FlashSwapper UnderFlow2)
+    UniswapV2CoreFlashSwapperOverFlow2 = 111,
+    /// 65,648 for (UniswapV2 Core FlashSwapper UnderFlow3)
+    UniswapV2CoreFlashSwapperOverFlow3 = 112,
+    /// 65,649 for (UniswapV2 Core FlashSwapper Amount Too Big)
+    UniswapV2CoreFlashSwapperAmountTooBig = 113,
+    /// 65,650 for (UniswapV2 Core FlashSwapper Requested Pay Token Is Not Available)
+    UniswapV2CoreFlashSwapperRequestedPayTokenIsNotAvailable = 114,
+    /// 65,651 for (UniswapV2 Core FlashSwapper Requested Borrow Token Is Not Available)
+    UniswapV2CoreFlashSwapperRequestedBorrowTokenIsNotAvailable = 115,
+    /// 65,652 for (UniswapV2 Core FlashSwapper Requested Requested Pair Is Not Available)
+    UniswapV2CoreFlashSwapperRequestedRequestedPairIsNotAvailable = 116,
 }
 
 impl From<Error> for ApiError {
