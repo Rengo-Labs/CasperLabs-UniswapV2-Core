@@ -108,60 +108,60 @@ impl PAIREvent {
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,564 for (UniswapV2 Core Pair Expire)
-    UniswapV2CorePairExpire = 28,
-    /// 65,565 for (UniswapV2 Core Pair Forbidden)
-    UniswapV2CorePairForbidden = 29,
-    /// 65,566 for (UniswapV2 Core Pair Failed Verification)
-    UniswapV2CorePairFailedVerification = 30,
-    /// 65,567 for (UniswapV2 Core Pair Insufficient Output Amount)
-    UniswapV2CorePairInsufficientOutputAmount = 31,
-    /// 65,568 for (UniswapV2 Core Pair Insufficient Liquidity)
-    UniswapV2CorePairInsufficientLiquidity = 32,
-    /// 65,569 for (UniswapV2 Core Pair Invalid To)
-    UniswapV2CorePairInvalidTo = 33,
-    /// 65,570 for (UniswapV2 Core Pair Insufficient Input Amount)
-    UniswapV2CorePairInsufficientInputAmount = 34,
-    /// 65,571 for (UniswapV2 Core Pair Insufficient Converted Balance)
-    UniswapV2CorePairInsufficientConvertedBalance = 35,
-    /// 65,572 for (UniswapV2 Core Pair Insufficient Liquidity Minted)
-    UniswapV2CorePairInsufficientLiquidityMinted = 36,
-    /// 65,573 for (UniswapV2 Core Pair Insufficient Liquidity Burned)
-    UniswapV2CorePairInsufficientLiquidityBurned = 37,
-    /// 65,574 for (UniswapV2 Core Pair Denominator Is Zero)
-    UniswapV2CorePairDenominatorIsZero = 38,
-    /// 65,575 for (UniswapV2 Core Pair Locked1)
-    UniswapV2CorePairLocked1 = 39,
-    /// 65,576 for (UniswapV2 Core Pair Locked2)
-    UniswapV2CorePairLocked2 = 40,
-    /// 65,577 for (UniswapV2 Core Pair UnderFlow1)
-    UniswapV2CorePairUnderFlow1 = 41,
-    /// 65,578 for (UniswapV2 Core Pair UnderFlow2)
-    UniswapV2CorePairUnderFlow2 = 42,
-    /// 65,579 for (UniswapV2 Core Pair UnderFlow3)
-    UniswapV2CorePairUnderFlow3 = 43,
-    /// 65,580 for (UniswapV2 Core Pair UnderFlow4)
-    UniswapV2CorePairUnderFlow4 = 44,
-    /// 65,581 for (UniswapV2 Core Pair UnderFlow5)
-    UniswapV2CorePairUnderFlow5 = 45,
-    /// 65,582 for (UniswapV2 Core Pair UnderFlow6)
-    UniswapV2CorePairUnderFlow6 = 46,
-    /// 65,582 for (UniswapV2 Core Pair UnderFlow7)
-    UniswapV2CorePairUnderFlow7 = 47,
-    /// 65,584 for (UniswapV2 Core Pair UnderFlow8)
-    UniswapV2CorePairUnderFlow8 = 48,
-    /// 65,585 for (UniswapV2 Core Pair OverFlow)
-    UniswapV2CorePairOverFlow = 49,
-    /// 65,586 for (UniswapV2 Core Pair OverFlow1)
-    UniswapV2CorePairOverFlow1 = 50,
-    /// 65,587 for (UniswapV2 Core Pair OverFlow2)
-    UniswapV2CorePairOverFlow2 = 51,
-    /// 65,588 for (UniswapV2 Core Pair OverFlow3)
-    UniswapV2CorePairOverFlow3 = 52,
-    /// 65,589 for (UniswapV2 Core Pair OverFlo4)
-    UniswapV2CorePairOverFlow4 = 53,
-    /// 65,590 for (UniswapV2 Core Pair OverFlow5)
-    UniswapV2CorePairOverFlow5 = 54,
+    /// 65,567 for (UniswapV2 Core Pair Expire)
+    UniswapV2CorePairExpire = 31,
+    /// 65,568 for (UniswapV2 Core Pair Forbidden)
+    UniswapV2CorePairForbidden = 32,
+    /// 65,569 for (UniswapV2 Core Pair Failed Verification)
+    UniswapV2CorePairFailedVerification = 33,
+    /// 65,570 for (UniswapV2 Core Pair Insufficient Output Amount)
+    UniswapV2CorePairInsufficientOutputAmount = 34,
+    /// 65,571 for (UniswapV2 Core Pair Insufficient Liquidity)
+    UniswapV2CorePairInsufficientLiquidity = 35,
+    /// 65,572 for (UniswapV2 Core Pair Invalid To)
+    UniswapV2CorePairInvalidTo = 36,
+    /// 65,573 for (UniswapV2 Core Pair Insufficient Input Amount)
+    UniswapV2CorePairInsufficientInputAmount = 37,
+    /// 65,574 for (UniswapV2 Core Pair Insufficient Converted Balance)
+    UniswapV2CorePairInsufficientConvertedBalance = 38,
+    /// 65,575 for (UniswapV2 Core Pair Insufficient Liquidity Minted)
+    UniswapV2CorePairInsufficientLiquidityMinted = 39,
+    /// 65,576 for (UniswapV2 Core Pair Insufficient Liquidity Burned)
+    UniswapV2CorePairInsufficientLiquidityBurned = 40,
+    /// 65,577 for (UniswapV2 Core Pair Denominator Is Zero)
+    UniswapV2CorePairDenominatorIsZero = 41,
+    /// 65,578 for (UniswapV2 Core Pair Locked1)
+    UniswapV2CorePairLocked1 = 42,
+    /// 65,579 for (UniswapV2 Core Pair Locked2)
+    UniswapV2CorePairLocked2 = 43,
+    /// 65,580 for (UniswapV2 Core Pair UnderFlow1)
+    UniswapV2CorePairUnderFlow1 = 44,
+    /// 65,581 for (UniswapV2 Core Pair UnderFlow2)
+    UniswapV2CorePairUnderFlow2 = 45,
+    /// 65,582 for (UniswapV2 Core Pair UnderFlow3)
+    UniswapV2CorePairUnderFlow3 = 46,
+    /// 65,583 for (UniswapV2 Core Pair UnderFlow4)
+    UniswapV2CorePairUnderFlow4 = 47,
+    /// 65,584 for (UniswapV2 Core Pair UnderFlow5)
+    UniswapV2CorePairUnderFlow5 = 48,
+    /// 65,585 for (UniswapV2 Core Pair UnderFlow6)
+    UniswapV2CorePairUnderFlow6 = 49,
+    /// 65,586 for (UniswapV2 Core Pair UnderFlow7)
+    UniswapV2CorePairUnderFlow7 = 50,
+    /// 65,587 for (UniswapV2 Core Pair UnderFlow8)
+    UniswapV2CorePairUnderFlow8 = 51,
+    /// 65,588 for (UniswapV2 Core Pair OverFlow)
+    UniswapV2CorePairOverFlow = 52,
+    /// 65,589 for (UniswapV2 Core Pair OverFlow1)
+    UniswapV2CorePairOverFlow1 = 53,
+    /// 65,590 for (UniswapV2 Core Pair OverFlow2)
+    UniswapV2CorePairOverFlow2 = 54,
+    /// 65,591 for (UniswapV2 Core Pair OverFlow3)
+    UniswapV2CorePairOverFlow3 = 55,
+    /// 65,592 for (UniswapV2 Core Pair OverFlo4)
+    UniswapV2CorePairOverFlow4 = 56,
+    /// 65,593 for (UniswapV2 Core Pair OverFlow5)
+    UniswapV2CorePairOverFlow5 = 57,
 }
 
 impl From<Error> for ApiError {
