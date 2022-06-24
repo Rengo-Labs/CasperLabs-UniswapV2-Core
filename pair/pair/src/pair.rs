@@ -352,7 +352,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             token0_package_hash,
             None,
             "transfer",
-            runtime_args! {"recipient" => to,"amount" => U256::from((balance0_conversion - reserve0).as_u128())},
+            runtime_args! {"recipient" => to,"amount" => U256::from((balance0_conversion.checked_sub(reserve0)
+            .ok_or(Error::UniswapV2CorePairUnderFlow3)
+            .unwrap_or_revert()).as_u128())},
         );
         match _ret {
             Ok(()) => {
@@ -360,7 +362,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                     token1_package_hash,
                     None,
                     "transfer",
-                    runtime_args! {"recipient" => to,"amount" => U256::from((balance1_conversion - reserve1).as_u128()), },
+                    runtime_args! {"recipient" => to,"amount" => U256::from((balance1_conversion.checked_sub(reserve1)
+                    .ok_or(Error::UniswapV2CorePairUnderFlow4)
+                    .unwrap_or_revert()).as_u128()), },
                 );
                 match _ret {
                     Ok(()) => data::set_lock(0),
@@ -375,7 +379,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let lock = data::get_lock();
         if lock != 0 {
             //UniswapV2: Locked
-            runtime::revert(Error::UniswapV2CorePairLocked1);
+            runtime::revert(Error::UniswapV2CorePairLocked2);
         }
         data::set_lock(1);
         let token0: Key = self.get_token0();
@@ -507,24 +511,55 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                     let mut amount0_in: U256 = 0.into();
                     let mut amount1_in: U256 = 0.into();
 
-                    if balance0 > (U256::from(reserve0.as_u128()) - amount0_out) {
-                        amount0_in = balance0 - (U256::from(reserve0.as_u128()) - amount0_out);
+                    if balance0 > U256::from(reserve0.as_u128()) - amount0_out {
+                        amount0_in = balance0 - (U256::from(reserve0.as_u128()) - amount0_out)
                     }
-                    if balance1 > (U256::from(reserve1.as_u128()) - amount1_out) {
+                    if balance1 > U256::from(reserve1.as_u128()) - amount1_out {
                         amount1_in = balance1 - (U256::from(reserve1.as_u128()) - amount1_out);
                     }
                     if amount0_in > zero || amount1_in > zero {
                         let amount_1000: U256 = 1000.into();
                         let amount_3: U256 = 3.into();
-                        let balance0_adjusted: U256 =
-                            (balance0 * amount_1000) - (amount0_in * amount_3);
-                        let balance1_adjusted: U256 =
-                            (balance1 * amount_1000) - (amount1_in * amount_3);
+                        let balance0_adjusted: U256 = (balance0
+                            .checked_mul(amount_1000)
+                            .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow1)
+                            .unwrap_or_revert())
+                        .checked_sub(
+                            (amount0_in
+                                .checked_mul(amount_3)
+                                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow2)
+                                .unwrap_or_revert()),
+                        )
+                        .ok_or(Error::UniswapV2CorePairUnderFlow11)
+                        .unwrap_or_revert();
+                        let balance1_adjusted: U256 = (balance1
+                            .checked_mul(amount_1000)
+                            .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow3)
+                            .unwrap_or_revert())
+                        .checked_sub(
+                            (amount1_in
+                                .checked_mul(amount_3)
+                                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow4)
+                                .unwrap_or_revert()),
+                        )
+                        .ok_or(Error::UniswapV2CorePairUnderFlow12)
+                        .unwrap_or_revert();
                         let reserve0_conversion: U256 = U256::from(reserve0.as_u128());
                         let reserve1_conversion: U256 = U256::from(reserve1.as_u128());
-                        let reserve_multiply: U256 = (1000 ^ 2).into();
-                        if (balance0_adjusted * balance1_adjusted)
-                            >= (reserve0_conversion * reserve1_conversion * reserve_multiply)
+                        let base: i32 = 1000;
+                        let reserve_multiply: U256 = (base.pow(2)).into();
+                        // let reserve_multiply: U256 = (1000 ^ 2).into();
+                        if (balance0_adjusted
+                            .checked_mul(balance1_adjusted)
+                            .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow5)
+                            .unwrap_or_revert())
+                            >= (reserve0_conversion
+                                .checked_mul(reserve1_conversion)
+                                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow6)
+                                .unwrap_or_revert()
+                                .checked_mul(reserve_multiply)
+                                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow7)
+                                .unwrap_or_revert())
                         {
                             self.update(balance0, balance1, reserve0, reserve1);
                             let eventpair: Key = Key::from(data::get_package_hash());
@@ -587,7 +622,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let mut public_counter: usize = 0;
         while public_counter < 32 {
             public_key_vec.push(public_key_string[public_counter].parse::<u8>().unwrap());
-            public_counter = public_counter + 1;
+            public_counter = public_counter
+                .checked_add(1)
+                .ok_or(Error::UniswapV2CorePairOverFlow2)
+                .unwrap_or_revert();
         }
         let signature_without_spaces: String = signature.split_whitespace().collect();
         let signature_string: Vec<&str> = signature_without_spaces.split(',').collect();
@@ -595,7 +633,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let mut signature_counter: usize = 0;
         while signature_counter < 64 {
             signature_vec.push(signature_string[signature_counter].parse::<u8>().unwrap());
-            signature_counter = signature_counter + 1;
+            signature_counter = signature_counter
+                .checked_add(1)
+                .ok_or(Error::UniswapV2CorePairOverFlow3)
+                .unwrap_or_revert();
         }
         let result: bool = ed25519::verify(&digest, &public_key_vec, &signature_vec);
         let verify_key: String = format!("{}{}", "VERIFY", owner);
@@ -633,7 +674,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let domain_separator: String = data::get_domain_separator();
         let permit_type_hash: String = data::get_permit_type_hash();
         let nonce: U256 = self.nonce(Key::from(self.get_caller()));
-        let deadline_into_blocktime: BlockTime = BlockTime::new(deadline * 1000);
+        let deadline_into_blocktime: BlockTime = BlockTime::new(
+            deadline
+                .checked_mul(1000)
+                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow8)
+                .unwrap_or_revert(),
+        );
         let blocktime: BlockTime = runtime::get_blocktime();
         if deadline_into_blocktime >= blocktime {
             let data: String = format!(
@@ -674,13 +720,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             &recipient,
             balance
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CorePairOverFlow2)
+                .ok_or(Error::UniswapV2CorePairOverFlow4)
                 .unwrap_or_revert(),
         );
         data::set_total_supply(
             self.total_supply()
                 .checked_add(amount)
-                .ok_or(Error::UniswapV2CorePairOverFlow3)
+                .ok_or(Error::UniswapV2CorePairOverFlow5)
                 .unwrap_or_revert(),
         );
         let address_0: Key = Key::from_formatted_str(
@@ -704,13 +750,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 &recipient,
                 balance
                     .checked_sub(amount)
-                    .ok_or(Error::UniswapV2CorePairUnderFlow3)
+                    .ok_or(Error::UniswapV2CorePairUnderFlow13)
                     .unwrap_or_revert(),
             );
             data::set_total_supply(
                 self.total_supply()
                     .checked_sub(amount)
-                    .ok_or(Error::UniswapV2CorePairUnderFlow4)
+                    .ok_or(Error::UniswapV2CorePairUnderFlow14)
                     .unwrap_or_revert(),
             );
             let address_0: Key = Key::from_formatted_str(
@@ -732,7 +778,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
     fn set_nonce(&mut self, recipient: Key) {
         let nonces = Nonces::instance();
         let nonce = nonces.get(&recipient);
-        nonces.set(&recipient, nonce + U256::from(1));
+        nonces.set(
+            &recipient,
+            nonce
+                .checked_add(U256::from(1))
+                .ok_or(Error::UniswapV2CorePairOverFlow6)
+                .unwrap_or_revert(),
+        );
     }
 
     fn make_transfer(&mut self, sender: Key, recipient: Key, amount: U256) -> Result<(), u32> {
@@ -744,14 +796,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 &sender,
                 sender_balance
                     .checked_sub(amount)
-                    .ok_or(Error::UniswapV2CorePairUnderFlow5)
+                    .ok_or(Error::UniswapV2CorePairUnderFlow15)
                     .unwrap_or_revert(),
             );
             balances.set(
                 &recipient,
                 recipient_balance
                     .checked_add(amount)
-                    .ok_or(Error::UniswapV2CorePairOverFlow4)
+                    .ok_or(Error::UniswapV2CorePairOverFlow7)
                     .unwrap_or_revert(),
             );
             let eventpair: Key = Key::from(data::get_package_hash());
@@ -841,11 +893,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         );
         let amount0: U256 = balance0
             .checked_sub(U256::from(reserve0.as_u128()))
-            .ok_or(Error::UniswapV2CorePairUnderFlow6)
+            .ok_or(Error::UniswapV2CorePairUnderFlow16)
             .unwrap_or_revert();
         let amount1: U256 = balance1
             .checked_sub(U256::from(reserve1.as_u128()))
-            .ok_or(Error::UniswapV2CorePairUnderFlow7)
+            .ok_or(Error::UniswapV2CorePairUnderFlow17)
             .unwrap_or_revert();
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let total_supply: U256 = self.total_supply(); // gas savings, must be defined here since totalSupply can update in mint_fee
@@ -853,9 +905,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let mut liquidity: U256 = 0.into();
         if total_supply == 0.into() {
             liquidity = self
-                .sqrt(amount0 * amount1)
-                .checked_sub(U256::from(minimum_liquidity.as_u128()))
-                .ok_or(Error::UniswapV2CorePairUnderFlow8)
+                .sqrt(
+                    amount0
+                        .checked_mul(amount1)
+                        .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow9)
+                        .unwrap_or_revert(),
+                )
+                .checked_sub(minimum_liquidity)
+                .ok_or(Error::UniswapV2CorePairUnderFlow18)
                 .unwrap_or_revert();
             self.mint(
                 Key::from_formatted_str(
@@ -865,15 +922,29 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                 minimum_liquidity,
             );
         } else {
-            let x: U256 = (amount0 * total_supply) / U256::from(reserve0.as_u128());
-            let y: U256 = (amount1 * total_supply) / U256::from(reserve1.as_u128());
+            let x: U256 = (amount0
+                .checked_mul(U256::from(total_supply))
+                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow10)
+                .unwrap_or_revert())
+                / U256::from(reserve0.as_u128());
+            let y: U256 = (amount1
+                .checked_mul(U256::from(total_supply))
+                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow11)
+                .unwrap_or_revert())
+                / U256::from(reserve1.as_u128());
             liquidity = self.min(x, y);
         }
         if liquidity > 0.into() {
             self.mint(to, liquidity);
             self.update(balance0, balance1, reserve0, reserve1);
             if fee_on {
-                let k_last: U256 = U256::from((reserve0 * reserve1).as_u128()); // reserve0 and reserve1 are up-to-date
+                let k_last: U256 = U256::from(
+                    (reserve0
+                        .checked_mul(reserve1)
+                        .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow12)
+                        .unwrap_or_revert())
+                    .as_u128(),
+                ); // reserve0 and reserve1 are up-to-date
                 data::set_k_last(k_last);
             }
             data::set_liquidity(liquidity); // return liquidity
@@ -920,12 +991,18 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let liquidity: U256 = self.balance_of(Key::from(data::get_package_hash()));
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let total_supply: U256 = self.total_supply();
-        let amount0: U256 = (liquidity * balance0) / total_supply;
-        let amount1: U256 = (liquidity * balance1) / total_supply;
+        let amount0: U256 = (liquidity
+            .checked_mul(balance0)
+            .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow13)
+            .unwrap_or_revert())
+            / total_supply;
+        let amount1: U256 = (liquidity
+            .checked_mul(balance1)
+            .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow14)
+            .unwrap_or_revert())
+            / total_supply;
         if amount0 > 0.into() && amount1 > 0.into() {
             self.burn(Key::from(data::get_package_hash()), liquidity);
-            // set_key("amount0",amount0);
-            // set_key("amount1",amount1);
             let _ret: Result<(), u32> = runtime::call_versioned_contract(
                 token0_hash_add,
                 None,
@@ -971,7 +1048,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             );
             self.update(balance0, balance1, reserve0, reserve1);
             if fee_on {
-                let k_last: U256 = U256::from((reserve0 * reserve1).as_u128()); // reserve0 and reserve1 are up-to-date
+                let k_last: U256 = U256::from(
+                    (reserve0
+                        .checked_mul(reserve1)
+                        .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow15)
+                        .unwrap_or_revert())
+                    .as_u128(),
+                ); // reserve0 and reserve1 are up-to-date
                 data::set_k_last(k_last);
             }
             data::set_amount0(amount0);
@@ -1014,13 +1097,32 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let treasury_fee: U256 = data::get_treasury_fee();
         if fee_on {
             if k_last != 0.into() {
-                let mul_val: U256 = U256::from((reserve1 * reserve0).as_u128());
+                let mul_val: U256 = U256::from(
+                    (reserve1
+                        .checked_mul(reserve0)
+                        .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow16)
+                        .unwrap_or_revert())
+                    .as_u128(),
+                );
                 let root_k: U256 = self.sqrt(mul_val);
                 let root_k_last: U256 = self.sqrt(k_last);
                 if root_k > root_k_last {
-                    let subtracted_root_k: U256 = root_k - root_k_last;
-                    let numerator: U256 = self.total_supply() * subtracted_root_k;
-                    let denominator: U256 = (root_k * treasury_fee) + root_k_last;
+                    let subtracted_root_k: U256 = root_k
+                        .checked_sub(root_k_last)
+                        .ok_or(Error::UniswapV2CorePairUnderFlow19)
+                        .unwrap_or_revert();
+                    let numerator: U256 = self
+                        .total_supply()
+                        .checked_mul(subtracted_root_k)
+                        .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow17)
+                        .unwrap_or_revert();
+                    let denominator: U256 = (root_k
+                        .checked_mul(treasury_fee)
+                        .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow18)
+                        .unwrap_or_revert())
+                    .checked_add(root_k_last)
+                    .ok_or(Error::UniswapV2CorePairOverFlow8)
+                    .unwrap_or_revert();
                     if denominator > U256::from(0) {
                         let liquidity: U256 = numerator / denominator;
                         if liquidity > 0.into() {
@@ -1060,10 +1162,25 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let mut z: U256 = 0.into();
         if y > 3.into() {
             z = y;
-            let mut x: U256 = y / 2 + 1;
+            let mut x: U256 = (y
+                .checked_div(U256::from(2))
+                .ok_or(Error::UniswapV2CorePairDivisionOverFlow6)
+                .unwrap_or_revert())
+            .checked_add(U256::from(1))
+            .ok_or(Error::UniswapV2CorePairOverFlow9)
+            .unwrap_or_revert();
             while x < z {
                 z = x;
-                x = (y / x + x) / 2;
+                x = ((y
+                    .checked_div(x)
+                    .ok_or(Error::UniswapV2CorePairDivisionOverFlow7)
+                    .unwrap_or_revert())
+                .checked_add(U256::from(x))
+                .ok_or(Error::UniswapV2CorePairOverFlow10)
+                .unwrap_or_revert())
+                .checked_div(U256::from(2))
+                .ok_or(Error::UniswapV2CorePairDivisionOverFlow8)
+                .unwrap_or_revert();
             }
         } else if y != 0.into() {
             z = 1.into();
@@ -1111,7 +1228,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn update(&mut self, balance0: U256, balance1: U256, reserve0: U128, reserve1: U128) {
         let one: U128 = 1.into();
-        let overflow_check: U256 = U256::from(((U128::MAX) - one).as_u128());
+        let overflow_check: U256 = U256::from(
+            ((U128::MAX)
+                .checked_sub(one)
+                .ok_or(Error::UniswapV2CorePairUnderFlow20)
+                .unwrap_or_revert())
+            .as_u128(),
+        );
         if balance0 <= overflow_check && balance1 <= overflow_check {
             let block_timestamp: u64 = runtime::get_blocktime().into();
             let block_timestamp_last: u64 = data::get_block_timestamp_last();
@@ -1140,7 +1263,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
             });
         } else {
             //UniswapV2: OVERFLOW
-            runtime::revert(Error::UniswapV2CorePairOverFlow);
+            runtime::revert(Error::UniswapV2CorePairOverFlow12);
         }
     }
     fn emit(&mut self, pair_event: &PAIREvent) {
