@@ -108,12 +108,6 @@ impl PAIREvent {
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,564 for (UniswapV2 Core Pair Expire)
-    UniswapV2CorePairExpire = 28,
-    /// 65,565 for (UniswapV2 Core Pair Forbidden)
-    UniswapV2CorePairForbidden = 29,
-    /// 65,566 for (UniswapV2 Core Pair Failed Verification)
-    UniswapV2CorePairFailedVerification = 30,
     /// 65,567 for (UniswapV2 Core Pair Insufficient Output Amount)
     UniswapV2CorePairInsufficientOutputAmount = 31,
     /// 65,568 for (UniswapV2 Core Pair Insufficient Liquidity)
@@ -262,6 +256,12 @@ pub enum Error {
     UniswapV2CorePairDivisionOverFlow8 = 103,
     /// 65,640 for (UniswapV2 Core Pair Division OverFlow9)
     UniswapV2CorePairDivisionOverFlow9 = 104,
+    /// 65,641 for (UniswapV2 Core Pair Expire)
+    UniswapV2CorePairExpire = 105,
+    /// 65,642 for (UniswapV2 Core Pair Forbidden)
+    UniswapV2CorePairForbidden = 106,
+    /// 65,643 for (UniswapV2 Core Pair Failed Verification)
+    UniswapV2CorePairFailedVerification = 107,
 }
 
 impl From<Error> for ApiError {

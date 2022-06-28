@@ -10,12 +10,6 @@ use crate::data::{self};
 
 #[repr(u16)]
 pub enum Error {
-    /// 65,641 for (UniswapV2 Core FlashSwapper Zero Address)
-    UniswapV2CoreFlashSwapperZeroAddress = 105,
-    /// 65,642 for (UniswapV2 Core FlashSwapper Pair Exists)
-    UniswapV2CoreFlashSwapperPairExists = 106,
-    /// 65,643 for (UniswapV2 Core FlashSwapper Permissioned Pair Access)
-    UniswapV2CoreFlashSwapperPermissionedPairAccess = 107,
     /// 65,644 for (UniswapV2 Core FlashSwapper Invalid Contract Address)
     UniswapV2CoreFlashSwapperInvalidContractAddress = 108,
     /// 65,645 for (UniswapV2 Core FlashSwapper UnderFlow)
@@ -34,6 +28,12 @@ pub enum Error {
     UniswapV2CoreFlashSwapperRequestedBorrowTokenIsNotAvailable = 115,
     /// 65,652 for (UniswapV2 Core FlashSwapper Requested Requested Pair Is Not Available)
     UniswapV2CoreFlashSwapperRequestedRequestedPairIsNotAvailable = 116,
+    /// 65,653 for (UniswapV2 Core FlashSwapper Zero Address)
+    UniswapV2CoreFlashSwapperZeroAddress = 117,
+    /// 65,654 for (UniswapV2 Core FlashSwapper Pair Exists)
+    UniswapV2CoreFlashSwapperPairExists = 118,
+    /// 65,655 for (UniswapV2 Core FlashSwapper Permissioned Pair Access)
+    UniswapV2CoreFlashSwapperPermissionedPairAccess = 119,
 }
 
 impl From<Error> for ApiError {

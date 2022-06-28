@@ -30,22 +30,22 @@ impl FACTORYEvent {
 }
 #[repr(u16)]
 pub enum Error {
-    /// 65,556 for (UniswapV2 Factory Zero Address)
-    UniswapV2FactoryZeroAddress = 20,
-    /// 65,557 for (UniswapV2 Factory Pair Exists1)
-    UniswapV2FactoryPairExists1 = 21,
-    /// 65,558 for (UniswapV2 Factory Pair Exists2)
-    UniswapV2FactoryPairExists2 = 22,
-    /// 65,559 for (UniswapV2 Factory Forbidden1)
-    UniswapV2FactoryForbidden1 = 23,
-    /// 65,560 for (UniswapV2 Factory Forbidden2)
-    UniswapV2FactoryForbidden2 = 24,
-    /// 65,561 for (UniswapV2 Factory Identical Addresses)
-    UniswapV2FactoryIdenticalAddresses = 25,
-    /// 65,562 for (UniswapV2 Factory Not In White List)
-    UniswapV2FactoryNotInWhiteList = 26,
-    /// 65,563 for (UniswapV2 Factory Not Owner)
-    UniswapV2FactoryNotOwner = 27,
+    /// 65,559 for (UniswapV2 Factory Zero Address)
+    UniswapV2FactoryZeroAddress = 23,
+    /// 65,560 for (UniswapV2 Factory Pair Exists1)
+    UniswapV2FactoryPairExists1 = 24,
+    /// 65,561 for (UniswapV2 Factory Pair Exists2)
+    UniswapV2FactoryPairExists2 = 25,
+    /// 65,562 for (UniswapV2 Factory Forbidden1)
+    UniswapV2FactoryForbidden1 = 26,
+    /// 65,563 for (UniswapV2 Factory Forbidden2)
+    UniswapV2FactoryForbidden2 = 27,
+    /// 65,564 for (UniswapV2 Factory Identical Addresses)
+    UniswapV2FactoryIdenticalAddresses = 28,
+    /// 65,565 for (UniswapV2 Factory Not In White List)
+    UniswapV2FactoryNotInWhiteList = 29,
+    /// 65,566 for (UniswapV2 Factory Not Owner)
+    UniswapV2FactoryNotOwner = 30,
 }
 
 impl From<Error> for ApiError {

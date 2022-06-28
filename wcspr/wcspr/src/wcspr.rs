@@ -2,12 +2,12 @@ use crate::alloc::string::ToString;
 use crate::data::{self, Allowances, Balances, WcsprEvents};
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use casper_contract::{
-    contract_api::{storage, system},
+    contract_api::{runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{ApiError, ContractPackageHash, Key, URef, U256, U512};
 use contract_utils::{ContractContext, ContractStorage};
-
+use num_traits::cast::AsPrimitive;
 #[repr(u16)]
 pub enum Error {
     /// 65,547 for (UniswapV2 Core WCSPR OverFlow1)
@@ -20,14 +20,20 @@ pub enum Error {
     UniswapV2CoreWCSPROverFlow4 = 14,
     /// 65,551 for (UniswapV2 Core WCSPR OverFlow5)
     UniswapV2CoreWCSPROverFlow5 = 15,
-    /// 65,552 for (UniswapV2 Core WCSPR UnderFlow1)
-    UniswapV2CoreWCSPRUnderFlow1 = 16,
-    /// 65,553 for (UniswapV2 Core WCSPR UnderFlow2)
-    UniswapV2CoreWCSPRUnderFlow2 = 17,
-    /// 65,554 for (UniswapV2 Core WCSPR UnderFlow3)
-    UniswapV2CoreWCSPRUnderFlow3 = 18,
-    /// 65,555 for (UniswapV2 Core WCSPR UnderFlow4)
-    UniswapV2CoreWCSPRUnderFlow4 = 19,
+    /// 65,552 for (UniswapV2 Core WCSPR OverFlow6)
+    UniswapV2CoreWCSPROverFlow6 = 16,
+    /// 65,553 for (UniswapV2 Core WCSPR OverFlow7)
+    UniswapV2CoreWCSPROverFlow7 = 17,
+    /// 65,554 for (UniswapV2 Core WCSPR OverFlow8)
+    UniswapV2CoreWCSPROverFlow8 = 18,
+    /// 65,555 for (UniswapV2 Core WCSPR UnderFlow1)
+    UniswapV2CoreWCSPRUnderFlow1 = 19,
+    /// 65,556 for (UniswapV2 Core WCSPR UnderFlow2)
+    UniswapV2CoreWCSPRUnderFlow2 = 20,
+    /// 65,557 for (UniswapV2 Core WCSPR UnderFlow3)
+    UniswapV2CoreWCSPRUnderFlow3 = 21,
+    /// 65,558 for (UniswapV2 Core WCSPR UnderFlow4)
+    UniswapV2CoreWCSPRUnderFlow4 = 22,
 }
 
 impl From<Error> for ApiError {
@@ -143,8 +149,23 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
 
     fn deposit(&mut self, amount_to_transfer: U512, purse: URef) -> Result<(), u32> {
         let cspr_amount: U512 = system::get_purse_balance(purse).unwrap_or_revert(); // get amount of cspr from purse received
-        let _cspr_amount_u256: U256 = U256::from(cspr_amount.as_u128()); // convert amount to U256
-        let amount_to_transfer_u256: U256 = U256::from(amount_to_transfer.as_u128()); // convert amount_to_transfer to U256
+        if cspr_amount
+            > U512::from(<casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX))
+        {
+            runtime::revert(Error::UniswapV2CoreWCSPROverFlow5);
+        }
+        let _cspr_amount_u256: U256 =
+            U256::from(<casper_types::U512 as AsPrimitive<casper_types::U256>>::as_(cspr_amount));
+        if amount_to_transfer
+            > U512::from(<casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX))
+        {
+            runtime::revert(Error::UniswapV2CoreWCSPROverFlow6);
+        }
+        // U256::from_str(cspr_amount.to_string().as_str()).unwrap(); // convert amount to U256
+        let amount_to_transfer_u256: U256 = U256::from(<casper_types::U512 as AsPrimitive<
+            casper_types::U256,
+        >>::as_(amount_to_transfer)); // convert amount_to_transfer to U256
+
         let contract_self_purse: URef = data::get_self_purse(); // get this contract's purse
 
         if amount_to_transfer.is_zero() {
@@ -191,7 +212,13 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> {
         let caller = self.get_caller();
         let balances = Balances::instance();
         let balance = balances.get(&caller); // get balance of the caller
-        let cspr_amount_u256: U256 = U256::from(amount.as_u128()); // convert U512 to U256
+        if amount
+            > U512::from(<casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX))
+        {
+            runtime::revert(Error::UniswapV2CoreWCSPROverFlow7);
+        }
+        let cspr_amount_u256: U256 =
+            U256::from(<casper_types::U512 as AsPrimitive<casper_types::U256>>::as_(amount)); // convert U512 to U256
 
         if amount.is_zero() {
             return Err(5); // Amount to transfer is 0
