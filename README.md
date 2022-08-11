@@ -124,7 +124,7 @@ rustup target add wasm32-unknown-unknown
 rustup --version
 
 #Install Cmake
- sudo apt-get -y install cmake
+sudo apt-get -y install cmake
 
 Note:https://cgold.readthedocs.io/en/latest/first-step/installation.html
 
@@ -141,18 +141,8 @@ sudo apt-key add casper-repo-pubkey.ascr
 sudo apt update
 
 # Install the Casper client software
-Install Casper-client
 
 cargo +nightly install casper-client
-
-# To check Casper Client Version
-Casper-client --version
-
-# Commands for help
-casper-client --help
-
-casper-client <command> --help
-
 ```
 ### Creating Keys
 
