@@ -1,6 +1,6 @@
 #![no_main]
 #![no_std]
-
+#![feature(default_alloc_error_handler)]
 #[macro_use]
 extern crate alloc;
 

@@ -597,9 +597,6 @@ dependencies = [
  "casper-contract",
  "casper-types",
  "contract-utils",
- "cryptoxide",
- "hex",
- "renvm-sig",
 ]
 
 [[package]]
