@@ -1,4 +1,4 @@
-uckniswap_core_directory = ./
+uniswap_core_directory = ./
 
 erc20_contract = ${uniswap_core_directory}erc20/
 factory_contract = ${uniswap_core_directory}factory/
@@ -10,7 +10,6 @@ wasm_src_path = target/wasm32-unknown-unknown/release/
 wasm_dest_factory_path = ${uniswap_core_directory}factory/factory-tests/wasm/
 wasm_dest_pair_path = ${uniswap_core_directory}pair/pair-tests/wasm/
 wasm_dest_flash_swapper_path = ${uniswap_core_directory}flashswapper/flashswapper-tests/wasm/
-
 
 all:
 	# Build erc20
@@ -30,6 +29,7 @@ all:
 
 	# copy wasm files
 	make copy-wasm-file
+
 clean:
 	# clean erc20
 	cd ${erc20_contract} && make clean
@@ -45,9 +45,6 @@ clean:
 
 	# clean pair
 	cd ${pair_contract} && make clean
-
-
-
 
 # copy wasm to required directory
 copy-wasm-file:
@@ -68,7 +65,6 @@ copy-wasm-file:
 	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_flash_swapper_path}
 	cp ${factory_contract}${wasm_src_path}*.wasm ${wasm_dest_pair_path}
 
-
 # run all tests sequentially
 test:
 	# Test ERC20
@@ -85,10 +81,4 @@ test:
 
 	# Test Pair
 	cd ${pair_contract} && make test
-
-
-
-
-
-
 

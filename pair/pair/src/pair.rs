@@ -625,10 +625,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow1)
                             .unwrap_or_revert())
                         .checked_sub(
-                            (amount0_in
+                            amount0_in
                                 .checked_mul(amount_3)
                                 .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow2)
-                                .unwrap_or_revert()),
+                                .unwrap_or_revert(),
                         )
                         .ok_or(Error::UniswapV2CorePairUnderFlow11)
                         .unwrap_or_revert();
@@ -637,10 +637,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
                             .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow3)
                             .unwrap_or_revert())
                         .checked_sub(
-                            (amount1_in
+                            amount1_in
                                 .checked_mul(amount_3)
                                 .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow4)
-                                .unwrap_or_revert()),
+                                .unwrap_or_revert(),
                         )
                         .ok_or(Error::UniswapV2CorePairUnderFlow12)
                         .unwrap_or_revert();
