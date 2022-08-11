@@ -1,4 +1,3 @@
-[![Rust](https://github.com/Scytalelabs-official/CasperLabs-UniswapV2-core/actions/workflows/rust.yml/badge.svg)](https://github.com/Scytalelabs-official/CasperLabs-UniswapV2-core/actions/workflows/rust.yml)
 # Uniswap V2 Core - Casper Blockchain
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
