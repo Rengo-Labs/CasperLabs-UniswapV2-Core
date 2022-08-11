@@ -123,7 +123,7 @@ rustup target add wasm32-unknown-unknown
 #Install Cmake
 sudo apt-get -y install cmake
 
-Note:https://cgold.readthedocs.io/en/latest/first-step/installation.html
+#For other platforms: https://cgold.readthedocs.io/en/latest/first-step/installation.html
 
 #Installing the Casper Crates
 cargo install cargo-casper
