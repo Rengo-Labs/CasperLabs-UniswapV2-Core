@@ -120,16 +120,10 @@ rustup default nightly
 # Install wasm32-unknown-unknown
 rustup target add wasm32-unknown-unknown
 
-#rust Version
-rustup --version
-
 #Install Cmake
 sudo apt-get -y install cmake
 
 Note:https://cgold.readthedocs.io/en/latest/first-step/installation.html
-
-#cmake Version
-cmake --version
 
 #Installing the Casper Crates
 cargo install cargo-casper
