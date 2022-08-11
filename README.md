@@ -137,6 +137,7 @@ sudo apt update
 # Install the Casper client software
 cargo +nightly install casper-client
 ```
+
 ### Creating Keys
 
 ```bash
