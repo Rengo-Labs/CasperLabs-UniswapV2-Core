@@ -1,6 +1,10 @@
 # Uniswap V2 Core - Casper Blockchain
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
+## Security Audit by Quantstamp
+
+https://certificate.quantstamp.com/full/rengo-labs
+
 ## Steps
 There are 5 contracts in this folder
 1) ERC20 Token Contract
