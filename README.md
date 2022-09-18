@@ -1,4 +1,6 @@
 # Uniswap V2 Core - Casper Blockchain
+[![Rengo-Labs/CasperLabs-UniswapV2-Core](https://circleci.com/gh/Rengo-Labs/CasperLabs-UniswapV2-Core.svg?style=svg)](https://circleci.com/gh/Rengo-Labs/CasperLabs-UniswapV2-Core)
+
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
 ## Security Audit by Quantstamp
