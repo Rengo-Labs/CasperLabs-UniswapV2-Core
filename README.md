@@ -105,19 +105,30 @@ You need to have `casper-client` and `jq` installed on your system to run the ex
 You can install the required software by issuing the following commands. If you are on an up-to-date Casper node, you probably already have all of the prerequisites installed so you can skip this step.
 
 ```bash
+# Add Casper repository if you haven't done so already
+echo "deb https://repo.casperlabs.io/releases" bionic main | sudo tee -a /etc/apt/sources.list.d/casper.list
+curl -O https://repo.casperlabs.io/casper-repo-pubkey.asc
+sudo apt-key add casper-repo-pubkey.asc
+
 # Update package repositories
 sudo apt update
+
+# Install Casper
+sudo apt install casper-client -y
+
+# Install Cmake
+sudo apt-get -y install cmake
 
 # Install the command-line JSON processor
 sudo apt install jq -y
 
-# Install rust
+# Install rust if not installed
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
-#Install the nightly version (by default stable toolchain is installed)
+# Install the nightly version (by default stable toolchain is installed)
 rustup install nightly
 
-#Check that nightly toolchain version is installed(this will list stable and nightly versions)
+# Check that nightly toolchain version is installed(this will list stable and nightly versions)
 rustup toolchain list
 
 #Set rust nightly as default
@@ -126,20 +137,15 @@ rustup default nightly
 # Install wasm32-unknown-unknown
 rustup target add wasm32-unknown-unknown
 
-#Install Cmake
-sudo apt-get -y install cmake
+# For other platforms: https://cgold.readthedocs.io/en/latest/first-step/installation.html
 
-#For other platforms: https://cgold.readthedocs.io/en/latest/first-step/installation.html
-
-#Installing the Casper Crates
+# Installing the Casper Crates
 cargo install cargo-casper
+```
 
-# Add Casper repository
-echo "deb https://repo.casperlabs.io/releases" bionic main | sudo tee -a /etc/apt/sources.list.d/casper.list
-curl -O https://repo.casperlabs.io/casper-repo-pubkey.asc
-sudo apt-key add casper-repo-pubkey.asc
-sudo apt update
+### Helpful commands
 
+```
 # To check Casper Client Version
 casper-client --version
 
@@ -160,7 +166,7 @@ To run the Contracts make sure you are in the folder of your required contract.
 #### Install
 Make sure `wasm32-unknown-unknown` is installed.
 ```
-rustup target add wasm32-unknown-unknown
+make prepare
 ```
 
 It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
