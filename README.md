@@ -137,7 +137,7 @@ cargo install cargo-casper
 # Add Casper repository
 echo "deb https://repo.casperlabs.io/releases" bionic main | sudo tee -a /etc/apt/sources.list.d/casper.list
 curl -O https://repo.casperlabs.io/casper-repo-pubkey.asc
-sudo apt-key add casper-repo-pubkey.ascr
+sudo apt-key add casper-repo-pubkey.asc
 sudo apt update
 
 # To check Casper Client Version
