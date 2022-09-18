@@ -1,0 +1,27 @@
+version: 2.1
+
+jobs:
+  test:
+    docker:
+      - image: cimg/rust:1.50.0
+    steps:
+      - checkout
+      - run: sudo apt update
+      - run: sudo apt install libssl-dev pkg-config
+      - run: rustup install nightly-2022-08-29
+      - run: rustup default nightly-2022-08-29-x86_64-unknown-linux-gnu
+      - run: cargo install cargo-casper
+      - run: cargo +nightly-2022-08-29-x86_64-unknown-linux-gnu install casper-client
+      - run: 
+          name: Build Casper Core
+          command: rustup target add wasm32-unknown-unknown && make all
+      - run: 
+          name: Run Tests Casper Core
+          command: make test
+      
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
+workflows:
+  test-workflow:
+    jobs:
+      - test
