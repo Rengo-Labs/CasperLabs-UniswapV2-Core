@@ -160,7 +160,7 @@ To run the Contracts make sure you are in the folder of your required contract.
 #### Install
 Make sure `wasm32-unknown-unknown` is installed.
 ```
-make prepare
+rustup target add wasm32-unknown-unknown
 ```
 
 It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
