@@ -145,6 +145,8 @@ cargo install cargo-casper
 
 ### Helpful commands
 
+Use these commands to make sure you are using your desired version of the casper client.  By default the latest should be installed
+
 ```
 # To check Casper Client Version
 casper-client --version
