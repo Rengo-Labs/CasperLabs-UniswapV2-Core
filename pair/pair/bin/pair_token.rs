@@ -38,7 +38,6 @@ impl Pair {
         decimals: u8,
         initial_supply: U256,
         domain_separator: String,
-        permit_type_hash: String,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
         reserve0: U128,
@@ -59,7 +58,6 @@ impl Pair {
             symbol,
             decimals,
             domain_separator,
-            permit_type_hash,
             Key::from(contract_hash),
             factory_hash,
             package_hash,
@@ -85,7 +83,6 @@ fn constructor() {
     let decimals: u8 = runtime::get_named_arg("decimals");
     let initial_supply: U256 = runtime::get_named_arg("initial_supply");
     let domain_separator: String = runtime::get_named_arg("domain_separator");
-    let permit_type_hash: String = runtime::get_named_arg("permit_type_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     let reserve0: U128 = runtime::get_named_arg("reserve0");
@@ -105,7 +102,6 @@ fn constructor() {
         decimals,
         initial_supply,
         domain_separator,
-        permit_type_hash,
         contract_hash,
         package_hash,
         reserve0,
@@ -194,35 +190,6 @@ fn swap() {
     let to: Key = runtime::get_named_arg("to");
     let data: String = runtime::get_named_arg("data");
     Pair::default().swap(amount0_out, amount1_out, to, data);
-}
-
-/// This function is to get meta transaction signer and verify if it is equal
-/// to the signer public key or not then call approve.
-///
-/// # Parameters
-///
-/// * `public_key` - A string slice that holds the public key of the meta transaction signer,  Subscriber have to get it from running cryptoxide project externally.
-///
-/// * `signature` - A string slice that holds the signature of the meta transaction,  Subscriber have to get it from running cryptoxide project externally.
-///
-/// * `owner` - A Key that holds the account address of the owner
-///
-/// * `spender` - A Key that holds the account address of the spender
-///  
-/// * `value` - A U256 that holds the value
-///  
-/// * `deadeline` - A u64 that holds the deadline limit
-///
-
-#[no_mangle]
-fn permit() {
-    let public_key: String = runtime::get_named_arg("public");
-    let signature: String = runtime::get_named_arg("signature");
-    let owner: Key = runtime::get_named_arg("owner");
-    let spender: Key = runtime::get_named_arg("spender");
-    let value: U256 = runtime::get_named_arg("value");
-    let deadline: u64 = runtime::get_named_arg("deadline");
-    Pair::default().permit(public_key, signature, owner, spender, value, deadline);
 }
 
 /// This function is to approve tokens against the address that user provided so the address can transfer on his behalf
@@ -525,7 +492,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("decimals", u8::cl_type()),
             Parameter::new("initial_supply", U256::cl_type()),
             Parameter::new("domain_separator", String::cl_type()),
-            Parameter::new("permit_type_hash", String::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
             Parameter::new("reserve0", U128::cl_type()),
@@ -593,20 +559,6 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "sync",
         vec![],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "permit",
-        vec![
-            Parameter::new("public", String::cl_type()),
-            Parameter::new("signature", String::cl_type()),
-            Parameter::new("owner", Key::cl_type()),
-            Parameter::new("spender", Key::cl_type()),
-            Parameter::new("value", U256::cl_type()),
-            Parameter::new("deadline", u64::cl_type()),
-        ],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -816,8 +768,6 @@ fn call() {
         let factory_hash: Key = runtime::get_named_arg("factory_hash");
         let eip_712_domain: &str =
             "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
-        let permit_type: &str =
-            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
         let chain_id: &str = "101";
         let eip_domain_hash = keccak256(eip_712_domain.as_bytes()); // to take a byte hash of EIP712Domain
         let name_hash = keccak256(name.as_bytes()); // to take a byte hash of name
@@ -830,9 +780,7 @@ fn call() {
             eip_domain_hash, name_hash, one_hash, chain_id, contract_hash
         ); //string contactination
         let domain_separator = keccak256(concatenated_data.as_bytes()); //to take a byte hash of concatenated Data
-        let permit_type_hash = keccak256(permit_type.as_bytes()); // to take a byte hash of Permit Type
         let domain_separator = encode(domain_separator);
-        let permit_type_hash = encode(permit_type_hash);
         let base: i32 = 10;
         let minimum_liquidity: U256 = (base.pow(3)).into();
         let reserve0: U128 = 0.into();
@@ -850,7 +798,6 @@ fn call() {
             "decimals" => decimals,
             "initial_supply" => initial_supply,
             "domain_separator" => domain_separator,
-            "permit_type_hash" => permit_type_hash,
             "contract_hash" => contract_hash,
             "package_hash"=>package_hash,
             "reserve0" => reserve0,

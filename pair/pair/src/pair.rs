@@ -277,7 +277,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         symbol: String,
         decimals: u8,
         domain_separator: String,
-        permit_type_hash: String,
         contract_hash: Key,
         factory_hash: Key,
         package_hash: ContractPackageHash,
@@ -296,7 +295,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_symbol(symbol);
         data::set_decimals(decimals);
         data::set_domain_separator(domain_separator);
-        data::set_permit_type_hash(permit_type_hash);
         data::set_hash(contract_hash);
         data::set_package_hash(package_hash);
         data::set_factory_hash(factory_hash);
@@ -742,75 +740,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         let verify_key: String = format!("{}{}", "VERIFY", owner);
         set_key(&verify_key, result);
         return result;
-    }
-
-    /// This function is to get meta transaction signer and verify if it is equal
-    /// to the signer public key or not then call approve.
-    ///
-    /// # Parameters
-    ///
-    /// * `public_key` - A string slice that holds the public key of the meta transaction signer,  Subscriber have to get it from running cryptoxide project externally.
-    ///
-    /// * `signature` - A string slice that holds the signature of the meta transaction,  Subscriber have to get it from running cryptoxide project externally.
-    ///
-    /// * `owner` - A Key that holds the account address of the owner
-    ///
-    /// * `spender` - A Key that holds the account address of the spender
-    ///  
-    /// * `value` - A U256 that holds the value
-    ///  
-    /// * `deadeline` - A u64 that holds the deadline limit
-    ///
-
-    fn permit(
-        &mut self,
-        public_key: String,
-        signature: String,
-        owner: Key,
-        spender: Key,
-        value: U256,
-        deadline: u64,
-    ) {
-        let domain_separator: String = data::get_domain_separator();
-        let permit_type_hash: String = data::get_permit_type_hash();
-        let nonce: U256 = self.nonce(Key::from(self.get_caller()));
-        let deadline_into_blocktime: BlockTime = BlockTime::new(
-            deadline
-                .checked_mul(1000)
-                .ok_or(Error::UniswapV2CorePairMultiplicationOverFlow8)
-                .unwrap_or_revert(),
-        );
-        let blocktime: BlockTime = runtime::get_blocktime();
-        if deadline_into_blocktime >= blocktime {
-            let data: String = format!(
-                "{}{}{}{}{}{}",
-                permit_type_hash, owner, spender, value, nonce, deadline
-            );
-            let hash: [u8; 32] = keccak256(data.as_bytes());
-            let hash_string: String = hex::encode(hash);
-            let encode_packed: String = format!("{}{}", domain_separator, hash_string);
-            let digest: [u8; 32] = hash_message(encode_packed);
-            let digest_string: String = hex::encode(digest);
-            let digest_key: String = format!("{}{}", "digest_", owner);
-            set_key(&digest_key, digest_string);
-            self.set_nonce(Key::from(self.get_caller()));
-            let result: bool =
-                self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
-            if result == true {
-                Allowances::instance().set(&owner, &spender, value);
-                self.emit(&PAIREvent::Approval {
-                    owner: owner,
-                    spender: spender,
-                    value: value,
-                });
-            } else {
-                //signature verification failed
-                runtime::revert(Error::UniswapV2CorePairFailedVerification);
-            }
-        } else {
-            //deadline is equal to or greater than blocktime
-            runtime::revert(Error::UniswapV2CorePairExpire);
-        }
     }
 
     fn mint(&mut self, recipient: Key, amount: U256) {

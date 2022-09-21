@@ -34,7 +34,6 @@ impl Token {
         decimals: u8,
         initial_supply: U256,
         domain_separator: String,
-        permit_type_hash: String,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
     ) {
@@ -45,7 +44,6 @@ impl Token {
             decimals,
             initial_supply,
             domain_separator,
-            permit_type_hash,
             Key::from(contract_hash),
             package_hash,
         );
@@ -60,7 +58,6 @@ fn constructor() {
     let decimals: u8 = runtime::get_named_arg("decimals");
     let initial_supply: U256 = runtime::get_named_arg("initial_supply");
     let domain_separator: String = runtime::get_named_arg("domain_separator");
-    let permit_type_hash: String = runtime::get_named_arg("permit_type_hash");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
 
@@ -70,7 +67,6 @@ fn constructor() {
         decimals,
         initial_supply,
         domain_separator,
-        permit_type_hash,
         contract_hash,
         package_hash,
     );
@@ -122,35 +118,6 @@ fn transfer_from() {
     let amount: U256 = runtime::get_named_arg("amount");
     let ret = Token::default().transfer_from(owner, recipient, amount);
     runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
-}
-
-/// This function is to get meta transaction signer and verify if it is equal
-/// to the signer public key or not then call approve.
-///
-/// # Parameters
-///
-/// * `public_key` - A string slice that holds the public key of the meta transaction signer,  Subscriber have to get it from running cryptoxide project externally.
-///
-/// * `signature` - A string slice that holds the signature of the meta transaction,  Subscriber have to get it from running cryptoxide project externally.
-///
-/// * `owner` - A Key that holds the account address of the owner
-///
-/// * `spender` - A Key that holds the account address of the spender
-///  
-/// * `value` - A U256 that holds the value
-///  
-/// * `deadeline` - A u64 that holds the deadline limit
-///
-
-#[no_mangle]
-fn permit() {
-    let public_key: String = runtime::get_named_arg("public");
-    let signature: String = runtime::get_named_arg("signature");
-    let owner: Key = runtime::get_named_arg("owner");
-    let spender: Key = runtime::get_named_arg("spender");
-    let value: U256 = runtime::get_named_arg("value");
-    let deadline: u64 = runtime::get_named_arg("deadline");
-    Token::default().permit(public_key, signature, owner, spender, value, deadline);
 }
 
 /// This function is to approve tokens against the address that user provided
@@ -377,7 +344,7 @@ fn call() {
         let decimals: u8 = runtime::get_named_arg("decimals");
         let initial_supply: U256 = runtime::get_named_arg("initial_supply");
 
-        let (domain_separator, permit_type_hash) =
+        let (domain_separator, _) =
             Token::default().get_permit_type_and_domain_separator(&name, contract_hash);
 
         // Prepare constructor args
@@ -387,7 +354,6 @@ fn call() {
              "decimals" => decimals,
              "initial_supply" => initial_supply,
              "domain_separator" => domain_separator,
-             "permit_type_hash" => permit_type_hash,
              "contract_hash" => contract_hash,
              "package_hash"=> package_hash
 
@@ -466,7 +432,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("decimals", u8::cl_type()),
             Parameter::new("initial_supply", U256::cl_type()),
             Parameter::new("domain_separator", String::cl_type()),
-            Parameter::new("permit_type_hash", String::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
         ],
@@ -499,20 +464,6 @@ fn get_entry_points() -> EntryPoints {
             ok: Box::new(CLType::Unit),
             err: Box::new(CLType::U32),
         },
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "permit",
-        vec![
-            Parameter::new("public", String::cl_type()),
-            Parameter::new("signature", String::cl_type()),
-            Parameter::new("owner", Key::cl_type()),
-            Parameter::new("spender", Key::cl_type()),
-            Parameter::new("value", U256::cl_type()),
-            Parameter::new("deadline", u64::cl_type()),
-        ],
-        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
