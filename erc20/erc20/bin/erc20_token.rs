@@ -33,7 +33,6 @@ impl Token {
         symbol: String,
         decimals: u8,
         initial_supply: U256,
-        domain_separator: String,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
     ) {
@@ -43,7 +42,6 @@ impl Token {
             symbol,
             decimals,
             initial_supply,
-            domain_separator,
             Key::from(contract_hash),
             package_hash,
         );
@@ -57,7 +55,6 @@ fn constructor() {
     let symbol = runtime::get_named_arg::<String>("symbol");
     let decimals: u8 = runtime::get_named_arg("decimals");
     let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-    let domain_separator: String = runtime::get_named_arg("domain_separator");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
 
@@ -66,7 +63,6 @@ fn constructor() {
         symbol,
         decimals,
         initial_supply,
-        domain_separator,
         contract_hash,
         package_hash,
     );
@@ -344,16 +340,12 @@ fn call() {
         let decimals: u8 = runtime::get_named_arg("decimals");
         let initial_supply: U256 = runtime::get_named_arg("initial_supply");
 
-        let (domain_separator, _) =
-            Token::default().get_permit_type_and_domain_separator(&name, contract_hash);
-
         // Prepare constructor args
         let constructor_args = runtime_args! {
             "name" => name,
             "symbol" => symbol,
              "decimals" => decimals,
              "initial_supply" => initial_supply,
-             "domain_separator" => domain_separator,
              "contract_hash" => contract_hash,
              "package_hash"=> package_hash
 
@@ -431,7 +423,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("symbol", String::cl_type()),
             Parameter::new("decimals", u8::cl_type()),
             Parameter::new("initial_supply", U256::cl_type()),
-            Parameter::new("domain_separator", String::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
         ],

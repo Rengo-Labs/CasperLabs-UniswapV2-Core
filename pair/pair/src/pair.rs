@@ -276,7 +276,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         name: String,
         symbol: String,
         decimals: u8,
-        domain_separator: String,
         contract_hash: Key,
         factory_hash: Key,
         package_hash: ContractPackageHash,
@@ -294,7 +293,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> {
         data::set_name(name);
         data::set_symbol(symbol);
         data::set_decimals(decimals);
-        data::set_domain_separator(domain_separator);
         data::set_hash(contract_hash);
         data::set_package_hash(package_hash);
         data::set_factory_hash(factory_hash);

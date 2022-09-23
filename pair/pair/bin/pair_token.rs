@@ -37,7 +37,6 @@ impl Pair {
         symbol: String,
         decimals: u8,
         initial_supply: U256,
-        domain_separator: String,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
         reserve0: U128,
@@ -57,7 +56,6 @@ impl Pair {
             name,
             symbol,
             decimals,
-            domain_separator,
             Key::from(contract_hash),
             factory_hash,
             package_hash,
@@ -82,7 +80,6 @@ fn constructor() {
     let symbol: String = runtime::get_named_arg("symbol");
     let decimals: u8 = runtime::get_named_arg("decimals");
     let initial_supply: U256 = runtime::get_named_arg("initial_supply");
-    let domain_separator: String = runtime::get_named_arg("domain_separator");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     let reserve0: U128 = runtime::get_named_arg("reserve0");
@@ -101,7 +98,6 @@ fn constructor() {
         symbol,
         decimals,
         initial_supply,
-        domain_separator,
         contract_hash,
         package_hash,
         reserve0,
@@ -491,7 +487,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("symbol", String::cl_type()),
             Parameter::new("decimals", u8::cl_type()),
             Parameter::new("initial_supply", U256::cl_type()),
-            Parameter::new("domain_separator", String::cl_type()),
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
             Parameter::new("reserve0", U128::cl_type()),
@@ -766,21 +761,6 @@ fn call() {
         let initial_supply: U256 = runtime::get_named_arg("initial_supply");
         let callee_package_hash: Key = runtime::get_named_arg("callee_package_hash");
         let factory_hash: Key = runtime::get_named_arg("factory_hash");
-        let eip_712_domain: &str =
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
-        let chain_id: &str = "101";
-        let eip_domain_hash = keccak256(eip_712_domain.as_bytes()); // to take a byte hash of EIP712Domain
-        let name_hash = keccak256(name.as_bytes()); // to take a byte hash of name
-        let one_hash = keccak256("1".as_bytes()); // to take a byte hash of "1"
-        let eip_domain_hash = encode(eip_domain_hash); // to encode and convert eip_domain_hash into string
-        let name_hash = encode(name_hash); // to encode and convert name_hash into string
-        let one_hash = encode(one_hash); // to encode and convert one_hash into string
-        let concatenated_data: String = format!(
-            "{}{}{}{}{}",
-            eip_domain_hash, name_hash, one_hash, chain_id, contract_hash
-        ); //string contactination
-        let domain_separator = keccak256(concatenated_data.as_bytes()); //to take a byte hash of concatenated Data
-        let domain_separator = encode(domain_separator);
         let base: i32 = 10;
         let minimum_liquidity: U256 = (base.pow(3)).into();
         let reserve0: U128 = 0.into();
@@ -797,7 +777,6 @@ fn call() {
             "symbol" => symbol,
             "decimals" => decimals,
             "initial_supply" => initial_supply,
-            "domain_separator" => domain_separator,
             "contract_hash" => contract_hash,
             "package_hash"=>package_hash,
             "reserve0" => reserve0,

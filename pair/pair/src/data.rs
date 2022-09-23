@@ -13,7 +13,6 @@ pub const DECIMALS: &str = "decimals";
 pub const TOTAL_SUPPLY: &str = "total_supply";
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const SELF_PACKAGE_HASH: &str = "self_package_hash";
-pub const DOMAIN_SEPARATOR: &str = "domain_separator";
 pub const FACTORY: &str = "factory_hash";
 pub const RESERVE0: &str = "reserve0";
 pub const RESERVE1: &str = "reserve1";
@@ -172,14 +171,6 @@ pub fn set_token1(token1: Key) {
 
 pub fn get_token1() -> Key {
     get_key(TOKEN1).unwrap_or_revert()
-}
-
-pub fn set_domain_separator(domain_separator: String) {
-    set_key(DOMAIN_SEPARATOR, domain_separator);
-}
-
-pub fn get_domain_separator() -> String {
-    get_key(DOMAIN_SEPARATOR).unwrap_or_revert()
 }
 
 pub fn set_reserve0(reserve0: U128) {
