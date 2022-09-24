@@ -83,15 +83,11 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         symbol: String,
         decimals: u8,
         initial_supply: U256,
-        domain_separator: String,
-        permit_type_hash: String,
         contract_hash: Key,
         package_hash: ContractPackageHash,
     ) {
         data::set_name(name);
         data::set_symbol(symbol);
-        data::set_domain_separator(domain_separator);
-        data::set_permit_type_hash(permit_type_hash);
         data::set_total_supply(initial_supply);
         data::set_decimals(decimals);
         data::set_hash(contract_hash);
@@ -237,70 +233,6 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         return result;
     }
 
-    /// This function is to get meta transaction signer and verify if it is equal
-    /// to the signer public key or not then call approve.
-    ///
-    /// # Parameters
-    ///
-    /// * `public_key` - A string slice that holds the public key of the meta transaction signer,  Subscriber have to get it from running cryptoxide project externally.
-    ///
-    /// * `signature` - A string slice that holds the signature of the meta transaction,  Subscriber have to get it from running cryptoxide project externally.
-    ///
-    /// * `owner` - A Key that holds the account address of the owner
-    ///
-    /// * `spender` - A Key that holds the account address of the spender
-    ///  
-    /// * `value` - A U256 that holds the value
-    ///  
-    /// * `deadeline` - A u64 that holds the deadline limit
-    ///
-
-    fn permit(
-        &mut self,
-        public_key: String,
-        signature: String,
-        owner: Key,
-        spender: Key,
-        value: U256,
-        deadline: u64,
-    ) {
-        let domain_separator: String = data::get_domain_separator();
-        let permit_type_hash: String = data::get_permit_type_hash();
-        let nonce: U256 = self.nonce(Key::from(self.get_caller()));
-        let deadline_into_blocktime: BlockTime = BlockTime::new(deadline * 1000);
-        let blocktime: BlockTime = runtime::get_blocktime();
-        if deadline_into_blocktime >= blocktime {
-            let data: String = format!(
-                "{}{}{}{}{}{}",
-                permit_type_hash, owner, spender, value, nonce, deadline
-            );
-            let hash: [u8; 32] = keccak256(data.as_bytes());
-            let hash_string: String = hex::encode(hash);
-            let encode_packed: String = format!("{}{}", domain_separator, hash_string);
-            let digest: [u8; 32] = hash_message(encode_packed);
-            let digest_string: String = hex::encode(digest);
-            let digest_key: String = format!("{}{}", "digest_", owner);
-            set_key(&digest_key, digest_string);
-            self.set_nonce(Key::from(self.get_caller()));
-            let result: bool =
-                self.ecrecover(public_key, signature, digest, Key::from(self.get_caller()));
-            if result == true {
-                Allowances::instance().set(&owner, &spender, value);
-                self.emit(&ERC20Event::Approval {
-                    owner: owner,
-                    spender: spender,
-                    value: value,
-                });
-            } else {
-                //signature verification failed
-                runtime::revert(Error::UniswapV2CoreERC20SignatureVerificationFailed);
-            }
-        } else {
-            //deadline is equal to or greater than blocktime
-            runtime::revert(Error::UniswapV2CoreERC20EXPIRED);
-        }
-    }
-
     fn mint(&mut self, recipient: Key, amount: U256) {
         let balances: Balances = Balances::instance();
         let balance: U256 = balances.get(&recipient);
@@ -407,32 +339,6 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         data::symbol()
     }
 
-    fn get_permit_type_and_domain_separator(
-        &mut self,
-        name: &str,
-        contract_hash: ContractHash,
-    ) -> (String, String) {
-        let eip_712_domain: &str =
-            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)";
-        let permit_type: &str =
-            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)";
-        let chain_id: &str = "101";
-        let eip_domain_hash: [u8; 32] = keccak256(eip_712_domain.as_bytes()); // to take a byte hash of EIP712Domain
-        let name_hash: [u8; 32] = keccak256(name.as_bytes()); // to take a byte hash of name
-        let one_hash: [u8; 32] = keccak256("1".as_bytes()); // to take a byte hash of "1"
-        let eip_domain_hash: String = encode(eip_domain_hash); // to encode and convert eip_domain_hash into string
-        let name_hash: String = encode(name_hash); // to encode and convert name_hash into string
-        let one_hash: String = encode(one_hash); // to encode and convert one_hash into string
-        let concatenated_data: String = format!(
-            "{}{}{}{}{}",
-            eip_domain_hash, name_hash, one_hash, chain_id, contract_hash
-        ); //string contactination
-        let domain_separator: [u8; 32] = keccak256(concatenated_data.as_bytes()); //to take a byte hash of concatenated Data
-        let permit_type_hash: [u8; 32] = keccak256(permit_type.as_bytes()); // to take a byte hash of Permit Type
-        let domain_separator: String = encode(domain_separator);
-        let permit_type_hash: String = encode(permit_type_hash);
-        (domain_separator, permit_type_hash)
-    }
     fn emit(&mut self, erc20_event: &ERC20Event) {
         let mut events = Vec::new();
         let package = data::get_package_hash();
