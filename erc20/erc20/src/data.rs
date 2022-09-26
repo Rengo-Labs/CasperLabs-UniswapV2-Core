@@ -22,8 +22,6 @@ pub const SYMBOL: &str = "symbol";
 pub const DECIMALS: &str = "decimals";
 pub const TOTAL_SUPPLY: &str = "total_supply";
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
-pub const DOMAIN_SEPARATOR: &str = "domain_separator";
-pub const PERMIT_TYPE_HASH: &str = "permit_type_hash";
 pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
 
 pub struct Balances {
@@ -130,21 +128,6 @@ pub fn set_total_supply(total_supply: U256) {
     set_key(TOTAL_SUPPLY, total_supply);
 }
 
-pub fn set_domain_separator(domain_separator: String) {
-    set_key(DOMAIN_SEPARATOR, domain_separator);
-}
-
-pub fn get_domain_separator() -> String {
-    get_key(DOMAIN_SEPARATOR).unwrap_or_revert()
-}
-
-pub fn set_permit_type_hash(permit_type_hash: String) {
-    set_key(PERMIT_TYPE_HASH, permit_type_hash);
-}
-
-pub fn get_permit_type_hash() -> String {
-    get_key(PERMIT_TYPE_HASH).unwrap_or_revert()
-}
 pub fn set_hash(contract_hash: Key) {
     set_key(SELF_CONTRACT_HASH, contract_hash);
 }
