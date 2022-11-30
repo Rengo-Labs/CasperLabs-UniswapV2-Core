@@ -1,4 +1,0 @@
-language: rust
-script:
-  - cd tests && cargo build
-  - cd tests && cargo test

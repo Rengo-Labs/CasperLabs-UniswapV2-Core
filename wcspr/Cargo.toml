@@ -2,11 +2,8 @@
 
 members = [
   "wcspr",
-  "test-contract",
-  "test-contract2",
   "wcspr-tests",
-  "purse-proxy",
-  "invalid-purse-proxy"
+  "session-code",
 ]
 
 [profile.release]
