@@ -8,14 +8,13 @@ use casper_contract::{
 };
 use casper_types::{ContractHash, ContractPackageHash, URef, U256, U512};
 use casperlabs_contract_utils::{ContractContext, ContractStorage};
-use casperlabs_erc20::data::{get_package_hash, set_contract_hash, set_package_hash};
+use casperlabs_erc20::data::get_package_hash;
 use casperlabs_erc20::{Address, ERC20};
 use num_traits::cast::AsPrimitive;
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Storage> {
     fn init(&self, contract_hash: ContractHash, package_hash: ContractPackageHash, purse: URef) {
-        set_contract_hash(contract_hash);
-        set_package_hash(package_hash);
+        ERC20::init(self, contract_hash, package_hash);
         data::set_self_purse(purse);
     }
 
