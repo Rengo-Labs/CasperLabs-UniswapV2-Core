@@ -1578,8 +1578,3 @@ dependencies = [
  "syn",
  "synstructure",
 ]
-
-[[patch.unused]]
-name = "renvm-sig"
-version = "0.1.1"
-source = "git+https://github.com/Scytalelabs-official/CasperLabs-renvm-sig.git?branch=main#bb97d89548290ad3ec39f23ae34981d791fa1720"
