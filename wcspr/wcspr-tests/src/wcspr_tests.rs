@@ -5,8 +5,9 @@ use casperlabs_test_env::{now, TestContract, TestEnv};
 
 const NAME: &str = "Wrapped_Casper";
 const SYMBOL: &str = "WCSPR";
-const DECIMALS: u8 = 10;
+const DECIMALS: u8 = 9;
 const INIT_TOTAL_SUPPLY: U256 = U256([0, 0, 0, 0]);
+const AMOUNT: u64 = 500_000_000_000;
 
 const DEPOSIT: &str = "deposit";
 const WITHDRAW: &str = "withdraw";
@@ -38,18 +39,17 @@ fn test_wcspr_deposit() {
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
         0.into()
     );
-    let amount = 500;
     call(
         &env,
         owner,
         DEPOSIT,
         Key::Hash(token.package_hash()),
-        amount.into(),
+        AMOUNT.into(),
         now(),
     );
     assert_eq!(
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
-        amount.into()
+        AMOUNT.into()
     );
 }
 
@@ -60,25 +60,24 @@ fn test_wcspr_withdraw() {
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
         0.into()
     );
-    let amount = 500;
     call(
         &env,
         owner,
         DEPOSIT,
         Key::Hash(token.package_hash()),
-        amount.into(),
+        AMOUNT.into(),
         now(),
     );
     assert_eq!(
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
-        amount.into()
+        AMOUNT.into()
     );
     call(
         &env,
         owner,
         WITHDRAW,
         Key::Hash(token.package_hash()),
-        amount.into(),
+        AMOUNT.into(),
         now(),
     );
     assert_eq!(
@@ -95,13 +94,12 @@ fn test_wcspr_withdraw_with_no_deposit() {
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
         0.into()
     );
-    let amount = 500;
     call(
         &env,
         owner,
         WITHDRAW,
         Key::Hash(token.package_hash()),
-        amount.into(),
+        AMOUNT.into(),
         now(),
     );
 }

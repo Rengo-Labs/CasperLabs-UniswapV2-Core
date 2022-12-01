@@ -23,23 +23,21 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
         if amount.is_zero() {
             return Err(5); // Amount to transfer is 0
         }
-        if amount
-            > U512::from(<casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX))
-        {
+        if amount > <casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX) {
             runtime::revert(Error::UniswapV2CoreWCSPROverFlow1);
         }
         if system::get_purse_balance(purse).unwrap_or_revert()
-            > U512::from(<casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX))
+            > <casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX)
         {
             runtime::revert(Error::UniswapV2CoreWCSPROverFlow2);
         }
         // transfers native cspr from source purse to destination purse
-        let _ = system::transfer_from_purse_to_purse(purse, data::get_self_purse(), amount, None)
+        system::transfer_from_purse_to_purse(purse, data::get_self_purse(), amount, None)
             .unwrap_or_revert();
         // mint wcspr for the caller
         self.mint(
             Address::from(self.get_caller()),
-            U256::from(<casper_types::U512 as AsPrimitive<casper_types::U256>>::as_(amount)),
+            <casper_types::U512 as AsPrimitive<casper_types::U256>>::as_(amount),
         )
         .unwrap_or_revert();
         self.emit(&WcsprEvents::Deposit { purse, amount });
@@ -50,9 +48,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
         if amount.is_zero() {
             return Err(5); // Amount to transfer is 0
         }
-        if amount
-            > U512::from(<casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX))
-        {
+        if amount > <casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(U256::MAX) {
             runtime::revert(Error::UniswapV2CoreWCSPROverFlow3);
         }
         // transfer native cspr from purse to account
@@ -61,7 +57,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
         // burn wcspr for the caller
         self.burn(
             Address::from(self.get_caller()),
-            U256::from(<casper_types::U512 as AsPrimitive<casper_types::U256>>::as_(amount)),
+            <casper_types::U512 as AsPrimitive<casper_types::U256>>::as_(amount),
         )
         .unwrap_or_revert();
         self.emit(&WcsprEvents::Withdraw { purse, amount });

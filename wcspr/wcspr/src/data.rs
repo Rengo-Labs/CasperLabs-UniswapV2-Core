@@ -43,11 +43,11 @@ impl WcsprEvents {
 pub const SELF_PURSE: &str = "self_purse";
 
 pub fn set_self_purse(purse: URef) {
-    runtime::put_key(&SELF_PURSE, purse.into());
+    runtime::put_key(SELF_PURSE, purse.into());
 }
 
 pub fn get_self_purse() -> URef {
-    match runtime::get_key(&SELF_PURSE).unwrap_or_revert().as_uref() {
+    match runtime::get_key(SELF_PURSE).unwrap_or_revert().as_uref() {
         Some(uref) => *uref,
         None => runtime::revert(ApiError::InvalidPurse),
     }
