@@ -7,6 +7,7 @@ pub fn address_to_str(owner: &Address) -> String {
     base64::encode(&preimage)
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn deploy_erc20(
     env: &TestEnv,
     contract_name: &str,
