@@ -214,7 +214,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                         let reserve1_conversion: U256 = U256::from(reserve1.as_u128());
                         let base: i32 = 1000;
                         let reserve_multiply: U256 = (base.pow(2)).into();
-                        // let reserve_multiply: U256 = (1000 ^ 2).into();
                         if (balance0_adjusted
                             .checked_mul(balance1_adjusted)
                             .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow5))
@@ -308,26 +307,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         result
     }
 
-    fn mint(&self, recipient: Address, amount: U256) {
-        ERC20::mint(self, recipient, amount).unwrap_or_revert();
-        self.emit(&PAIREvent::Transfer {
-            from: account_zero(),
-            to: Key::from(recipient),
-            value: amount,
-            pair: Key::from(get_package_hash()),
-        });
-    }
-
-    fn burn(&self, recipient: Address, amount: U256) {
-        ERC20::burn(self, recipient, amount).unwrap_or_revert();
-        self.emit(&PAIREvent::Transfer {
-            from: Key::from(recipient),
-            to: account_zero(),
-            value: amount,
-            pair: Key::from(get_package_hash()),
-        });
-    }
-
     fn set_treasury_fee_percent(&self, treasury_fee: U256) {
         if treasury_fee < 30.into() && treasury_fee > 3.into() {
             set_treasury_fee(treasury_fee);
@@ -339,7 +318,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     #[allow(unused_assignments)]
-    fn mint_helper(&self, to: Key) -> U256 {
+    fn mint(&self, to: Key) -> U256 {
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let balance0: U256 = runtime::call_versioned_contract(
             get_token0().into_hash().unwrap_or_revert().into(),
@@ -374,7 +353,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 )
                 .checked_sub(get_minimum_liquidity())
                 .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow7);
-            PAIR::mint(self, Address::from(account_zero()), get_minimum_liquidity());
+            ERC20::mint(self, Address::from(account_zero()), get_minimum_liquidity())
+                .unwrap_or_revert();
         } else {
             let x: U256 = (amount0
                 .checked_mul(self.total_supply())
@@ -387,7 +367,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             liquidity = self.min(x, y);
         }
         if liquidity > 0.into() {
-            PAIR::mint(self, Address::from(to), liquidity);
+            ERC20::mint(self, Address::from(to), liquidity).unwrap_or_revert();
             self.update(balance0, balance1, reserve0, reserve1);
             if fee_on {
                 let k_last: U256 = U256::from(
@@ -412,7 +392,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         }
     }
 
-    fn burn_helper(&self, to: Key) -> (U256, U256) {
+    fn burn(&self, to: Key) -> (U256, U256) {
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let balance0: U256 = runtime::call_versioned_contract(
             get_token0().into_hash().unwrap_or_revert().into(),
@@ -441,7 +421,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow13))
             / self.total_supply();
         if amount0 > 0.into() && amount1 > 0.into() {
-            PAIR::burn(self, Address::Contract(get_package_hash()), liquidity);
+            ERC20::burn(self, Address::Contract(get_package_hash()), liquidity).unwrap_or_revert();
             () = runtime::call_versioned_contract(
                 get_token0().into_hash().unwrap_or_revert().into(),
                 None,
@@ -542,7 +522,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                     if denominator > U256::from(0) {
                         let liquidity: U256 = numerator / denominator;
                         if liquidity > 0.into() {
-                            PAIR::mint(self, Address::from(fee_to), liquidity)
+                            ERC20::mint(self, Address::from(fee_to), liquidity).unwrap_or_revert();
                         }
                     } else {
                         //UniswapV2: DENOMINATOR IS ZERO
@@ -645,7 +625,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             let block_timestamp_last: u64 = get_block_timestamp_last();
             let time_elapsed: u64 = block_timestamp - block_timestamp_last; // overflow is desired
             if time_elapsed > 0 && reserve0 != 0.into() && reserve1 != 0.into() {
-                // * never overflows, and + overflow is desired
                 let price0_cumulative_last: U256 = get_price0_cumulative_last();
                 let price1_cumulative_last: U256 = get_price1_cumulative_last();
                 let price0_cumulative_last_result: U256 =
@@ -677,21 +656,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         let package_hash_arr: Vec<&str> = formatted_package_hash.split('-').collect();
         let package_hash: String = package_hash_arr[1].to_string();
         match pair_event {
-            PAIREvent::Transfer {
-                from,
-                to,
-                value,
-                pair,
-            } => {
-                let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash);
-                event.insert("event_type", pair_event.type_name());
-                event.insert("from", from.to_string());
-                event.insert("to", to.to_string());
-                event.insert("value", value.to_string());
-                event.insert("pair", pair.to_string());
-                events.push(event);
-            }
             PAIREvent::Mint {
                 sender,
                 amount0,

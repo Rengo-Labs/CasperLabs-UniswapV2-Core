@@ -6,7 +6,7 @@ use casperlabs_test_env::{now, TestContract, TestEnv};
 const NAME: &str = "ERC20";
 const SYMBOL: &str = "ERC";
 const DECIMALS: u8 = 9;
-const INITIAL_SUPPLY: U256 = U256([0, 0, 0, 0]);
+const AMOUNT: U256 = U256([100_000_000_000, 0, 0, 0]);
 
 const BALANCES: &str = "balances";
 const TREASURY_FEE: &str = "treasury_fee";
@@ -47,7 +47,7 @@ fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
         NAME,
         SYMBOL,
         DECIMALS,
-        INITIAL_SUPPLY,
+        AMOUNT,
         Key::Hash(callee_contract.package_hash()),
         Key::Hash(factory_contract.package_hash()),
         now(),
@@ -106,7 +106,7 @@ fn initialize(
         "mint",
         runtime_args! {
             "to" => Address::Contract(token.package_hash().into()),
-            "amount" => U256::from(100_000_000_000u64)
+            "amount" => AMOUNT
         },
         now(),
     );
@@ -115,7 +115,7 @@ fn initialize(
         "mint",
         runtime_args! {
             "to" => Address::Contract(token.package_hash().into()),
-            "amount" => U256::from(100_000_000_000u64)
+            "amount" => AMOUNT
         },
         now(),
     );
@@ -128,43 +128,28 @@ fn test_pair_deploy() {
     assert_eq!(NAME, token.query_named_key::<String>("name".into()));
     assert_eq!(SYMBOL, token.query_named_key::<String>("symbol".into()));
     assert_eq!(DECIMALS, token.query_named_key::<u8>("decimals".into()));
-    assert_eq!(
-        INITIAL_SUPPLY,
-        token.query_named_key::<U256>("total_supply".into())
-    );
+    assert_eq!(AMOUNT, token.query_named_key::<U256>("total_supply".into()));
 }
 
 #[test]
 fn test_pair_transfer() {
     let (env, owner, token, _) = deploy();
     let to = env.next_user();
-    let amount: U256 = 123_000_000_000u64.into();
+    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, AMOUNT);
     token.call_contract(
         owner,
-        "erc20_mint",
-        runtime_args! {
-            "recipient" => Address::Account(to),
-            "amount" => amount
-        },
-        now(),
-    );
-    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(to)));
-    assert_eq!(ret, amount);
-    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
-    assert_eq!(ret, 0.into());
-    token.call_contract(
-        to,
         "transfer",
         runtime_args! {
-            "recipient" => Address::Account(owner),
-            "amount" => amount,
+            "recipient" => Address::Account(to),
+            "amount" => AMOUNT,
         },
         now(),
     );
     let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(to)));
-    assert_eq!(ret, 0.into());
+    assert_eq!(ret, AMOUNT);
     let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
-    assert_eq!(ret, amount);
+    assert_eq!(ret, 0.into());
 }
 
 #[test]
@@ -257,7 +242,26 @@ fn test_pair_skim() {
 #[test]
 fn test_pair_mint() {
     let (env, owner, token, factory) = deploy();
-    initialize(&env, owner, &token, &factory);
+    let ret = initialize(&env, owner, &token, &factory);
+    token.call_contract(owner, "sync", runtime_args! {}, now());
+    ret.0.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
+    ret.1.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
     token.call_contract(
         owner,
         "mint",
@@ -271,14 +275,33 @@ fn test_pair_mint() {
             BALANCES,
             address_to_str(&Address::Contract(token.package_hash().into()))
         ),
-        99999999000u64.into()
+        100000000000u64.into()
     );
 }
 
 #[test]
 fn test_pair_burn() {
     let (env, owner, token, factory) = deploy();
-    initialize(&env, owner, &token, &factory);
+    let ret = initialize(&env, owner, &token, &factory);
+    token.call_contract(owner, "sync", runtime_args! {}, now());
+    ret.0.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
+    ret.1.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
     token.call_contract(
         owner,
         "mint",
@@ -292,7 +315,7 @@ fn test_pair_burn() {
             BALANCES,
             address_to_str(&Address::Contract(token.package_hash().into()))
         ),
-        99999999000u64.into()
+        100000000000u64.into()
     );
     token.call_contract(
         owner,

@@ -250,19 +250,8 @@ fn swap() {
 #[no_mangle]
 fn mint() {
     let to: Key = runtime::get_named_arg("to");
-    let liquidity: U256 = Pair::default().mint_helper(to);
+    let liquidity: U256 = PAIR::mint(&Pair::default(), to);
     runtime::ret(CLValue::from_t(liquidity).unwrap_or_revert());
-}
-
-/// This function is to mint token against the address that user provided with the amount
-/// # Parameters
-/// * `to` - A Key that holds the account address of the user
-/// * `amount` - A U256 that holds the value that is going to mint
-#[no_mangle]
-fn erc20_mint() {
-    let recipient: Address = runtime::get_named_arg("recipient");
-    let amount: U256 = runtime::get_named_arg("amount");
-    PAIR::mint(&Pair::default(), recipient, amount);
 }
 
 /// This function is to burn token against the address that user provided
@@ -271,7 +260,7 @@ fn erc20_mint() {
 #[no_mangle]
 fn burn() {
     let to: Key = runtime::get_named_arg("to");
-    let (amount0, amount1): (U256, U256) = Pair::default().burn_helper(to);
+    let (amount0, amount1): (U256, U256) = PAIR::burn(&Pair::default(), to);
     runtime::ret(CLValue::from_t((amount0, amount1)).unwrap_or_revert());
 }
 
@@ -287,6 +276,15 @@ fn get_reserves() {
 #[no_mangle]
 fn treasury_fee() {
     runtime::ret(CLValue::from_t(get_treasury_fee()).unwrap_or_revert());
+}
+
+/// This function is to set a treasury_fee
+/// # Parameters
+/// * `treasury_fee` - A U256 that holds the value that is going to be a treasury_fee
+#[no_mangle]
+fn set_treasury_fee_percent() {
+    let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
+    Pair::default().set_treasury_fee_percent(treasury_fee);
 }
 
 /// This function is to fetch a Token0
@@ -310,15 +308,6 @@ fn initialize() {
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
 
     Pair::default().initialize(token0, token1, factory_hash);
-}
-
-/// This function is to set a treasury_fee
-/// # Parameters
-/// * `treasury_fee` - A U256 that holds the value that is going to be a treasury_fee
-#[no_mangle]
-fn set_treasury_fee_percent() {
-    let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
-    Pair::default().set_treasury_fee_percent(treasury_fee);
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -441,18 +430,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "swap",
-        vec![
-            Parameter::new("amount0_out", U256::cl_type()),
-            Parameter::new("amount1_out", U256::cl_type()),
-            Parameter::new("to", Key::cl_type()),
-            Parameter::new("data", String::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
         "skim",
         vec![Parameter::new("to", Key::cl_type())],
         <()>::cl_type(),
@@ -462,6 +439,18 @@ fn get_entry_points() -> EntryPoints {
     entry_points.add_entry_point(EntryPoint::new(
         "sync",
         vec![],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "swap",
+        vec![
+            Parameter::new("amount0_out", U256::cl_type()),
+            Parameter::new("amount1_out", U256::cl_type()),
+            Parameter::new("to", Key::cl_type()),
+            Parameter::new("data", String::cl_type()),
+        ],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
@@ -477,6 +466,17 @@ fn get_entry_points() -> EntryPoints {
         "burn",
         vec![Parameter::new("to", Key::cl_type())],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_reserves",
+        vec![],
+        CLType::Tuple3([
+            Box::new(CLType::U128),
+            Box::new(CLType::U128),
+            Box::new(u64::cl_type()),
+        ]),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -514,27 +514,6 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("token0", Key::cl_type()),
             Parameter::new("token1", Key::cl_type()),
             Parameter::new("factory_hash", Key::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "get_reserves",
-        vec![],
-        CLType::Tuple3([
-            Box::new(CLType::U128),
-            Box::new(CLType::U128),
-            Box::new(u64::cl_type()),
-        ]),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "erc20_mint",
-        vec![
-            Parameter::new("recipient", Address::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,

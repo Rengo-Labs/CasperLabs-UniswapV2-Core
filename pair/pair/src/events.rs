@@ -2,12 +2,6 @@ use alloc::string::{String, ToString};
 use casper_types::{Key, U128, U256};
 
 pub enum PAIREvent {
-    Transfer {
-        from: Key,
-        to: Key,
-        value: U256,
-        pair: Key,
-    },
     Mint {
         sender: Key,
         amount0: U256,
@@ -41,12 +35,6 @@ pub enum PAIREvent {
 impl PAIREvent {
     pub fn type_name(&self) -> String {
         match self {
-            PAIREvent::Transfer {
-                from: _,
-                to: _,
-                value: _,
-                pair: _,
-            } => "transfer",
             PAIREvent::Mint {
                 sender: _,
                 amount0: _,
