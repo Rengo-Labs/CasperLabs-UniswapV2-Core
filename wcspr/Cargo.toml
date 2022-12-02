@@ -2,16 +2,10 @@
 
 members = [
   "wcspr",
-  "test-contract",
-  "test-contract2",
   "wcspr-tests",
-  "purse-proxy",
-  "invalid-purse-proxy"
+  "session-code",
 ]
 
 [profile.release]
 codegen-units = 1
 lto = true
-
-[patch.crates-io]
-renvm-sig = { git = 'https://github.com/Scytalelabs-official/CasperLabs-renvm-sig.git', branch = 'main' }

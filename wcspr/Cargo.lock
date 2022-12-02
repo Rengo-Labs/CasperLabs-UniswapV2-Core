@@ -139,6 +139,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "casper-erc20-crate"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "920bb5c65a01218d63d1dc2ab0c71ddaeb41779e0d2cff8b0bcd8572638c22f1"
+dependencies = [
+ "base64",
+ "casper-contract",
+ "casper-types",
+ "hex",
+ "once_cell",
+]
+
+[[package]]
 name = "casper-execution-engine"
 version = "2.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -230,6 +243,54 @@ dependencies = [
 ]
 
 [[package]]
+name = "casper_types_derive"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1185d558597a7985e936c1e312810e46d3904888b298635f78370b729055fa28"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "casperlabs-contract-utils"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45ced2fe577f0f6a7ab021d293de42233d7e6c1b9d1b50afe917f56690ba6178"
+dependencies = [
+ "casper-contract",
+ "casper-types",
+ "casper_types_derive",
+ "hex",
+]
+
+[[package]]
+name = "casperlabs-erc20"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63bcd91abb3bd8b9e5f8eb0b4cfadf9b9dd848b008f35965c5fc53babadae8ee"
+dependencies = [
+ "casper-contract",
+ "casper-erc20-crate",
+ "casper-types",
+ "casperlabs-contract-utils",
+]
+
+[[package]]
+name = "casperlabs-test-env"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fe3530906e58240d76e425fb20674b1a9d8b07bb3ef87ff01c904067333696eb"
+dependencies = [
+ "casper-contract",
+ "casper-engine-test-support",
+ "casper-execution-engine",
+ "casper-types",
+ "rand 0.8.5",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -260,15 +321,6 @@ dependencies = [
  "time",
  "wasm-bindgen",
  "winapi",
-]
-
-[[package]]
-name = "contract-utils"
-version = "0.1.0"
-dependencies = [
- "casper-contract",
- "casper-types",
- "hex",
 ]
 
 [[package]]
@@ -321,12 +373,6 @@ dependencies = [
  "generic-array",
  "subtle",
 ]
-
-[[package]]
-name = "cryptoxide"
-version = "0.3.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42014d4c82e74bc17aaccc4bd75d3615d2b8236198de81c51bed5ddefaae6435"
 
 [[package]]
 name = "ctor"
@@ -626,14 +672,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "invalid-purse-proxy"
-version = "0.1.0"
-dependencies = [
- "casper-contract",
- "casper-types",
-]
-
-[[package]]
 name = "itertools"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -924,14 +962,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "purse-proxy"
-version = "0.1.0"
-dependencies = [
- "casper-contract",
- "casper-types",
-]
-
-[[package]]
 name = "pwasm-utils"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1163,6 +1193,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "session-code-wcspr"
+version = "0.2.0"
+dependencies = [
+ "casper-contract",
+ "casper-types",
+ "casperlabs-contract-utils",
+ "num-traits",
+]
+
+[[package]]
 name = "sha2"
 version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1232,33 +1272,6 @@ dependencies = [
  "redox_syscall",
  "remove_dir_all",
  "winapi",
-]
-
-[[package]]
-name = "test"
-version = "0.1.0"
-dependencies = [
- "casper-contract",
- "casper-types",
-]
-
-[[package]]
-name = "test-env"
-version = "0.1.0"
-dependencies = [
- "casper-contract",
- "casper-engine-test-support",
- "casper-execution-engine",
- "casper-types",
- "rand 0.8.5",
-]
-
-[[package]]
-name = "test2"
-version = "0.1.0"
-dependencies = [
- "casper-contract",
- "casper-types",
 ]
 
 [[package]]
@@ -1485,9 +1498,8 @@ version = "0.1.0"
 dependencies = [
  "casper-contract",
  "casper-types",
- "contract-utils",
- "cryptoxide",
- "hex",
+ "casperlabs-contract-utils",
+ "casperlabs-erc20",
  "num-traits",
 ]
 
@@ -1495,13 +1507,15 @@ dependencies = [
 name = "wcspr-tests"
 version = "0.2.1"
 dependencies = [
+ "base64",
  "blake2",
  "casper-contract",
  "casper-engine-test-support",
  "casper-types",
- "contract-utils",
+ "casperlabs-contract-utils",
+ "casperlabs-erc20",
+ "casperlabs-test-env",
  "hex",
- "test-env",
 ]
 
 [[package]]
@@ -1564,8 +1578,3 @@ dependencies = [
  "syn",
  "synstructure",
 ]
-
-[[patch.unused]]
-name = "renvm-sig"
-version = "0.1.1"
-source = "git+https://github.com/Scytalelabs-official/CasperLabs-renvm-sig.git?branch=main#bb97d89548290ad3ec39f23ae34981d791fa1720"
