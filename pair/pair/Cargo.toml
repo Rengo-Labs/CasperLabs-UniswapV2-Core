@@ -7,10 +7,9 @@ edition = "2018"
 [dependencies]
 casper-contract = "1.4.4"
 casper-types = "1.5.0"
-contract-utils = { path = "../../utils/contract-utils" }
+casperlabs-contract-utils = "0.2.1"
 cryptoxide = "0.3.3"
-hex = { version = "0.4.3", default-features = false }
-renvm-sig = "0.1.1 "
+casperlabs-erc20 = "2.0.1"
 
 [[bin]]
 name = "pair-token"
@@ -21,4 +20,3 @@ test = false
 
 [features]
 default = ["casper-contract/std", "casper-types/std"]
-

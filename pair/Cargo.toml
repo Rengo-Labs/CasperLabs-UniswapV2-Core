@@ -1,14 +1,9 @@
 [workspace]
 members = [
     "pair",
-    "pair-tests",
-    "test-contract",
-    "test-contract2"
+    "pair-tests"
 ]
 
 [profile.release]
 codegen-units = 1
 lto = true
-
-[patch.crates-io]
-renvm-sig = { git = 'https://github.com/Scytalelabs-official/CasperLabs-renvm-sig.git', branch = 'main' }
