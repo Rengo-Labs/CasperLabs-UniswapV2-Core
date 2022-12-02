@@ -2,13 +2,9 @@
 
 members = [
     "erc20",
-    "erc20-proxy",
     "erc20-tests"
 ]
 
 [profile.release]
 codegen-units = 1
 lto = true
-
-[patch.crates-io]
-renvm-sig = { git = 'https://github.com/Scytalelabs-official/CasperLabs-renvm-sig.git', branch = 'main' }
