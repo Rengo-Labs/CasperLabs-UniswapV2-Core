@@ -34,7 +34,6 @@ https://docs.google.com/document/d/1gWQ3rlti59PuyohknkbpP59exC0YtNGuYDMQyuBDUws/
     - [```nonce```](#erc20-nonce)
     - [```allowance```](#erc20-allowance)
     - [```total_supply```](#erc20-total-supply)
-    - [```mint```](#erc20-mint)
     - [```burn```](#erc20-burn)
     - [```name```](#erc20-name)
     - [```symbol```](#erc20-symbol)
@@ -72,7 +71,6 @@ https://docs.google.com/document/d/1gWQ3rlti59PuyohknkbpP59exC0YtNGuYDMQyuBDUws/
     - [```token1```](#pair-token1)
     - [```initilize```](#pair-initialize)
     - [```get_reserves```](#pair-get-reserves)
-    - [```erc20_mint```](#pair-erc20-mint)
 - [Deploying FACTORY contract manually](#deploying-factory-contract-manually)
   - [Entry Point methods](#factory-entry-point-methods)
     - [```create_pair```](#factory-create-pair)
@@ -643,7 +641,7 @@ This method **returns** nothing.
 
 - #### swap <a id="pair-swap"></a>
 Swaps tokens. For regular swaps, ` data.length ` must be ` 0 `.
-<br> **Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `swap` method the user needs to have some balance in `reserve0` and `reserve1`.
+<br> **Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `mint` method in `pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `swap` method the user needs to have some balance in `reserve0` and `reserve1`.
 
 Following is the table of parameters.
 
@@ -658,7 +656,7 @@ data | String
 This method **returns** nothing.
 
 - #### skim <a id="pair-skim"></a>
-<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `skim` method the user needs to have some balance in `reserve0` and `reserve1`.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `skim` method the user needs to have some balance in `reserve0` and `reserve1`.
 
 Following is the table of parameters.
 
@@ -671,7 +669,7 @@ This method **returns** nothing.
 
 
 - #### sync <a id="pair-sync"></a>
-<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `erc20_mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them.
+<br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them.
 
 Following is the table of parameters.
 
@@ -875,20 +873,6 @@ Parameter Name | Type
 ---|---
 
 This method **returns** Tupe3(U128, U128, u64).
-
-
-- #### erc20_mint <a id="pair-erc20-mint"></a>
-This method mints the number of tokens provided by user against the hash provided by user.
-
-Following is the table of parameters.
-
-Parameter Name | Type
----|---
-to | Key
-amount | U256
-
-This method **returns** nothing.
-
 
 ### Deploying FACTORY contract manually
 
