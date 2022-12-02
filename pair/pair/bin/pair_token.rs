@@ -254,15 +254,6 @@ fn mint() {
     runtime::ret(CLValue::from_t(liquidity).unwrap_or_revert());
 }
 
-/// This function is to mint token against the address that user provided
-/// # Parameters
-/// * `to` - A Key that holds the account address of the user
-#[no_mangle]
-fn mint_no_ret() {
-    let to: Key = runtime::get_named_arg("to");
-    let _: U256 = Pair::default().mint_helper(to);
-}
-
 /// This function is to mint token against the address that user provided with the amount
 /// # Parameters
 /// * `to` - A Key that holds the account address of the user
@@ -282,15 +273,6 @@ fn burn() {
     let to: Key = runtime::get_named_arg("to");
     let (amount0, amount1): (U256, U256) = Pair::default().burn_helper(to);
     runtime::ret(CLValue::from_t((amount0, amount1)).unwrap_or_revert());
-}
-
-/// This function is to burn token against the address that user provided
-/// # Parameters
-/// * `from` - A Key that holds the account address of the user
-#[no_mangle]
-fn burn_no_ret() {
-    let to: Key = runtime::get_named_arg("to");
-    let _: (U256, U256) = Pair::default().burn_helper(to);
 }
 
 /// This function is to get the reserves like Reserve0, Reserve1 and Block Time Stamp
@@ -492,23 +474,9 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "mint_no_ret",
-        vec![Parameter::new("to", Key::cl_type())],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
         "burn",
         vec![Parameter::new("to", Key::cl_type())],
         CLType::Tuple2([Box::new(CLType::U256), Box::new(CLType::U256)]),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "burn_no_ret",
-        vec![Parameter::new("to", Key::cl_type())],
-        <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
