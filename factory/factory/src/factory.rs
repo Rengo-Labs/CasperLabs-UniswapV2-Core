@@ -66,7 +66,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 pair_package_hash,
                 None,
                 "initialize",
-                runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => get_package_hash() },
+                runtime_args! {"token0" => token0, "token1" => token1, "factory_hash" => Key::from(get_package_hash()) },
             );
 
             // handling the pair creation by updating the storage

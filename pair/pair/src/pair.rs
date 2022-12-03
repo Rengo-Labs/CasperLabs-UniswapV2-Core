@@ -231,7 +231,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                                 ))
                         {
                             self.update(balance0, balance1, reserve0, reserve1);
-                            let eventpair: Key = Key::from(get_package_hash());
                             self.emit(&PAIREvent::Swap {
                                 sender: self.get_caller(),
                                 amount0_in,
@@ -240,7 +239,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                                 amount1_out,
                                 to,
                                 from: self.get_caller(),
-                                pair: eventpair,
+                                pair: Key::from(get_package_hash()),
                             });
                         } else {
                             //UniswapV2: K

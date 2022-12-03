@@ -1,13 +1,5 @@
-use casper_types::{
-    account::AccountHash, bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs, U256,
-};
-use casperlabs_erc20::Address;
+use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U256};
 use casperlabs_test_env::{TestContract, TestEnv};
-
-pub fn address_to_str(owner: &Address) -> String {
-    let preimage = owner.to_bytes().unwrap();
-    base64::encode(&preimage)
-}
 
 #[allow(clippy::too_many_arguments)]
 pub fn deploy_erc20(
@@ -35,54 +27,6 @@ pub fn deploy_erc20(
     )
 }
 
-pub fn deploy_token0(
-    env: &TestEnv,
-    owner: AccountHash,
-    name: String,
-    symbol: String,
-    decimals: u8,
-    initial_supply: U256,
-    time: u64,
-) -> TestContract {
-    TestContract::new(
-        env,
-        "erc20-token.wasm",
-        "token0_contract",
-        owner,
-        runtime_args! {
-            "name" => name,
-            "symbol" => symbol,
-            "decimals" => decimals,
-            "initial_supply" => initial_supply
-        },
-        time,
-    )
-}
-
-pub fn deploy_token1(
-    env: &TestEnv,
-    owner: AccountHash,
-    name: String,
-    symbol: String,
-    decimals: u8,
-    initial_supply: U256,
-    time: u64,
-) -> TestContract {
-    TestContract::new(
-        env,
-        "erc20-token.wasm",
-        "token1_contract",
-        owner,
-        runtime_args! {
-            "name" => name,
-            "symbol" => symbol,
-            "decimals" => decimals,
-            "initial_supply" => initial_supply
-        },
-        time,
-    )
-}
-
 pub fn deploy_factory(
     env: &TestEnv,
     owner: AccountHash,
@@ -103,6 +47,7 @@ pub fn deploy_factory(
 
 pub fn deploy_wcspr(
     env: &TestEnv,
+    contract_name: &str,
     owner: AccountHash,
     name: String,
     symbol: String,
@@ -113,7 +58,7 @@ pub fn deploy_wcspr(
     TestContract::new(
         env,
         "wcspr-token.wasm",
-        "wcspr",
+        contract_name,
         owner,
         runtime_args! {
             "name" => name,
@@ -150,6 +95,7 @@ pub fn deploy_flashswapper(
 #[allow(clippy::too_many_arguments)]
 pub fn deploy_pair(
     env: &TestEnv,
+    contract_name: &str,
     owner: AccountHash,
     name: &str,
     symbol: &str,
@@ -162,7 +108,7 @@ pub fn deploy_pair(
     TestContract::new(
         env,
         "pair-token.wasm",
-        "pair",
+        contract_name,
         owner,
         runtime_args! {
             "name" => name,

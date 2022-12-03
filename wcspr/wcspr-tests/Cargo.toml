@@ -13,7 +13,7 @@ casperlabs-test-env = "0.3.0"
 casperlabs-erc20 = "2.0.1"
 blake2 = "0.9.1"
 hex = "0.4.3"
-base64 = "0.13.0"
+tests-common = { path = "../../common/tests-common" }
 
 [features]
 default = ["casper-contract/std", "casper-types/std", "casper-contract/test-support"]

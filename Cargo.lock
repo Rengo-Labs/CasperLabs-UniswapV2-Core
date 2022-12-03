@@ -599,6 +599,7 @@ dependencies = [
  "casperlabs-contract-utils",
  "casperlabs-test-env",
  "hex",
+ "tests-common",
 ]
 
 [[package]]
@@ -1725,7 +1726,6 @@ dependencies = [
 name = "wcspr-tests"
 version = "0.2.1"
 dependencies = [
- "base64",
  "blake2",
  "casper-contract",
  "casper-engine-test-support",
@@ -1734,6 +1734,7 @@ dependencies = [
  "casperlabs-erc20",
  "casperlabs-test-env",
  "hex",
+ "tests-common",
 ]
 
 [[package]]

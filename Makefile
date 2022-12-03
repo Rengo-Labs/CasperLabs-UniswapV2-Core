@@ -34,6 +34,10 @@ copy-wasm-file-wcspr:
 	cp ${wasm_src_path}session-code-wcspr.wasm ${wasm_dest_wcspr}
 copy-wasm-file-factory:
 	cp ${wasm_src_path}factory.wasm ${wasm_dest_factory}
+	cp ${wasm_src_path}wcspr-token.wasm ${wasm_dest_factory}
+	cp ${wasm_src_path}erc20-token.wasm ${wasm_dest_factory}
+	cp ${wasm_src_path}flashswapper-token.wasm ${wasm_dest_factory}
+	cp ${wasm_src_path}pair-token.wasm ${wasm_dest_factory}
 copy-wasm-file-flashswapper:
 	cp ${wasm_src_path}flashswapper-token.wasm ${wasm_dest_flashswapper}
 	cp ${wasm_src_path}factory.wasm ${wasm_dest_flashswapper}

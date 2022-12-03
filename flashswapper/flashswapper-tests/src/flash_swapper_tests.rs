@@ -1,7 +1,7 @@
 use crate::flash_swapper_instance::FlashSwapperInstance;
 use casper_types::{account::AccountHash, ContractHash, Key};
 use casperlabs_test_env::{now, TestContract, TestEnv};
-use tests_common::{deploys::*, functions::zero_address};
+use tests_common::{deploys::*, functions::zero_address, helpers::*};
 
 fn deploy_flash_swapper() -> (
     TestEnv,
@@ -17,8 +17,9 @@ fn deploy_flash_swapper() -> (
     let factory = deploy_factory(&env, owner, Key::Account(owner), now());
     let wcspr = deploy_wcspr(
         &env,
+        "WCSPR-1".into(),
         owner,
-        "Wrapped CSPR".into(),
+        WRAPPED_CSPR.into(),
         "WCSPR".into(),
         9,
         0.into(),
@@ -26,6 +27,7 @@ fn deploy_flash_swapper() -> (
     );
     let dai = deploy_wcspr(
         &env,
+        "WCSPR-2".into(),
         owner,
         "Dai Token".into(),
         "DAI".into(),
@@ -35,6 +37,7 @@ fn deploy_flash_swapper() -> (
     );
     let btc = deploy_wcspr(
         &env,
+        "WCSPR-3".into(),
         owner,
         "Bitcoin".into(),
         "BTC".into(),

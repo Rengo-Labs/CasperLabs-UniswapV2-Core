@@ -13,9 +13,7 @@ use casper_types::{
 use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
 use casperlabs_erc20::{Address, ERC20};
 use common::functions::get_purse;
-use wcspr::{
-    data, {self, WCSPR},
-};
+use wcspr::{self, WCSPR};
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);

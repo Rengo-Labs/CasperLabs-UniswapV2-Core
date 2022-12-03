@@ -2,10 +2,11 @@ use casper_types::ApiError;
 
 #[repr(u16)]
 pub enum Errors {
+    /// 65,551 for (UniswapV2 Core WCSPR OverFlow1)
     UniswapV2CoreWCSPROverFlow1 = 15,
-    /// 65,552 for (UniswapV2 Core WCSPR OverFlow6)
+    /// 65,552 for (UniswapV2 Core WCSPR OverFlow2)
     UniswapV2CoreWCSPROverFlow2 = 16,
-    /// 65,553 for (UniswapV2 Core WCSPR OverFlow7)
+    /// 65,553 for (UniswapV2 Core WCSPR OverFlow3)
     UniswapV2CoreWCSPROverFlow3 = 17,
 
     /// 65,559 for (UniswapV2 Factory Zero Address)

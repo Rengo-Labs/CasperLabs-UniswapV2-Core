@@ -402,7 +402,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 pair_address_hash_add,
                 None,
                 "swap",
-                runtime_args! {"amount0_out" => amount0_out, "amount1_out"  => amount1_out, "to" => get_package_hash(), "data" => data },
+                runtime_args! {"amount0_out" => amount0_out, "amount1_out"  => amount1_out, "to" => Key::from(get_package_hash()), "data" => data },
             );
         } else {
             // requested pair is not available
@@ -730,7 +730,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             pay_pair_package_hash,
             None,
             "swap",
-            runtime_args! {"amount0_out" => amount0_out, "amount1_out" => amount1_out, "to" => get_package_hash(), "data" => data},
+            runtime_args! {"amount0_out" => amount0_out, "amount1_out" => amount1_out, "to" => Key::from(get_package_hash()), "data" => data},
         );
     }
 
