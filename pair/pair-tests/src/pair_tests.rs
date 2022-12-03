@@ -1,15 +1,7 @@
-use crate::pair_instance::*;
 use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U128, U256};
 use casperlabs_erc20::Address;
 use casperlabs_test_env::{now, TestContract, TestEnv};
-
-const NAME: &str = "ERC20";
-const SYMBOL: &str = "ERC";
-const DECIMALS: u8 = 9;
-const AMOUNT: U256 = U256([100_000_000_000, 0, 0, 0]);
-
-const BALANCES: &str = "balances";
-const TREASURY_FEE: &str = "treasury_fee";
+use tests_common::{deploys::*, helpers::*};
 
 fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     let env = TestEnv::new();

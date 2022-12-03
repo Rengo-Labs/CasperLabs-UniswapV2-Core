@@ -5,11 +5,7 @@ use casper_contract::{
     unwrap_or_revert::UnwrapOrRevert,
 };
 use casper_types::{runtime_args, ApiError, Key, RuntimeArgs, URef, U512};
-
-const ENTRYPOINT: &str = "entrypoint";
-const PACKAGE_HASH: &str = "package_hash";
-const DEPOSIT: &str = "deposit";
-const WITHDRAW: &str = "withdraw";
+use common::keys::*;
 
 fn purse(amount: U512) -> URef {
     let main_purse: URef = account::get_main_purse();

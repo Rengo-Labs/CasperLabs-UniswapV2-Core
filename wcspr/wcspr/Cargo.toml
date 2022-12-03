@@ -10,6 +10,7 @@ casper-types = "1.5.0"
 casperlabs-contract-utils = "0.2.1"
 casperlabs-erc20 = "2.0.1"
 num-traits= "0.2.15"
+common = { path = "../../common/common" }
 
 [[bin]]
 bench = false

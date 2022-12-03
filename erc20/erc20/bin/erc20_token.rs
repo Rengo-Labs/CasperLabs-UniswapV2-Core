@@ -16,7 +16,7 @@ use casperlabs_erc20::{Address, ERC20};
 #[derive(Default)]
 struct Token(OnChainContractStorage);
 impl Token {
-    fn constructor(&mut self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
+    fn constructor(&self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
         ERC20::init(self, contract_hash, package_hash);
     }
 }

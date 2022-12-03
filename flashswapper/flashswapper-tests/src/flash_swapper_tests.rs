@@ -1,66 +1,7 @@
-use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U256};
-use test_env::{TestContract, TestEnv};
-
 use crate::flash_swapper_instance::FlashSwapperInstance;
-// use crate::test_instance::TESTInstance;
-
-fn deploy_factory(env: &TestEnv) -> TestContract {
-    // deploy factory contract
-    let owner_factory = env.next_user();
-    let factory = TestContract::new(
-        &env,
-        "factory.wasm",
-        "factory",
-        owner_factory,
-        runtime_args! {
-            "fee_to_setter" => Key::from(owner_factory)
-            // contract_name is passed seperately, so we don't need to pass it here.
-        },
-    );
-    factory
-}
-
-fn deploy_wcspr(env: &TestEnv) -> TestContract {
-    // deploy wcspr contract
-    let decimals: u8 = 18;
-    let init_total_supply: U256 = 1000.into();
-    let owner_wcspr = env.next_user();
-    let wcspr = TestContract::new(
-        &env,
-        "wcspr-token.wasm",
-        "wcspr",
-        owner_wcspr,
-        runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "Wrapper Casper",
-            "symbol" => "WCSPR",
-            "decimals" => decimals
-        },
-    );
-    wcspr
-}
-
-// fn deploy_pair(env: &TestEnv, factory: &TestContract, calle: Key) -> TestContract {
-//     // deploy wcspr contract
-//     let decimals: u8 = 18;
-//     let init_total_supply: U256 = 1000.into();
-//     let owner_pair = env.next_user();
-//     let pair = TestContract::new(
-//         &env,
-//         "pair-token.wasm",
-//         "pair",
-//         Sender(owner_pair),
-//         runtime_args! {
-//             "initial_supply" => init_total_supply,
-//             "name" => "ERC20",
-//             "symbol" => "ERC",
-//             "decimals" => decimals,
-//             "callee_contract_hash" => calle,
-//             "factory_hash" => Key::Hash(factory.contract_hash())
-//         },
-//     );
-//     pair
-// }
+use casper_types::{account::AccountHash, ContractHash, Key};
+use casperlabs_test_env::{now, TestContract, TestEnv};
+use tests_common::{deploys::*, functions::zero_address};
 
 fn deploy_flash_swapper() -> (
     TestEnv,
@@ -73,10 +14,34 @@ fn deploy_flash_swapper() -> (
 ) {
     let env = TestEnv::new();
     let owner = env.next_user();
-    let factory = deploy_factory(&env);
-    let wcspr = deploy_wcspr(&env);
-    let dai = deploy_wcspr(&env);
-    let btc = deploy_wcspr(&env);
+    let factory = deploy_factory(&env, owner, Key::Account(owner), now());
+    let wcspr = deploy_wcspr(
+        &env,
+        owner,
+        "Wrapped CSPR".into(),
+        "WCSPR".into(),
+        9,
+        0.into(),
+        now(),
+    );
+    let dai = deploy_wcspr(
+        &env,
+        owner,
+        "Dai Token".into(),
+        "DAI".into(),
+        9,
+        0.into(),
+        now(),
+    );
+    let btc = deploy_wcspr(
+        &env,
+        owner,
+        "Bitcoin".into(),
+        "BTC".into(),
+        9,
+        0.into(),
+        now(),
+    );
     let flash_swapper = FlashSwapperInstance::new(
         &env,
         "flash_swapper",
@@ -84,20 +49,16 @@ fn deploy_flash_swapper() -> (
         Key::Hash(wcspr.contract_hash()),
         Key::Hash(dai.contract_hash()),
         Key::Hash(factory.contract_hash()),
+        now(),
     );
-    // let test = TESTInstance::new(&env, "TEST", owner);
     (env, flash_swapper, owner, factory, wcspr, dai, btc)
 }
 
 #[test]
 fn test_flash_swapper_deploy() {
     let (_, flash_swapper, _, _, _, _, _) = deploy_flash_swapper();
-    let self_hash: Key = flash_swapper.self_contract_hash();
-    let zero_addr: Key = Key::from_formatted_str(
-        "hash-0000000000000000000000000000000000000000000000000000000000000000",
-    )
-    .unwrap();
-    assert_ne!(self_hash, zero_addr);
+    let self_hash: ContractHash = flash_swapper.self_contract_hash();
+    assert_ne!(self_hash, zero_address().into_hash().unwrap().into());
 }
 // todo:
 // will be done later when purses are supported in test cases
@@ -273,5 +234,6 @@ fn test_calling_construction() {
         Key::Hash(wcspr.contract_hash()),
         Key::Hash(dai.contract_hash()),
         Key::Hash(factory.contract_hash()),
+        now(),
     );
 }

@@ -5,8 +5,8 @@ pub mod data;
 pub mod event;
 mod flashswapper;
 
-pub use contract_utils;
-pub use flashswapper::{Error, FLASHSWAPPER};
+pub use casperlabs_contract_utils;
+pub use flashswapper::FLASHSWAPPER;
 
 use alloc::{collections::BTreeMap, string::String};
 use casper_types::U256;

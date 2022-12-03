@@ -12,6 +12,7 @@ use casper_types::{
 };
 use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
 use casperlabs_erc20::{Address, ERC20};
+use common::functions::get_purse;
 use wcspr::{
     data, {self, WCSPR},
 };
@@ -192,14 +193,15 @@ fn withdraw() {
 
 #[no_mangle]
 fn get_main_purse() {
-    let ret: URef = data::get_self_purse();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(get_purse()).unwrap_or_revert());
 }
 
 #[no_mangle]
 fn get_main_purse_balance() {
-    let ret: U512 = system::get_purse_balance(data::get_self_purse()).unwrap_or_revert();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(
+        CLValue::from_t(system::get_purse_balance(get_purse()).unwrap_or_revert())
+            .unwrap_or_revert(),
+    );
 }
 
 fn get_entry_points() -> EntryPoints {

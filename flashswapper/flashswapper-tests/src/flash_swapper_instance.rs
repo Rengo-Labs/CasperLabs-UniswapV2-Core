@@ -1,12 +1,7 @@
-use blake2::{
-    digest::{Update, VariableOutput},
-    VarBlake2b,
-};
 use casper_types::{
-    account::AccountHash, bytesrepr::ToBytes, runtime_args, ApiError, ContractHash, Key,
-    RuntimeArgs, U256,
+    account::AccountHash, runtime_args, ApiError, ContractHash, Key, RuntimeArgs, U256,
 };
-use test_env::{TestContract, TestEnv};
+use casperlabs_test_env::{TestContract, TestEnv};
 pub struct FlashSwapperInstance(TestContract);
 
 use casper_contract::contract_api::runtime;
@@ -19,6 +14,7 @@ impl FlashSwapperInstance {
         wcspr: Key,
         dai: Key,
         uniswap_v2_factory: Key,
+        time: u64,
     ) -> FlashSwapperInstance {
         FlashSwapperInstance(TestContract::new(
             env,
@@ -30,6 +26,7 @@ impl FlashSwapperInstance {
                 "wcspr" => wcspr,
                 "dai" => dai,
             },
+            time,
         ))
     }
 
@@ -46,7 +43,14 @@ impl FlashSwapperInstance {
         );
     }
 
-    pub fn constructor(&self, sender: AccountHash, wcspr: Key, dai: Key, uniswap_v2_factory: Key) {
+    pub fn constructor(
+        &self,
+        sender: AccountHash,
+        wcspr: Key,
+        dai: Key,
+        uniswap_v2_factory: Key,
+        time: u64,
+    ) {
         self.0.call_contract(
             sender,
             "constructor",
@@ -55,6 +59,7 @@ impl FlashSwapperInstance {
                 "dai" => dai,
                 "uniswap_v2_factory" => uniswap_v2_factory,
             },
+            time,
         );
     }
 
@@ -65,6 +70,7 @@ impl FlashSwapperInstance {
         amount: U256,
         token_pay: Key,
         user_data: String,
+        time: u64,
     ) {
         self.0.call_contract(
             sender,
@@ -75,6 +81,7 @@ impl FlashSwapperInstance {
                 "token_pay" => token_pay,
                 "user_data" => user_data,
             },
+            time,
         );
     }
 
@@ -85,6 +92,7 @@ impl FlashSwapperInstance {
         amount0: U256,
         amount1: U256,
         data: String,
+        time: u64,
     ) {
         self.0.call_contract(
             sender,
@@ -95,10 +103,11 @@ impl FlashSwapperInstance {
                 "amount1" => amount1,
                 "data" => data
             },
+            time,
         );
     }
 
-    pub fn self_contract_hash(&self) -> Key {
+    pub fn self_contract_hash(&self) -> ContractHash {
         self.0.query_named_key(String::from("self_contract_hash"))
     }
 
@@ -109,21 +118,4 @@ impl FlashSwapperInstance {
     pub fn amount0(&self) -> U256 {
         self.0.query_named_key(String::from("amount0"))
     }
-}
-
-pub fn key_to_str(key: &Key) -> String {
-    match key {
-        Key::Account(account) => account.to_string(),
-        Key::Hash(package) => hex::encode(package),
-        _ => panic!("Unexpected key type"),
-    }
-}
-
-pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
-    let mut hasher = VarBlake2b::new(32).unwrap();
-    hasher.update(key_a.to_bytes().unwrap());
-    hasher.update(key_b.to_bytes().unwrap());
-    let mut ret = [0u8; 32];
-    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
-    hex::encode(ret)
 }

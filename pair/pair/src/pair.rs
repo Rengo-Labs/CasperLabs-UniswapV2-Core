@@ -1,6 +1,5 @@
 use crate::alloc::string::ToString;
 use crate::data::*;
-use crate::errors::Error;
 use crate::events::PAIREvent;
 use alloc::collections::BTreeMap;
 use alloc::{format, string::String, vec::Vec};
@@ -13,6 +12,8 @@ use casper_types::{
 };
 use casperlabs_contract_utils::{set_key, ContractContext, ContractStorage};
 use casperlabs_erc20::{data::*, Address, ERC20};
+use common::errors::Errors;
+use common::functions::account_zero_address;
 use cryptoxide::ed25519;
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Storage> {
@@ -50,7 +51,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     fn skim(&self, to: Key) {
         if get_lock() != 0 {
             //UniswapV2: Locked
-            runtime::revert(Error::UniswapV2CorePairLocked1);
+            runtime::revert(Errors::UniswapV2CorePairLocked1);
         }
         set_lock(1);
         let balance0: U256 = runtime::call_versioned_contract(
@@ -71,7 +72,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         );
         let amount0: U256 = balance0
             .checked_sub(get_reserve0().as_u128().into())
-            .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow1);
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow1);
         () = runtime::call_versioned_contract(
             get_token0().into_hash().unwrap_or_revert().into(),
             None,
@@ -83,7 +84,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         );
         let amount1: U256 = balance1
             .checked_sub(get_reserve1().as_u128().into())
-            .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow2);
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow2);
         () = runtime::call_versioned_contract(
             get_token1().into_hash().unwrap_or_revert().into(),
             None,
@@ -99,7 +100,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     fn sync(&self) {
         if get_lock() != 0 {
             //UniswapV2: Locked
-            runtime::revert(Error::UniswapV2CorePairLocked2);
+            runtime::revert(Errors::UniswapV2CorePairLocked2);
         }
         set_lock(1);
         let balance0: U256 = runtime::call_versioned_contract(
@@ -196,35 +197,37 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                         let amount_3: U256 = 3.into();
                         let balance0_adjusted: U256 =
                             (balance0.checked_mul(amount_1000).unwrap_or_revert_with(
-                                Error::UniswapV2CorePairMultiplicationOverFlow1,
+                                Errors::UniswapV2CorePairMultiplicationOverFlow1,
                             ))
                             .checked_sub(amount0_in.checked_mul(amount_3).unwrap_or_revert_with(
-                                Error::UniswapV2CorePairMultiplicationOverFlow2,
+                                Errors::UniswapV2CorePairMultiplicationOverFlow2,
                             ))
-                            .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow3);
+                            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow3);
                         let balance1_adjusted: U256 =
                             (balance1.checked_mul(amount_1000).unwrap_or_revert_with(
-                                Error::UniswapV2CorePairMultiplicationOverFlow3,
+                                Errors::UniswapV2CorePairMultiplicationOverFlow3,
                             ))
                             .checked_sub(amount1_in.checked_mul(amount_3).unwrap_or_revert_with(
-                                Error::UniswapV2CorePairMultiplicationOverFlow4,
+                                Errors::UniswapV2CorePairMultiplicationOverFlow4,
                             ))
-                            .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow4);
+                            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow4);
                         let reserve0_conversion: U256 = U256::from(reserve0.as_u128());
                         let reserve1_conversion: U256 = U256::from(reserve1.as_u128());
                         let base: i32 = 1000;
                         let reserve_multiply: U256 = (base.pow(2)).into();
                         if (balance0_adjusted
                             .checked_mul(balance1_adjusted)
-                            .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow5))
+                            .unwrap_or_revert_with(
+                                Errors::UniswapV2CorePairMultiplicationOverFlow5,
+                            ))
                             >= (reserve0_conversion
                                 .checked_mul(reserve1_conversion)
                                 .unwrap_or_revert_with(
-                                    Error::UniswapV2CorePairMultiplicationOverFlow6,
+                                    Errors::UniswapV2CorePairMultiplicationOverFlow6,
                                 )
                                 .checked_mul(reserve_multiply)
                                 .unwrap_or_revert_with(
-                                    Error::UniswapV2CorePairMultiplicationOverFlow7,
+                                    Errors::UniswapV2CorePairMultiplicationOverFlow7,
                                 ))
                         {
                             self.update(balance0, balance1, reserve0, reserve1);
@@ -241,23 +244,23 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                             });
                         } else {
                             //UniswapV2: K
-                            runtime::revert(Error::UniswapV2CorePairInsufficientConvertedBalance);
+                            runtime::revert(Errors::UniswapV2CorePairInsufficientConvertedBalance);
                         }
                     } else {
                         //UniswapV2: INSUFFICIENT_INPUT_AMOUNT
-                        runtime::revert(Error::UniswapV2CorePairInsufficientInputAmount);
+                        runtime::revert(Errors::UniswapV2CorePairInsufficientInputAmount);
                     }
                 } else {
                     //UniswapV2: INVALID_TO
-                    runtime::revert(Error::UniswapV2CorePairInvalidTo);
+                    runtime::revert(Errors::UniswapV2CorePairInvalidTo);
                 }
             } else {
                 //UniswapV2: INSUFFICIENT_LIQUIDITY
-                runtime::revert(Error::UniswapV2CorePairInsufficientLiquidity);
+                runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidity);
             }
         } else {
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
-            runtime::revert(Error::UniswapV2CorePairInsufficientOutputAmount);
+            runtime::revert(Errors::UniswapV2CorePairInsufficientOutputAmount);
         }
     }
 
@@ -289,7 +292,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             public_key_vec.push(public_key_string[public_counter].parse::<u8>().unwrap());
             public_counter = public_counter
                 .checked_add(1)
-                .unwrap_or_revert_with(Error::UniswapV2CorePairOverFlow1);
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairOverFlow1);
         }
         let signature_without_spaces: String = signature.split_whitespace().collect();
         let signature_string: Vec<&str> = signature_without_spaces.split(',').collect();
@@ -299,7 +302,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             signature_vec.push(signature_string[signature_counter].parse::<u8>().unwrap());
             signature_counter = signature_counter
                 .checked_add(1)
-                .unwrap_or_revert_with(Error::UniswapV2CorePairOverFlow2);
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairOverFlow2);
         }
         let result: bool = ed25519::verify(&digest, &public_key_vec, &signature_vec);
         let verify_key: String = format!("{}{}", "VERIFY", owner);
@@ -338,10 +341,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         );
         let amount0: U256 = balance0
             .checked_sub(U256::from(reserve0.as_u128()))
-            .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow5);
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow5);
         let amount1: U256 = balance1
             .checked_sub(U256::from(reserve1.as_u128()))
-            .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow6);
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow6);
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let mut liquidity: U256 = 0.into();
         if self.total_supply() == 0.into() {
@@ -349,20 +352,24 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 .sqrt(
                     amount0
                         .checked_mul(amount1)
-                        .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow8),
+                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow8),
                 )
                 .checked_sub(get_minimum_liquidity())
-                .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow7);
-            ERC20::mint(self, Address::from(account_zero()), get_minimum_liquidity())
-                .unwrap_or_revert();
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow7);
+            ERC20::mint(
+                self,
+                Address::from(account_zero_address()),
+                get_minimum_liquidity(),
+            )
+            .unwrap_or_revert();
         } else {
             let x: U256 = (amount0
                 .checked_mul(self.total_supply())
-                .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow9))
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow9))
                 / U256::from(reserve0.as_u128());
             let y: U256 = (amount1
                 .checked_mul(self.total_supply())
-                .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow10))
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow10))
                 / U256::from(reserve1.as_u128());
             liquidity = self.min(x, y);
         }
@@ -373,7 +380,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 let k_last: U256 = U256::from(
                     (reserve0
                         .checked_mul(reserve1)
-                        .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow11))
+                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow11))
                     .as_u128(),
                 ); // reserve0 and reserve1 are up-to-date
                 set_k_last(k_last);
@@ -388,7 +395,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             liquidity // return liquidity
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
-            runtime::revert(Error::UniswapV2CorePairInsufficientLiquidityMinted);
+            runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidityMinted);
         }
     }
 
@@ -414,11 +421,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let amount0: U256 = (liquidity
             .checked_mul(balance0)
-            .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow12))
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow12))
             / self.total_supply();
         let amount1: U256 = (liquidity
             .checked_mul(balance1)
-            .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow13))
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow13))
             / self.total_supply();
         if amount0 > 0.into() && amount1 > 0.into() {
             ERC20::burn(self, Address::Contract(get_package_hash()), liquidity).unwrap_or_revert();
@@ -461,7 +468,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 let k_last: U256 = U256::from(
                     (reserve0
                         .checked_mul(reserve1)
-                        .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow14))
+                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow14))
                     .as_u128(),
                 ); // reserve0 and reserve1 are up-to-date
                 set_k_last(k_last);
@@ -478,7 +485,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             (amount0, amount1)
         } else {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED
-            runtime::revert(Error::UniswapV2CorePairInsufficientLiquidityBurned);
+            runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidityBurned);
         }
     }
 
@@ -491,7 +498,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             runtime_args! {},
         );
         let mut fee_on: bool = false;
-        if fee_to != account_zero() {
+        if fee_to != account_zero_address() {
             fee_on = true;
         }
         let k_last: U256 = get_k_last(); // gas savings
@@ -501,7 +508,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 let mul_val: U256 = U256::from(
                     (reserve1
                         .checked_mul(reserve0)
-                        .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow15))
+                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow15))
                     .as_u128(),
                 );
                 let root_k: U256 = self.sqrt(mul_val);
@@ -509,16 +516,16 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 if root_k > root_k_last {
                     let subtracted_root_k: U256 = root_k
                         .checked_sub(root_k_last)
-                        .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow8);
+                        .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow8);
                     let numerator: U256 = self
                         .total_supply()
                         .checked_mul(subtracted_root_k)
-                        .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow16);
+                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow16);
                     let denominator: U256 = (root_k
                         .checked_mul(treasury_fee)
-                        .unwrap_or_revert_with(Error::UniswapV2CorePairMultiplicationOverFlow17))
+                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow17))
                     .checked_add(root_k_last)
-                    .unwrap_or_revert_with(Error::UniswapV2CorePairOverFlow3);
+                    .unwrap_or_revert_with(Errors::UniswapV2CorePairOverFlow3);
                     if denominator > U256::from(0) {
                         let liquidity: U256 = numerator / denominator;
                         if liquidity > 0.into() {
@@ -526,7 +533,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                         }
                     } else {
                         //UniswapV2: DENOMINATOR IS ZERO
-                        runtime::revert(Error::UniswapV2CorePairDenominatorIsZero);
+                        runtime::revert(Errors::UniswapV2CorePairDenominatorIsZero);
                     }
                 }
             }
@@ -542,7 +549,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             set_token1(token1);
         } else {
             //(UniswapV2: FORBIDDEN)
-            runtime::revert(Error::UniswapV2CorePairForbidden);
+            runtime::revert(Errors::UniswapV2CorePairForbidden);
         }
     }
 
@@ -556,18 +563,18 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             z = y;
             let mut x: U256 = (y
                 .checked_div(U256::from(2))
-                .unwrap_or_revert_with(Error::UniswapV2CorePairDivisionOverFlow1))
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairDivisionOverFlow1))
             .checked_add(U256::from(1))
-            .unwrap_or_revert_with(Error::UniswapV2CorePairOverFlow4);
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairOverFlow4);
             while x < z {
                 z = x;
                 x = ((y
                     .checked_div(x)
-                    .unwrap_or_revert_with(Error::UniswapV2CorePairDivisionOverFlow2))
+                    .unwrap_or_revert_with(Errors::UniswapV2CorePairDivisionOverFlow2))
                 .checked_add(x)
-                .unwrap_or_revert_with(Error::UniswapV2CorePairOverFlow5))
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairOverFlow5))
                 .checked_div(U256::from(2))
-                .unwrap_or_revert_with(Error::UniswapV2CorePairDivisionOverFlow3);
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairDivisionOverFlow3);
             }
         } else if y != 0.into() {
             z = 1.into();
@@ -617,7 +624,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         let overflow_check: U256 = U256::from(
             ((U128::MAX)
                 .checked_sub(one)
-                .unwrap_or_revert_with(Error::UniswapV2CorePairUnderFlow9))
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow9))
             .as_u128(),
         );
         if balance0 <= overflow_check && balance1 <= overflow_check {
@@ -646,7 +653,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             });
         } else {
             //UniswapV2: OVERFLOW
-            runtime::revert(Error::UniswapV2CorePairOverFlow6);
+            runtime::revert(Errors::UniswapV2CorePairOverFlow6);
         }
     }
 
