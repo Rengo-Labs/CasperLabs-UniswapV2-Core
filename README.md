@@ -165,22 +165,20 @@ make prepare
 It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
 available in your PATH to reduce the size of compiled Wasm.
 
-#### Build Individual Smart Contract
+#### Build Smart Contract
 
-Run this command to build Smart Contract.
+Run this command to build specific smart contract.
 
 ```
-make build-contract
+make build-contract-<NAME>
 ```
-
-<br>**Note:** User needs to be in the desired project folder to build contracts and User needs to run `make build-contract` in every project to make wasms to avoid errors
 
 #### Build All Smart Contracts
 
 Run this command in main folder to build all Smart Contract.
 
 ```
-make all
+make build-all
 ```
 
 #### Individual Test Cases
@@ -188,17 +186,23 @@ make all
 Run this command to run Test Cases.
 
 ```
-make test
+make test-<NAME>
 ```
-
-<br>**Note:** User needs to be in the desired project folder to run test cases
 
 #### All Test Cases
 
 Run this command in main folder to run all contract's Test Cases.
 
 ```
-make test
+make test-all
+```
+
+#### Build & test all smart contracts
+
+Run this command in main folder to build & test all contract's
+
+```
+make all
 ```
 
 ### Known contract hashes
