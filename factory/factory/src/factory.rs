@@ -1,7 +1,4 @@
-use crate::alloc::string::ToString;
 use crate::data::*;
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
 use casper_contract::contract_api::runtime;
 use casper_contract::contract_api::storage;
 use casper_types::{
@@ -10,6 +7,7 @@ use casper_types::{
 use casperlabs_contract_utils::{ContractContext, ContractStorage};
 use common::errors::Errors;
 use common::functions::*;
+use std::collections::BTreeMap;
 
 pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     fn init(

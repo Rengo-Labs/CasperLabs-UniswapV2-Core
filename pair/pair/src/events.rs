@@ -1,4 +1,3 @@
-use alloc::string::{String, ToString};
 use casper_types::{Key, U128, U256};
 
 pub enum PAIREvent {

@@ -1,10 +1,5 @@
 #![no_main]
-#![no_std]
 
-#[macro_use]
-extern crate alloc;
-
-use alloc::{boxed::Box, collections::BTreeSet, format, vec::Vec};
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
@@ -15,6 +10,7 @@ use casper_types::{
 };
 use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
 use factory::{self, data::*, FACTORY};
+use std::collections::BTreeSet;
 
 #[derive(Default)]
 struct Factory(OnChainContractStorage);
@@ -245,7 +241,7 @@ fn get_entry_points() -> EntryPoints {
 #[no_mangle]
 fn call() {
     // Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {

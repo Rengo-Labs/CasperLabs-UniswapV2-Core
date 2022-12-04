@@ -1,9 +1,6 @@
-use crate::alloc::string::ToString;
+use std::collections::BTreeMap;
+
 use crate::data::WcsprEvents;
-use alloc::{
-    string::String,
-    {collections::BTreeMap, vec::Vec},
-};
 use casper_contract::{
     contract_api::{runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,

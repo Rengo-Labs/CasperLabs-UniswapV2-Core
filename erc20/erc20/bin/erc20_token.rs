@@ -1,7 +1,7 @@
 #![no_main]
 
-extern crate alloc;
-use alloc::collections::BTreeSet;
+use std::collections::BTreeSet;
+
 use casper_contract::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,

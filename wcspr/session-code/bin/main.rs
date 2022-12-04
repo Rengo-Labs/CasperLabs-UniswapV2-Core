@@ -16,7 +16,7 @@ fn purse(amount: U512) -> URef {
 }
 
 #[no_mangle]
-pub extern "C" fn call() {
+fn call() {
     let entrypoint: String = runtime::get_named_arg(ENTRYPOINT);
     let package_hash: Key = runtime::get_named_arg(PACKAGE_HASH);
     match entrypoint.as_str() {

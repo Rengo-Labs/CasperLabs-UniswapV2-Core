@@ -1,7 +1,7 @@
 #![no_main]
 
-extern crate alloc;
-use alloc::collections::BTreeSet;
+use std::collections::BTreeSet;
+
 use casper_contract::{
     contract_api::{runtime, storage, system},
     unwrap_or_revert::UnwrapOrRevert,
@@ -351,7 +351,7 @@ fn get_entry_points() -> EntryPoints {
 #[no_mangle]
 fn call() {
     // Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {

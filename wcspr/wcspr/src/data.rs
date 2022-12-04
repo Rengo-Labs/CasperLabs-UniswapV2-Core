@@ -1,5 +1,3 @@
-use crate::alloc::string::ToString;
-use alloc::string::String;
 use casper_types::{URef, U512};
 
 pub enum WcsprEvents {
