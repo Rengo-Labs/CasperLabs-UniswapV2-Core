@@ -15,7 +15,7 @@ fn deploy_flash_swapper() -> (
     let factory = deploy_factory(&env, owner, Key::Account(owner), now());
     let wcspr = deploy_wcspr(
         &env,
-        "WCSPR-1".into(),
+        "WCSPR-1",
         owner,
         WRAPPED_CSPR.into(),
         "WCSPR".into(),
@@ -25,7 +25,7 @@ fn deploy_flash_swapper() -> (
     );
     let dai = deploy_wcspr(
         &env,
-        "WCSPR-2".into(),
+        "WCSPR-2",
         owner,
         "Dai Token".into(),
         "DAI".into(),
@@ -35,7 +35,7 @@ fn deploy_flash_swapper() -> (
     );
     let btc = deploy_wcspr(
         &env,
-        "WCSPR-3".into(),
+        "WCSPR-3",
         owner,
         "Bitcoin".into(),
         "BTC".into(),

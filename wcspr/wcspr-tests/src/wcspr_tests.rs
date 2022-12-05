@@ -6,7 +6,7 @@ fn deploy() -> (TestEnv, AccountHash, TestContract) {
     let owner = env.next_user();
     let token = deploy_wcspr(
         &env,
-        WRAPPED_CSPR.into(),
+        WRAPPED_CSPR,
         owner,
         NAME.into(),
         SYMBOL.into(),
@@ -46,7 +46,7 @@ fn test_wcspr_deposit() {
     );
     assert_eq!(
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
-        AMOUNT.into()
+        AMOUNT
     );
 }
 
@@ -67,7 +67,7 @@ fn test_wcspr_withdraw() {
     );
     assert_eq!(
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
-        AMOUNT.into()
+        AMOUNT
     );
     call(
         &env,

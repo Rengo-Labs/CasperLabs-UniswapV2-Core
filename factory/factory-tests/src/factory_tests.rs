@@ -13,7 +13,7 @@ fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {
     let token = FACTORYInstance::new(&env, owner, Key::Account(owner), now());
     let wcspr = deploy_wcspr(
         &env,
-        "WCSPR-1".into(),
+        "WCSPR-1",
         owner,
         WRAPPED_CSPR.into(),
         "WCSPR".into(),

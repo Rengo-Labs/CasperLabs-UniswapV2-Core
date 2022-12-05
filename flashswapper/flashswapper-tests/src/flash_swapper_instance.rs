@@ -84,7 +84,7 @@ impl FlashSwapperInstance {
     pub fn uniswap_v2_call(
         &self,
         sender: AccountHash,
-        _sender: Key,
+        sender_param: Key,
         amount0: U256,
         amount1: U256,
         data: String,
@@ -94,7 +94,7 @@ impl FlashSwapperInstance {
             sender,
             "uniswap_v2_call",
             runtime_args! {
-                "sender" => _sender,
+                "sender" => sender_param,
                 "amount0" => amount0,
                 "amount1" => amount1,
                 "data" => data

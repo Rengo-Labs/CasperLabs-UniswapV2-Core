@@ -45,6 +45,7 @@ pub fn deploy_factory(
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn deploy_wcspr(
     env: &TestEnv,
     contract_name: &str,

@@ -6,7 +6,7 @@ fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     let factory_contract = deploy_factory(&env, owner, Key::Account(owner), now());
     let wcspr = deploy_wcspr(
         &env,
-        "WCSPR-1".into(),
+        "WCSPR-1",
         owner,
         WRAPPED_CSPR.into(),
         "WCSPR".into(),
@@ -16,7 +16,7 @@ fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     );
     let dai = deploy_wcspr(
         &env,
-        "WCSPR-2".into(),
+        "WCSPR-2",
         owner,
         "dai token".into(),
         "DAI".into(),
@@ -34,7 +34,7 @@ fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     );
     let token = deploy_pair(
         &env,
-        "PAIR".into(),
+        "PAIR",
         owner,
         NAME,
         SYMBOL,
@@ -53,26 +53,8 @@ fn initialize(
     token: &TestContract,
     factory: &TestContract,
 ) -> (TestContract, TestContract) {
-    let token0 = deploy_erc20(
-        env,
-        "ERC20-1".into(),
-        owner,
-        "Token0".into(),
-        "TK-0".into(),
-        9,
-        0.into(),
-        now(),
-    );
-    let token1 = deploy_erc20(
-        env,
-        "ERC20-2".into(),
-        owner,
-        "Token1".into(),
-        "TK-1".into(),
-        9,
-        0.into(),
-        now(),
-    );
+    let token0 = deploy_erc20(env, "ERC20-1", owner, "Token0", "TK-0", 9, 0.into(), now());
+    let token1 = deploy_erc20(env, "ERC20-2", owner, "Token1", "TK-1", 9, 0.into(), now());
     token.call_contract(
         owner,
         "initialize",

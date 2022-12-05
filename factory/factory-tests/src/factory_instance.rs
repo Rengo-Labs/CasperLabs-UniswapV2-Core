@@ -1,10 +1,4 @@
-use tests_common::{
-    account::AccountHash,
-    bytesrepr::ToBytes,
-    deploys::deploy_factory,
-    digest::{Update, VariableOutput},
-    VarBlake2b, *,
-};
+use tests_common::{account::AccountHash, deploys::deploy_factory, *};
 
 pub struct FACTORYInstance(pub TestContract);
 
