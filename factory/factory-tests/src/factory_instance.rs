@@ -83,7 +83,7 @@ impl FACTORYInstance {
 
     pub fn get_white_lists<T: Into<Key>>(&self, account: T) -> Key {
         self.0
-            .query_dictionary("white_lists", key_to_str(&account.into()))
+            .query_dictionary("white_lists", helpers::key_to_str(&account.into()))
             .unwrap()
     }
 
@@ -112,7 +112,7 @@ impl FACTORYInstance {
         let token0: Key = token0.into();
         let token1: Key = token1.into();
         self.0
-            .query_dictionary("pairs", keys_to_str(&token0, &token1))
+            .query_dictionary("pairs", helpers::keys_to_str(&token0, &token1))
             .unwrap()
     }
 }

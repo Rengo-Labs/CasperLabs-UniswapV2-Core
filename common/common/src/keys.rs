@@ -1,6 +1,4 @@
 // common keys
-pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
-pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
 pub const PURSE: &str = "purse";
 
 // session code
