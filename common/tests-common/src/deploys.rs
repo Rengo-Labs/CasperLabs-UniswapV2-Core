@@ -1,5 +1,5 @@
-use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U256};
 use casperlabs_test_env::{TestContract, TestEnv};
+use common::{account::AccountHash, *};
 
 #[allow(clippy::too_many_arguments)]
 pub fn deploy_erc20(

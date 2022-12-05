@@ -1,9 +1,9 @@
 use crate::factory_instance::FACTORYInstance;
-use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs};
-use casperlabs_test_env::{now, TestContract, TestEnv};
 use tests_common::{
+    account::AccountHash,
     deploys::{deploy_erc20, deploy_wcspr},
     helpers::*,
+    *,
 };
 
 fn deploy() -> (TestEnv, FACTORYInstance, AccountHash, TestContract) {

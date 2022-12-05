@@ -5,10 +5,6 @@ authors = ["Bassam Monib <bassam.munib@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]
-casper-contract = "1.4.4"
-casper-types = "1.5.0"
-casperlabs-contract-utils = "0.2.1"
-num-traits = "0.2.15"
 common = { path = "../../common/common" }
 
 [[bin]]
@@ -17,6 +13,3 @@ path = "bin/main.rs"
 bench = false
 doctest = false
 test = false
-
-[features]
-default = ["casper-contract/std", "casper-types/std"]

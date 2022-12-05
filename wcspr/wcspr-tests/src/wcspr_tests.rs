@@ -1,8 +1,5 @@
 use crate::wcspr_instance::*;
-use casper_types::{account::AccountHash, Key, U256};
-use casperlabs_erc20::Address;
-use casperlabs_test_env::{now, TestContract, TestEnv};
-use tests_common::{deploys::*, helpers::*, keys::*};
+use tests_common::{account::AccountHash, deploys::*, helpers::*, keys::*, *};
 
 fn deploy() -> (TestEnv, AccountHash, TestContract) {
     let env = TestEnv::new();

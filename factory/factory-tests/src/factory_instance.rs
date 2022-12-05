@@ -1,13 +1,10 @@
-use blake2::{
+use tests_common::{
+    account::AccountHash,
+    bytesrepr::ToBytes,
+    deploys::deploy_factory,
     digest::{Update, VariableOutput},
-    VarBlake2b,
+    VarBlake2b, *,
 };
-use casper_types::{
-    account::AccountHash, bytesrepr::ToBytes, runtime_args, ContractHash, ContractPackageHash, Key,
-    RuntimeArgs,
-};
-use casperlabs_test_env::{TestContract, TestEnv};
-use tests_common::deploys::deploy_factory;
 
 pub struct FACTORYInstance(pub TestContract);
 
@@ -129,7 +126,7 @@ impl FACTORYInstance {
 pub fn key_to_str(key: &Key) -> String {
     match key {
         Key::Account(account) => account.to_string(),
-        Key::Hash(package) => hex::encode(package),
+        Key::Hash(package) => encode(package),
         _ => panic!("Unexpected key type"),
     }
 }
@@ -140,5 +137,5 @@ pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
     hasher.update(key_b.to_bytes().unwrap());
     let mut ret = [0u8; 32];
     hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
-    hex::encode(ret)
+    encode(ret)
 }

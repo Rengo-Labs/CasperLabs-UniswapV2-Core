@@ -1,4 +1,4 @@
-use casper_types::{Key, U256 as TokenId};
+use common::{U256 as TokenId, *};
 
 pub enum FLASHSWAPPEREvent {
     Mint {

@@ -1,7 +1,7 @@
 use crate::keys::*;
 use casper_contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{ApiError, ContractHash, ContractPackageHash, Key, URef};
-use casperlabs_contract_utils::{get_key, set_key};
+use casper_types::{ApiError, Key, URef, U256, U512};
+use num_traits::AsPrimitive;
 
 pub fn zero_address() -> Key {
     Key::from_formatted_str("hash-0000000000000000000000000000000000000000000000000000000000000000")
@@ -19,20 +19,12 @@ pub fn block_timestamp() -> u64 {
     runtime::get_blocktime().into()
 }
 
-pub fn set_contract_hash(contract_hash: ContractHash) {
-    set_key(SELF_CONTRACT_HASH, contract_hash);
+pub fn u256_to_u512(u256: U256) -> U512 {
+    <casper_types::U256 as AsPrimitive<casper_types::U512>>::as_(u256)
 }
 
-pub fn get_contract_hash() -> ContractHash {
-    get_key(SELF_CONTRACT_HASH).unwrap_or_default()
-}
-
-pub fn set_package_hash(package_hash: ContractPackageHash) {
-    set_key(CONTRACT_PACKAGE_HASH, package_hash);
-}
-
-pub fn get_package_hash() -> ContractPackageHash {
-    get_key(CONTRACT_PACKAGE_HASH).unwrap_or_default()
+pub fn u512_to_u256(u512: U512) -> U256 {
+    <casper_types::U512 as AsPrimitive<casper_types::U256>>::as_(u512)
 }
 
 pub fn set_purse(purse: URef) {

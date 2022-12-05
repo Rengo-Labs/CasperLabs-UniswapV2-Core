@@ -1,5 +1,4 @@
-use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U512};
-use casperlabs_test_env::{TestContract, TestEnv};
+use tests_common::{account::AccountHash, runtime_args, *};
 
 pub fn call(
     env: &TestEnv,

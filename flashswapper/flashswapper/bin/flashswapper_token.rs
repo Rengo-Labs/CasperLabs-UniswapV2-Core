@@ -1,18 +1,13 @@
 #![no_main]
 
-use std::collections::BTreeSet;
-
-use casper_contract::{
+use common::{
     contract_api::{runtime, storage, system},
+    functions::get_purse,
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    runtime_args, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
-};
-use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
-use common::functions::get_purse;
 use flashswapper::FLASHSWAPPER;
+use std::collections::BTreeSet;
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);

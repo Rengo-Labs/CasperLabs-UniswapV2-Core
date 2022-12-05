@@ -1,4 +1,4 @@
-use casper_types::{URef, U512};
+use common::*;
 
 pub enum WcsprEvents {
     Deposit { purse: URef, amount: U512 },

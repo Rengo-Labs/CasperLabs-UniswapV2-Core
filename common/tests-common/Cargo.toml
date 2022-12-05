@@ -5,12 +5,8 @@ authors = ["Bassam Monib <bassam.munib@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]
-casper-contract = "1.4.4"
-casper-types = "1.5.0"
 casper-engine-test-support = "2.1.0"
 casperlabs-test-env = "0.3.0"
-casperlabs-contract-utils = "0.2.1"
-casperlabs-erc20 = "2.0.1"
 base64 = "0.13.0"
 hex = "0.4.3"
 blake2 = "0.9.1"

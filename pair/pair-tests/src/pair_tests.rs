@@ -1,7 +1,4 @@
-use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U128, U256};
-use casperlabs_erc20::Address;
-use casperlabs_test_env::{now, TestContract, TestEnv};
-use tests_common::{deploys::*, helpers::*};
+use tests_common::{account::AccountHash, deploys::*, helpers::*, *};
 
 fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     let env = TestEnv::new();

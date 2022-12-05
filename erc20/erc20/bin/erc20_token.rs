@@ -1,17 +1,12 @@
 #![no_main]
 
-use std::collections::BTreeSet;
-
-use casper_contract::{
+use casperlabs_erc20::{Address, ERC20};
+use common::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Parameter, RuntimeArgs, URef, U256,
-};
-use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
-use casperlabs_erc20::{Address, ERC20};
+use std::collections::BTreeSet;
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);

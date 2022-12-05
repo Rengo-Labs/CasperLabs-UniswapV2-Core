@@ -1,11 +1,11 @@
 #![no_main]
 
-use casper_contract::{
+use common::{
     contract_api::{account, runtime, system},
+    keys::*,
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{runtime_args, ApiError, Key, RuntimeArgs, URef, U512};
-use common::keys::*;
 
 fn purse(amount: U512) -> URef {
     let main_purse: URef = account::get_main_purse();

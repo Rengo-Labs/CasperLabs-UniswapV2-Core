@@ -1,5 +1,4 @@
-use casper_types::{bytesrepr::ToBytes, U256, U512};
-use casperlabs_erc20::Address;
+use common::{bytesrepr::ToBytes, *};
 
 pub const BALANCES: &str = "balances";
 pub const TREASURY_FEE: &str = "treasury_fee";

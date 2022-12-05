@@ -1,7 +1,5 @@
 use crate::flash_swapper_instance::FlashSwapperInstance;
-use casper_types::{account::AccountHash, ContractHash, Key};
-use casperlabs_test_env::{now, TestContract, TestEnv};
-use tests_common::{deploys::*, functions::zero_address, helpers::*};
+use tests_common::{account::AccountHash, deploys::*, functions::zero_address, helpers::*, *};
 
 fn deploy_flash_swapper() -> (
     TestEnv,

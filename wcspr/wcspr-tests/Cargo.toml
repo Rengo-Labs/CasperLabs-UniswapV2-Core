@@ -5,15 +5,4 @@ name = "wcspr-tests"
 version = "0.2.1"
 
 [dependencies]
-casper-contract = "1.4.4"
-casper-types = "1.5.0"
-casper-engine-test-support = { version = "2.2.0", features = ["test-support"] }
-casperlabs-contract-utils = "0.2.1"
-casperlabs-test-env = "0.3.0"
-casperlabs-erc20 = "2.0.1"
-blake2 = "0.9.1"
-hex = "0.4.3"
 tests-common = { path = "../../common/tests-common" }
-
-[features]
-default = ["casper-contract/std", "casper-types/std", "casper-contract/test-support"]

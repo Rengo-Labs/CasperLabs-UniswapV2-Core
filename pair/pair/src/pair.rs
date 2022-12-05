@@ -2,16 +2,14 @@ use std::collections::BTreeMap;
 
 use crate::data::*;
 use crate::events::PAIREvent;
-use casper_contract::{
-    contract_api::{runtime, storage},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{
-    runtime_args, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef, U128, U256,
-};
-use casperlabs_contract_utils::{set_key, ContractContext, ContractStorage};
 use casperlabs_erc20::{data::*, Address, ERC20};
-use common::{errors::Errors, functions::account_zero_address};
+use common::{
+    contract_api::{runtime, storage},
+    errors::Errors,
+    functions::account_zero_address,
+    unwrap_or_revert::UnwrapOrRevert,
+    *,
+};
 use cryptoxide::ed25519;
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Storage> {
@@ -730,7 +728,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             }
         };
         for event in events {
-            let _: URef = storage::new_uref(event);
+            storage::new_uref(event);
         }
     }
 }

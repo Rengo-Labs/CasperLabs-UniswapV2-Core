@@ -1,10 +1,7 @@
 use crate::data::*;
-use casper_contract::{contract_api::runtime, unwrap_or_revert::UnwrapOrRevert};
-use casper_types::{
-    runtime_args, ApiError, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef, U256, U512,
+use common::{
+    contract_api::runtime, errors::Errors, functions::*, unwrap_or_revert::UnwrapOrRevert, *,
 };
-use casperlabs_contract_utils::{ContractContext, ContractStorage};
-use common::{errors::Errors, functions::*};
 
 pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
     fn init(

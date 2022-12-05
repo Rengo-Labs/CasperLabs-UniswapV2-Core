@@ -1,14 +1,10 @@
 #![no_main]
 
-use casper_contract::{
+use common::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
-};
-use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
 use factory::{self, data::*, FACTORY};
 use std::collections::BTreeSet;
 

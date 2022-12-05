@@ -1,10 +1,6 @@
-use casper_types::{
-    account::AccountHash, runtime_args, ApiError, ContractHash, Key, RuntimeArgs, U256,
-};
-use casperlabs_test_env::{TestContract, TestEnv};
-pub struct FlashSwapperInstance(TestContract);
+use tests_common::{account::AccountHash, contract_api::runtime, *};
 
-use casper_contract::contract_api::runtime;
+pub struct FlashSwapperInstance(TestContract);
 
 impl FlashSwapperInstance {
     pub fn new(

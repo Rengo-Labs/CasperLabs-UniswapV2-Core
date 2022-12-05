@@ -1,9 +1,8 @@
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, U256};
-use casperlabs_contract_utils::{get_key, set_key, Dict};
 use common::{
     functions::{account_zero_address, zero_address},
     keys::*,
+    unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
 
 pub enum FACTORYEvent {

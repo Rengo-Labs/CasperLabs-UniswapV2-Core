@@ -1,7 +1,4 @@
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::Key;
-use casperlabs_contract_utils::{get_key, set_key};
-use common::keys::*;
+use common::{keys::*, unwrap_or_revert::UnwrapOrRevert, *};
 
 pub fn set_wcspr(wcspr: Key) {
     set_key(WCSPR, wcspr);

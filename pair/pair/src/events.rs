@@ -1,4 +1,4 @@
-use casper_types::{Key, U128, U256};
+use common::*;
 
 pub enum PAIREvent {
     Mint {

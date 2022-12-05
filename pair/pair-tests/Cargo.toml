@@ -6,15 +6,4 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-casper-contract = "1.4.4"
-casper-types = "1.5.0"
-casper-engine-test-support = "2.2.0"
-casperlabs-contract-utils = "0.2.1"
-casperlabs-test-env = "0.3.0"
-casperlabs-erc20 = "2.0.1"
-base64 = "0.13.0"
-hex = { version = "0.4.3", default-features = false }
 tests-common = { path = "../../common/tests-common" }
-
-[features]
-default = ["casper-contract/std", "casper-types/std", "casper-contract/test-support"]

@@ -1,7 +1,4 @@
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, U128, U256};
-use casperlabs_contract_utils::{get_key, set_key};
-use common::keys::*;
+use common::{keys::*, unwrap_or_revert::UnwrapOrRevert, *};
 
 pub fn set_factory_hash(factory_hash: Key) {
     set_key(FACTORY, factory_hash);

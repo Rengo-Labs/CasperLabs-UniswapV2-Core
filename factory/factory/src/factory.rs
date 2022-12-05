@@ -1,12 +1,10 @@
 use crate::data::*;
-use casper_contract::contract_api::runtime;
-use casper_contract::contract_api::storage;
-use casper_types::{
-    runtime_args, ApiError, ContractHash, ContractPackageHash, Key, RuntimeArgs, URef,
+use common::{
+    contract_api::{runtime, storage},
+    errors::Errors,
+    functions::*,
+    *,
 };
-use casperlabs_contract_utils::{ContractContext, ContractStorage};
-use common::errors::Errors;
-use common::functions::*;
 use std::collections::BTreeMap;
 
 pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
@@ -136,7 +134,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         };
 
         for event in events {
-            let _: URef = storage::new_uref(event);
+            storage::new_uref(event);
         }
     }
 }
