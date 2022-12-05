@@ -1,4 +1,9 @@
+use blake2::{
+    digest::{Update, VariableOutput},
+    VarBlake2b,
+};
 use common::{bytesrepr::ToBytes, *};
+use hex::encode;
 
 pub const BALANCES: &str = "balances";
 pub const TREASURY_FEE: &str = "treasury_fee";
@@ -14,4 +19,21 @@ pub const WRAPPED_CSPR: &str = "Wrapped CSPR";
 pub fn address_to_str(owner: &Address) -> String {
     let preimage = owner.to_bytes().unwrap();
     base64::encode(&preimage)
+}
+
+pub fn key_to_str(key: &Key) -> String {
+    match key {
+        Key::Account(account) => account.to_string(),
+        Key::Hash(package) => encode(package),
+        _ => panic!("Unexpected key type"),
+    }
+}
+
+pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
+    let mut hasher = VarBlake2b::new(32).unwrap();
+    hasher.update(key_a.to_bytes().unwrap());
+    hasher.update(key_b.to_bytes().unwrap());
+    let mut ret = [0u8; 32];
+    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
+    encode(ret)
 }
