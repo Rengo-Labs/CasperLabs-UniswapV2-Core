@@ -1,15 +1,11 @@
 #![no_main]
 
-use casper_contract::{
+use common::{
     contract_api::{account, runtime, system},
+    keys::*,
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{runtime_args, ApiError, Key, RuntimeArgs, URef, U512};
-
-const ENTRYPOINT: &str = "entrypoint";
-const PACKAGE_HASH: &str = "package_hash";
-const DEPOSIT: &str = "deposit";
-const WITHDRAW: &str = "withdraw";
 
 fn purse(amount: U512) -> URef {
     let main_purse: URef = account::get_main_purse();
@@ -20,7 +16,7 @@ fn purse(amount: U512) -> URef {
 }
 
 #[no_mangle]
-pub extern "C" fn call() {
+fn call() {
     let entrypoint: String = runtime::get_named_arg(ENTRYPOINT);
     let package_hash: Key = runtime::get_named_arg(PACKAGE_HASH);
     match entrypoint.as_str() {

@@ -1,22 +1,19 @@
 use crate::wcspr_instance::*;
-use casper_types::{account::AccountHash, Key, U256};
-use casperlabs_erc20::Address;
-use casperlabs_test_env::{now, TestContract, TestEnv};
-
-const NAME: &str = "Wrapped_Casper";
-const SYMBOL: &str = "WCSPR";
-const DECIMALS: u8 = 9;
-const INIT_TOTAL_SUPPLY: U256 = U256([0, 0, 0, 0]);
-const AMOUNT: u64 = 500_000_000_000;
-
-const DEPOSIT: &str = "deposit";
-const WITHDRAW: &str = "withdraw";
-const BALANCES: &str = "balances";
+use tests_common::{account::AccountHash, deploys::*, helpers::*, keys::*, *};
 
 fn deploy() -> (TestEnv, AccountHash, TestContract) {
     let env = TestEnv::new();
     let owner = env.next_user();
-    let token = deploy_wcspr(&env, NAME, owner, NAME, SYMBOL, DECIMALS, now());
+    let token = deploy_wcspr(
+        &env,
+        WRAPPED_CSPR,
+        owner,
+        NAME.into(),
+        SYMBOL.into(),
+        DECIMALS,
+        INIT_TOTAL_SUPPLY,
+        now(),
+    );
     (env, owner, token)
 }
 
@@ -44,12 +41,12 @@ fn test_wcspr_deposit() {
         owner,
         DEPOSIT,
         Key::Hash(token.package_hash()),
-        AMOUNT.into(),
+        AMOUNT_U512,
         now(),
     );
     assert_eq!(
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
-        AMOUNT.into()
+        AMOUNT
     );
 }
 
@@ -65,19 +62,19 @@ fn test_wcspr_withdraw() {
         owner,
         DEPOSIT,
         Key::Hash(token.package_hash()),
-        AMOUNT.into(),
+        AMOUNT_U512,
         now(),
     );
     assert_eq!(
         token.query::<U256>(BALANCES, address_to_str(&Address::Account(owner))),
-        AMOUNT.into()
+        AMOUNT
     );
     call(
         &env,
         owner,
         WITHDRAW,
         Key::Hash(token.package_hash()),
-        AMOUNT.into(),
+        AMOUNT_U512,
         now(),
     );
     assert_eq!(
@@ -99,7 +96,7 @@ fn test_wcspr_withdraw_with_no_deposit() {
         owner,
         WITHDRAW,
         Key::Hash(token.package_hash()),
-        AMOUNT.into(),
+        AMOUNT_U512,
         now(),
     );
 }

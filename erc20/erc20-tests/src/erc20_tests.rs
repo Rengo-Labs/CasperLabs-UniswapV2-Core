@@ -1,12 +1,4 @@
-use crate::erc20_instance::*;
-use casper_types::{account::AccountHash, runtime_args, RuntimeArgs, U256};
-use casperlabs_erc20::Address;
-use casperlabs_test_env::{now, TestContract, TestEnv};
-
-const NAME: &str = "ERC20";
-const SYMBOL: &str = "ERC";
-const DECIMALS: u8 = 9;
-const INIT_TOTAL_SUPPLY: U256 = U256([0, 0, 0, 0]);
+use tests_common::{account::AccountHash, deploys::*, helpers::*, *};
 
 fn deploy() -> (TestEnv, AccountHash, TestContract) {
     let env = TestEnv::new();
@@ -49,7 +41,7 @@ fn test_erc20_mint_burn() {
         },
         now(),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, amount);
     erc20.call_contract(
         owner,
@@ -60,7 +52,7 @@ fn test_erc20_mint_burn() {
         },
         now(),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, 0.into());
 }
 
@@ -78,9 +70,9 @@ fn test_erc20_transfer() {
         },
         now(),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
     assert_eq!(ret, amount);
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, 0.into());
     erc20.call_contract(
         to,
@@ -91,9 +83,9 @@ fn test_erc20_transfer() {
         },
         now(),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
     assert_eq!(ret, 0.into());
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, amount);
 }
 
@@ -112,9 +104,9 @@ fn test_erc20_approve_transfer_from() {
         },
         now(),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
     assert_eq!(ret, amount);
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, 0.into());
     erc20.call_contract(
         to,
@@ -135,17 +127,16 @@ fn test_erc20_approve_transfer_from() {
         },
         now(),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
     assert_eq!(ret, 0.into());
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, amount);
 }
 
 #[test]
-fn test_erc20_increase_allowance_transfer_from() {
+fn test_erc20_increase_decrease_allowance() {
     let (env, owner, erc20) = deploy();
     let to = env.next_user();
-    let tmp_user = env.next_user();
     let amount: U256 = 123_000_000_000u64.into();
     erc20.call_contract(
         owner,
@@ -156,76 +147,36 @@ fn test_erc20_increase_allowance_transfer_from() {
         },
         now(),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
     assert_eq!(ret, amount);
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, 0.into());
     erc20.call_contract(
-        to,
+        owner,
         "increase_allowance",
         runtime_args! {
-            "spender" => Address::Account(tmp_user),
+            "spender" => Address::Account(to),
             "amount" => amount,
         },
         now(),
     );
-    erc20.call_contract(
-        tmp_user,
-        "transfer_from",
-        runtime_args! {
-            "owner" => Address::Account(to),
-            "recipient" => Address::Account(owner),
-            "amount" => amount,
-        },
-        now(),
+    let ret: U256 = erc20.query(
+        ALLOWANCES,
+        addresses_to_str(Address::Account(owner), Address::Account(to)),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
-    assert_eq!(ret, 0.into());
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
     assert_eq!(ret, amount);
-}
-
-#[test]
-#[should_panic]
-fn test_erc20_decrease_allowance_transfer_from() {
-    let (env, owner, erc20) = deploy();
-    let to = env.next_user();
-    let tmp_user = env.next_user();
-    let amount: U256 = 123_000_000_000u64.into();
     erc20.call_contract(
         owner,
-        "mint",
-        runtime_args! {
-            "to" => Address::Account(to),
-            "amount" => amount
-        },
-        now(),
-    );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
-    assert_eq!(ret, amount);
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
-    assert_eq!(ret, 0.into());
-    erc20.call_contract(
-        to,
         "decrease_allowance",
         runtime_args! {
-            "spender" => Address::Account(tmp_user),
+            "spender" => Address::Account(to),
             "amount" => amount,
         },
         now(),
     );
-    erc20.call_contract(
-        tmp_user,
-        "transfer_from",
-        runtime_args! {
-            "owner" => Address::Account(to),
-            "recipient" => Address::Account(owner),
-            "amount" => amount,
-        },
-        now(),
+    let ret: U256 = erc20.query(
+        ALLOWANCES,
+        addresses_to_str(Address::Account(owner), Address::Account(to)),
     );
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(to)));
     assert_eq!(ret, 0.into());
-    let ret: U256 = erc20.query("balances", address_to_str(&Address::Account(owner)));
-    assert_eq!(ret, amount);
 }

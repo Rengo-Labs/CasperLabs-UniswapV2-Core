@@ -5,9 +5,7 @@ authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]
-casper-contract = "1.4.4"
-casper-types = "1.5.0"
-contract-utils = { path = "../../utils/contract-utils" }
+common = { path = "../../common/common" }
 
 [[bin]]
 name = "flashswapper-token"
@@ -15,5 +13,3 @@ path = "bin/flashswapper_token.rs"
 bench = false
 doctest = false
 test = false
-
-

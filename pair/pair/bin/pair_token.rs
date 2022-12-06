@@ -1,23 +1,18 @@
 #![no_main]
 
-extern crate alloc;
-use alloc::collections::BTreeSet;
-use casper_contract::{
-    contract_api::{runtime, storage},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U128,
-    U256,
-};
-use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
 use casperlabs_erc20::{Address, ERC20};
+use common::{
+    contract_api::{runtime, storage},
+    runtime_args,
+    unwrap_or_revert::UnwrapOrRevert,
+    *,
+};
 use pair::{
     self,
     data::{get_token0, get_token1, get_treasury_fee},
     PAIR,
 };
+use std::collections::BTreeSet;
 
 #[derive(Default)]
 struct Pair(OnChainContractStorage);
@@ -525,7 +520,7 @@ fn get_entry_points() -> EntryPoints {
 #[no_mangle]
 fn call() {
     // Store contract in the account's named keys. Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {

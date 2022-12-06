@@ -1,7 +1,4 @@
-use alloc::vec::Vec;
-use casper_types::Key;
-
-use crate::TokenId;
+use common::{U256 as TokenId, *};
 
 pub enum FLASHSWAPPEREvent {
     Mint {

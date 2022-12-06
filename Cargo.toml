@@ -1,10 +1,24 @@
 [workspace]
 members = [
-    "erc20",
-    "wcspr",
-    "pair",
-    "factory",
-    "flashswapper",
+    # COMMON
+    "common/common",
+    "common/tests-common",
+    # ERC20
+    "erc20/erc20",
+    "erc20/erc20-tests",
+    # FACTORY
+    "factory/factory",
+    "factory/factory-tests",
+    # FLASH SWAPPER
+    "flashswapper/flashswapper",
+    "flashswapper/flashswapper-tests",
+    # PAIR
+    "pair/pair",
+    "pair/pair-tests",
+    # WCSPR
+    "wcspr/wcspr",
+    "wcspr/wcspr-tests",
+    "wcspr/session-code",
 ]
 
 [profile.release]

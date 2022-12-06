@@ -1,30 +1,4 @@
-use casper_contract::unwrap_or_revert::UnwrapOrRevert;
-use casper_types::{Key, U128, U256};
-use casperlabs_contract_utils::{get_key, set_key};
-
-const FACTORY: &str = "factory_hash";
-const RESERVE0: &str = "reserve0";
-const RESERVE1: &str = "reserve1";
-const BLOCK_TIMESTAMP_LAST: &str = "block_timestamp_last";
-const PRICE0_CUMULATIVE_LAST: &str = "price0_cumulative_last";
-const PRICE1_CUMULATIVE_LAST: &str = "price1_cumulative_last";
-const K_LAST: &str = "k_last";
-const TREASURY_FEE: &str = "treasury_fee";
-const MINIMUM_LIQUIDITY: &str = "minimum_liquidity";
-const TOKEN0: &str = "token0";
-const TOKEN1: &str = "token1";
-const LIQUIDITY: &str = "liquidity";
-const AMOUNT0: &str = "amount0";
-const AMOUNT1: &str = "amount1";
-const CALLEE_PACKAGE_HASH: &str = "callee_package_hash";
-const LOCK: &str = "lock";
-
-pub fn account_zero() -> Key {
-    Key::from_formatted_str(
-        "account-hash-0000000000000000000000000000000000000000000000000000000000000000",
-    )
-    .unwrap()
-}
+use common::{keys::*, unwrap_or_revert::UnwrapOrRevert, *};
 
 pub fn set_factory_hash(factory_hash: Key) {
     set_key(FACTORY, factory_hash);

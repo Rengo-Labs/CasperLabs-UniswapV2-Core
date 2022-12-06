@@ -1,20 +1,15 @@
 #![no_main]
 
-extern crate alloc;
-use alloc::collections::BTreeSet;
-use casper_contract::{
-    contract_api::{runtime, storage, system},
-    unwrap_or_revert::UnwrapOrRevert,
-};
-use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Parameter, RuntimeArgs, URef, U256, U512,
-};
-use casperlabs_contract_utils::{ContractContext, OnChainContractStorage};
 use casperlabs_erc20::{Address, ERC20};
-use wcspr::{
-    data, {self, WCSPR},
+use common::{
+    contract_api::{runtime, storage, system},
+    functions::get_purse,
+    runtime_args,
+    unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
+use std::collections::BTreeSet;
+use wcspr::{self, WCSPR};
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);
@@ -192,14 +187,15 @@ fn withdraw() {
 
 #[no_mangle]
 fn get_main_purse() {
-    let ret: URef = data::get_self_purse();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(get_purse()).unwrap_or_revert());
 }
 
 #[no_mangle]
 fn get_main_purse_balance() {
-    let ret: U512 = system::get_purse_balance(data::get_self_purse()).unwrap_or_revert();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(
+        CLValue::from_t(system::get_purse_balance(get_purse()).unwrap_or_revert())
+            .unwrap_or_revert(),
+    );
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -351,7 +347,7 @@ fn get_entry_points() -> EntryPoints {
 #[no_mangle]
 fn call() {
     // Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {

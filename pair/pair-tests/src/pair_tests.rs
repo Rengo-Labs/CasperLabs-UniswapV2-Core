@@ -1,15 +1,4 @@
-use crate::pair_instance::*;
-use casper_types::{account::AccountHash, runtime_args, Key, RuntimeArgs, U128, U256};
-use casperlabs_erc20::Address;
-use casperlabs_test_env::{now, TestContract, TestEnv};
-
-const NAME: &str = "ERC20";
-const SYMBOL: &str = "ERC";
-const DECIMALS: u8 = 9;
-const AMOUNT: U256 = U256([100_000_000_000, 0, 0, 0]);
-
-const BALANCES: &str = "balances";
-const TREASURY_FEE: &str = "treasury_fee";
+use tests_common::{account::AccountHash, deploys::*, helpers::*, *};
 
 fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     let env = TestEnv::new();
@@ -17,8 +6,9 @@ fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     let factory_contract = deploy_factory(&env, owner, Key::Account(owner), now());
     let wcspr = deploy_wcspr(
         &env,
+        "WCSPR-1",
         owner,
-        "Wrapped Cspr".into(),
+        WRAPPED_CSPR.into(),
         "WCSPR".into(),
         9,
         0.into(),
@@ -26,6 +16,7 @@ fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     );
     let dai = deploy_wcspr(
         &env,
+        "WCSPR-2",
         owner,
         "dai token".into(),
         "DAI".into(),
@@ -43,6 +34,7 @@ fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     );
     let token = deploy_pair(
         &env,
+        "PAIR",
         owner,
         NAME,
         SYMBOL,
@@ -61,24 +53,8 @@ fn initialize(
     token: &TestContract,
     factory: &TestContract,
 ) -> (TestContract, TestContract) {
-    let token0 = deploy_token0(
-        env,
-        owner,
-        "Token0".into(),
-        "TK-0".into(),
-        9,
-        0.into(),
-        now(),
-    );
-    let token1 = deploy_token1(
-        env,
-        owner,
-        "Token1".into(),
-        "TK-1".into(),
-        9,
-        0.into(),
-        now(),
-    );
+    let token0 = deploy_erc20(env, "ERC20-1", owner, "Token0", "TK-0", 9, 0.into(), now());
+    let token1 = deploy_erc20(env, "ERC20-2", owner, "Token1", "TK-1", 9, 0.into(), now());
     token.call_contract(
         owner,
         "initialize",
