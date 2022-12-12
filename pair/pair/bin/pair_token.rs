@@ -300,9 +300,7 @@ fn token1() {
 fn initialize() {
     let token0: Key = runtime::get_named_arg("token0");
     let token1: Key = runtime::get_named_arg("token1");
-    let factory_hash: Key = runtime::get_named_arg("factory_hash");
-
-    Pair::default().initialize(token0, token1, factory_hash);
+    Pair::default().initialize(token0, token1);
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -508,7 +506,6 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("token0", Key::cl_type()),
             Parameter::new("token1", Key::cl_type()),
-            Parameter::new("factory_hash", Key::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Public,

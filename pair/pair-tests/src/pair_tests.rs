@@ -60,8 +60,7 @@ fn initialize(
         "initialize",
         runtime_args! {
             "token0" => Key::Hash(token0.package_hash()),
-            "token1" => Key::Hash(token1.package_hash()),
-            "factory_hash" => Key::Hash(factory.package_hash())
+            "token1" => Key::Hash(token1.package_hash())
         },
         now(),
     );

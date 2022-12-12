@@ -1033,7 +1033,6 @@ Following is the table of parameters.
 | -------------- | ---- |
 | token0         | Key  |
 | token1         | Key  |
-| factory_hash   | Key  |
 
 This method **returns** nothing.
 
