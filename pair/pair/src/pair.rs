@@ -548,6 +548,16 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         }
     }
 
+    fn deinitialize(&self, factory_hash: Key) {
+        if factory_hash == get_factory_hash() {
+            remove_token0();
+            remove_token1();
+        } else {
+            //(UniswapV2: FORBIDDEN)
+            runtime::revert(Errors::UniswapV2CorePairForbidden);
+        }
+    }
+
     fn get_reserves(&self) -> (U128, U128, u64) {
         (get_reserve0(), get_reserve1(), get_block_timestamp_last())
     }

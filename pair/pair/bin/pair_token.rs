@@ -301,8 +301,15 @@ fn initialize() {
     let token0: Key = runtime::get_named_arg("token0");
     let token1: Key = runtime::get_named_arg("token1");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
-
     Pair::default().initialize(token0, token1, factory_hash);
+}
+
+/// This method will be called once by the factory at time of create_pair() method
+/// This function is to Initialize Pair Contract with Token0 and Token1 and called in Factory Contract method create_pair()
+#[no_mangle]
+fn deinitialize() {
+    let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    Pair::default().deinitialize(factory_hash);
 }
 
 fn get_entry_points() -> EntryPoints {
@@ -510,6 +517,13 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("token1", Key::cl_type()),
             Parameter::new("factory_hash", Key::cl_type()),
         ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "deinitialize",
+        vec![Parameter::new("factory_hash", Key::cl_type())],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
