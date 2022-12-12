@@ -118,6 +118,12 @@ pub enum Errors {
     UniswapV2CorePairDivisionOverFlow3 = 75,
     /// 65,612 for (UniswapV2 Core Pair Forbidden)
     UniswapV2CorePairForbidden = 76,
+    /// 65,613 for (UniswapV2 Core Pair Paused)
+    UniswapV2CorePairPaused = 77,
+    /// 65,614 for (UniswapV2 Core Cannot Pause)
+    UniswapV2CoreCannotPause = 78,
+    /// 65,615 for (UniswapV2 Core Cannot Unpause)
+    UniswapV2CoreCannotUnpause = 79,
 
     /// 65,644 for (UniswapV2 Core FlashSwapper Invalid Contract Address)
     UniswapV2CoreFlashSwapperInvalidContractAddress = 108,

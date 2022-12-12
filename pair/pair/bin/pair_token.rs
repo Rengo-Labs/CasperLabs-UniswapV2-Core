@@ -93,6 +93,18 @@ fn constructor() {
     );
 }
 
+/// This function is to pause the pair contract functionalities
+#[no_mangle]
+fn pause() {
+    Pair::default().pause();
+}
+
+/// This function is to unpause the pair contract functionalities
+#[no_mangle]
+fn unpause() {
+    Pair::default().unpause();
+}
+
 /// This function is to return the Name of contract
 #[no_mangle]
 fn name() {
@@ -146,6 +158,7 @@ fn allowance() {
 fn increase_allowance() {
     let spender: Address = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default()._is_paused();
     Pair::default()
         .increase_allowance(spender, amount)
         .unwrap_or_revert();
@@ -160,6 +173,7 @@ fn increase_allowance() {
 fn decrease_allowance() {
     let spender: Address = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default()._is_paused();
     Pair::default()
         .decrease_allowance(spender, amount)
         .unwrap_or_revert();
@@ -179,6 +193,7 @@ fn decrease_allowance() {
 fn approve() {
     let spender: Address = runtime::get_named_arg("spender");
     let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default()._is_paused();
     Pair::default().approve(spender, amount).unwrap_or_revert();
 }
 
@@ -190,6 +205,7 @@ fn approve() {
 fn transfer() {
     let recipient: Address = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default()._is_paused();
     Pair::default()
         .transfer(recipient, amount)
         .unwrap_or_revert();
@@ -211,6 +227,7 @@ fn transfer_from() {
     let owner: Address = runtime::get_named_arg("owner");
     let recipient: Address = runtime::get_named_arg("recipient");
     let amount: U256 = runtime::get_named_arg("amount");
+    Pair::default()._is_paused();
     Pair::default()
         .transfer_from(owner, recipient, amount)
         .unwrap_or_revert();
@@ -279,6 +296,7 @@ fn treasury_fee() {
 #[no_mangle]
 fn set_treasury_fee_percent() {
     let treasury_fee: U256 = runtime::get_named_arg("treasury_fee");
+    Pair::default()._is_paused();
     Pair::default().set_treasury_fee_percent(treasury_fee);
 }
 
@@ -301,7 +319,6 @@ fn initialize() {
     let token0: Key = runtime::get_named_arg("token0");
     let token1: Key = runtime::get_named_arg("token1");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
-
     Pair::default().initialize(token0, token1, factory_hash);
 }
 
@@ -326,6 +343,20 @@ fn get_entry_points() -> EntryPoints {
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "pause",
+        vec![],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "unpause",
+        vec![],
+        CLType::Unit,
+        EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
