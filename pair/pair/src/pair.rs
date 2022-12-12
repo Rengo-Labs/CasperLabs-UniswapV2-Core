@@ -262,7 +262,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
             runtime::revert(Errors::UniswapV2CorePairInsufficientOutputAmount);
         }
-        set_lock(1);
+        set_lock(0);
     }
 
     /// This function is to get signer and verify if it is equal
