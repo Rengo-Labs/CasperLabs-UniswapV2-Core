@@ -1,4 +1,4 @@
-use common::{keys::*, unwrap_or_revert::UnwrapOrRevert, *};
+use common::{functions::account_zero_address, keys::*, unwrap_or_revert::UnwrapOrRevert, *};
 
 pub fn set_factory_hash(factory_hash: Key) {
     set_key(FACTORY, factory_hash);
@@ -126,4 +126,12 @@ pub fn set_lock(lock: u64) {
 
 pub fn get_lock() -> u64 {
     get_key(LOCK).unwrap_or_revert()
+}
+
+pub fn set_owner(owner: Key) {
+    set_key(OWNER, owner);
+}
+
+pub fn get_owner() -> Key {
+    get_key(OWNER).unwrap_or_else(account_zero_address)
 }
