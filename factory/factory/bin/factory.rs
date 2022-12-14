@@ -121,10 +121,6 @@ fn create_pair() {
 ///
 /// # Parameters
 ///
-/// * `token_a` - A Key that holds the Hash of token_a
-///
-/// * `token_b` - A Key that holds the Hash of token1_b
-///
 /// * `pair_hash` - A Key that holds the Hash of Pair Contract
 ///
 

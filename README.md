@@ -62,6 +62,8 @@ https://docs.google.com/document/d/1gWQ3rlti59PuyohknkbpP59exC0YtNGuYDMQyuBDUws/
 - [Deploying PAIR contract manually](#deploying-pair-contract-manually)
   - [Manual Deployment](#pair-manual-deployment)
   - [Entry Point methods](#pair-entry-point-methods)
+    - [`pause`](#pair-pause)
+    - [`unpause`](#pair-unpause)
     - [`name`](#pair-name)
     - [`symbol`](#pair-symbol)
     - [`decimals`](#pair-decimals)
@@ -83,10 +85,12 @@ https://docs.google.com/document/d/1gWQ3rlti59PuyohknkbpP59exC0YtNGuYDMQyuBDUws/
     - [`token0`](#pair-token0)
     - [`token1`](#pair-token1)
     - [`initilize`](#pair-initialize)
+    - [`deinitilize`](#pair-deinitialize)
     - [`get_reserves`](#pair-get-reserves)
 - [Deploying FACTORY contract manually](#deploying-factory-contract-manually)
   - [Entry Point methods](#factory-entry-point-methods)
     - [`create_pair`](#factory-create-pair)
+    - [`remove_pair`](#factory-remove-pair)
     - [`get_pair`](#factory-get-pair)
     - [`fee_to`](#factory-fee-to)
     - [`fee_to_setter`](#factory-fee-to-setter)
@@ -994,6 +998,28 @@ fn test_multiple_tokens() {
 
 Following are the PAIR's entry point methods.
 
+- #### pause <a id="pair-pause"></a>
+
+  This function is to pause the pair contract functionalities
+
+  Following is the table of parameters.
+
+  | Parameter Name | Type |
+  | -------------- | ---- |
+
+  This method **returns** nothing.
+
+  - #### unpause <a id="pair-unpause"></a>
+
+  This function is to unpause the pair contract functionalities
+
+  Following is the table of parameters.
+
+  | Parameter Name | Type |
+  | -------------- | ---- |
+
+  This method **returns** nothing.
+
 - #### name <a id="pair-name"></a>
 
   Returns the `name` of the pair.
@@ -1268,6 +1294,17 @@ Following are the PAIR's entry point methods.
 
 This method **returns** nothing.
 
+- #### deinitialize <a id="pair-deinitialize"></a>
+
+  Removes the `token0` and `token1` in pair contract.
+
+  Following is the table of parameters.
+
+| Parameter Name | Type |
+| -------------- | ---- |
+
+This method **returns** nothing.
+
 - #### get_reserves <a id="pair-get-reserves"></a>
 
   Returns the reserves of token0 and token1 used to price trades and distribute liquidity. Also returns the block_time_stamp `(mod 2**32)` of the last block during which an interaction occured for the pair.
@@ -1341,6 +1378,18 @@ Following are the FACTORY's entry point methods.
   | -------------- | ---- |
   | token_a        | Key  |
   | token_b        | Key  |
+  | pair_hash      | Key  |
+
+  This method **returns** nothing.
+
+- #### remove_pair <a id="factory-remove-pair"></a>
+
+  Removes an existing pair for `token_a` and `token_b`.
+
+  Following is the table of parameters.
+
+  | Parameter Name | Type |
+  | -------------- | ---- |
   | pair_hash      | Key  |
 
   This method **returns** nothing.
