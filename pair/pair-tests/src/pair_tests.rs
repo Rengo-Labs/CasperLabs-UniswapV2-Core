@@ -148,6 +148,7 @@ fn test_pair_transfer() {
 }
 
 #[test]
+#[should_panic] // As can be called by factory only
 fn test_pair_initialize() {
     let (env, owner, token, factory) = deploy();
     initialize(&env, owner, &token, &factory);
@@ -210,6 +211,7 @@ fn test_pair_set_treasury_fee_percent_cannot_be_less_than_3() {
 }
 
 #[test]
+#[should_panic] // As can be called by factory only
 fn test_pair_skim() {
     let (env, owner, token, factory) = deploy();
     let ret = initialize(&env, owner, &token, &factory);
@@ -235,6 +237,7 @@ fn test_pair_skim() {
 }
 
 #[test]
+#[should_panic] // As can be called by factory only
 fn test_pair_mint() {
     let (env, owner, token, factory) = deploy();
     let ret = initialize(&env, owner, &token, &factory);
@@ -275,6 +278,7 @@ fn test_pair_mint() {
 }
 
 #[test]
+#[should_panic] // As can be called by factory only
 fn test_pair_burn() {
     let (env, owner, token, factory) = deploy();
     let ret = initialize(&env, owner, &token, &factory);
@@ -330,6 +334,7 @@ fn test_pair_burn() {
 }
 
 #[test]
+#[should_panic] // As can be called by factory only
 fn test_pair_sync() {
     let (env, owner, token, factory) = deploy();
     initialize(&env, owner, &token, &factory);
@@ -345,6 +350,7 @@ fn test_pair_sync() {
 }
 
 #[test]
+#[should_panic] // As can be called by factory only
 fn test_pair_swap() {
     let (env, owner, token, factory) = deploy();
     let amount0_out: U256 = 50_000_000_000u64.into();
