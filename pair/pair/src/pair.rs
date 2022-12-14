@@ -120,6 +120,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn swap(&self, amount0_out: U256, amount1_out: U256, to: Key, _data: String) {
+        if get_lock() != 0 {
+            //UniswapV2: Locked
+            runtime::revert(Errors::UniswapV2CorePairLocked3);
+        }
+        set_lock(1);
         if amount0_out > 0.into() || amount1_out > 0.into() {
             let (reserve0, reserve1, _) = self.get_reserves(); // gas savings
             if amount0_out < U256::from(reserve0.as_u128())
@@ -257,6 +262,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
             runtime::revert(Errors::UniswapV2CorePairInsufficientOutputAmount);
         }
+        set_lock(0);
     }
 
     /// This function is to get signer and verify if it is equal
