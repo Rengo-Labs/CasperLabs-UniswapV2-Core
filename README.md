@@ -318,7 +318,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 160000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
@@ -504,7 +504,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 345000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
@@ -812,14 +812,14 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 440000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
-    --session-arg="name:string='token-name'" \
-    --session-arg="symbol:string='token-symbol'" \
-    --session-arg="decimals:u8='unsigned integer value'" \
-    --session-arg="initial_supply:u256='unsigned integer value'" \
-    --session-arg="callee_contract_hash:Key='Flash Swapper Contract Hash'" \
-    --session-arg="factory_hash:Key='Hash of factory Contract'" \
+    --session-arg="name:string='token-name'" 
+    --session-arg="symbol:string='token-symbol'" 
+    --session-arg="decimals:u8='unsigned integer value'" 
+    --session-arg="initial_supply:u256='unsigned integer value'" 
+    --session-arg="callee_package_hash:Key='Flash Swapper Contract Hash'" 
+    --session-arg="factory_hash:Key='Hash of factory Contract'" 
     --session-arg="contract_name:string='contract_name'"
 ```
 
@@ -842,7 +842,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 150000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="fee_to_setter:Key='Hash of fee-to-setter Contract'" \
     --session-arg="contract_name:string='contract_name'"
@@ -856,7 +856,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 160000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="uniswap_v2_factory:Key='Hash of factory Contract'" \
     --session-arg="wcspr:Key='Hash of WCSPR Contract'" \
@@ -1241,7 +1241,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 150000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="fee_to_setter:Key='Account Hash of a user'" \
     --session-arg="contract_name:string='contract_name'"
@@ -1394,7 +1394,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 160000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="uniswap_v2_factory:Key='Hash of factory Contract'" \
     --session-arg="wcspr:Key='Hash of WCSPR Contract'" \
@@ -1422,7 +1422,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 150000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="fee_to_setter:Key='Hash of fee-to-setter Contract'" \
     --session-arg="contract_name:string='contract_name'"
@@ -1436,7 +1436,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 345000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
@@ -1452,7 +1452,7 @@ sudo casper-client put-deploy \
     --node-address http://$NODE_ADDRESS:7777/ \
     --secret-key path_to_secret_key.pem \
     --session-path path_to_wasm_file \
-    --payment-amount 10000000000 \
+    --payment-amount 160000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
     --session-arg="name:string='token-name'" \
     --session-arg="symbol:string='token-symbol'" \
