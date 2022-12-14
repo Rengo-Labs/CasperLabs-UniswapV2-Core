@@ -336,6 +336,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn set_treasury_fee_percent(&self, treasury_fee: U256) {
+        if self.get_caller() != get_owner() {
+            runtime::revert(Errors::UniswapV2CorePairNotOwner);
+        }
         if treasury_fee < 30.into() && treasury_fee > 3.into() {
             set_treasury_fee(treasury_fee);
         } else if treasury_fee >= 30.into() {
