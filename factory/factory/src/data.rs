@@ -12,6 +12,12 @@ pub enum FACTORYEvent {
         pair: Key,
         all_pairs_length: U256,
     },
+    PairRemoved {
+        token0: Key,
+        token1: Key,
+        pair: Key,
+        all_pairs_length: U256,
+    },
 }
 impl FACTORYEvent {
     pub fn type_name(&self) -> String {
@@ -22,6 +28,12 @@ impl FACTORYEvent {
                 pair: _,
                 all_pairs_length: _,
             } => "pair_created",
+            FACTORYEvent::PairRemoved {
+                token0: _,
+                token1: _,
+                pair: _,
+                all_pairs_length: _,
+            } => "pair_removed",
         }
         .to_string()
     }
@@ -42,14 +54,14 @@ impl Whitelists {
         Dict::init(WHITELISTS_DICT)
     }
 
-    pub fn get(&self, owner: &Key) -> Key {
+    pub fn get(&self, owner: &Key) -> (Key, Key) {
         self.dict
             .get_by_key(owner)
-            .unwrap_or_else(account_zero_address)
+            .unwrap_or((account_zero_address(), zero_address()))
     }
 
-    pub fn set(&self, owner: &Key, value: Key) {
-        self.dict.set_by_key(owner, value);
+    pub fn set(&self, owner: &Key, value: Key, pair: Key) {
+        self.dict.set_by_key(owner, (value, pair));
     }
 }
 pub struct Pairs {

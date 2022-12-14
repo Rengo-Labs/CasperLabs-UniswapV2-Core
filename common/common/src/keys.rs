@@ -41,3 +41,4 @@ pub const AMOUNT0: &str = "amount0";
 pub const AMOUNT1: &str = "amount1";
 pub const CALLEE_PACKAGE_HASH: &str = "callee_package_hash";
 pub const LOCK: &str = "lock";
+pub const PAUSE: &str = "pause";

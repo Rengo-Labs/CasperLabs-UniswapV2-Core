@@ -70,6 +70,17 @@ impl FACTORYInstance {
         );
     }
 
+    pub fn remove_pair<T: Into<Key>>(&self, sender: AccountHash, pair_hash: T, time: u64) {
+        self.0.call_contract(
+            sender,
+            "remove_pair",
+            runtime_args! {
+                "pair_hash" => pair_hash.into(),
+            },
+            time,
+        );
+    }
+
     pub fn set_white_list<T: Into<Key>>(&self, sender: AccountHash, white_list: T, time: u64) {
         self.0.call_contract(
             sender,
@@ -81,7 +92,7 @@ impl FACTORYInstance {
         );
     }
 
-    pub fn get_white_lists<T: Into<Key>>(&self, account: T) -> Key {
+    pub fn get_white_lists<T: Into<Key>>(&self, account: T) -> (Key, Key) {
         self.0
             .query_dictionary("white_lists", helpers::key_to_str(&account.into()))
             .unwrap()
