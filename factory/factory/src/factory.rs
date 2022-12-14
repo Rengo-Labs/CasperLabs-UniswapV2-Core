@@ -59,8 +59,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 "initialize",
                 runtime_args! {
                     "token0" => token0,
-                    "token1" => token1,
-                    "factory_hash" => Key::from(get_package_hash())
+                    "token1" => token1
                 },
             );
             // handling the pair creation by updating the storage
@@ -130,9 +129,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             pair_hash.into_hash().unwrap_or_revert().into(),
             None,
             "deinitialize",
-            runtime_args! {
-                "factory_hash" => Key::from(get_package_hash())
-            },
+            runtime_args! {},
         );
         // handling the pair creation by updating the storage
         self.set_pair(token0, token1, zero_address());

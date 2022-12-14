@@ -568,8 +568,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         fee_on
     }
 
-    fn initialize(&self, token0: Key, token1: Key, factory_hash: Key) {
-        if factory_hash == get_factory_hash() {
+    fn initialize(&self, token0: Key, token1: Key) {
+        if self.get_caller() == get_factory_hash() {
             set_token0(token0);
             set_token1(token1);
         } else {
@@ -578,8 +578,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         }
     }
 
-    fn deinitialize(&self, factory_hash: Key) {
-        if factory_hash == get_factory_hash() {
+    fn deinitialize(&self) {
+        if self.get_caller() == get_factory_hash() {
             remove_token0();
             remove_token1();
         } else {

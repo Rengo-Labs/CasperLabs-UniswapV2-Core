@@ -247,7 +247,6 @@ Make sure `wasm32-unknown-unknown` is installed.
 It's also recommended to have [wasm-strip](https://github.com/WebAssembly/wabt)
 available in your PATH to reduce the size of compiled Wasm.
 
-
 #### Build Smart Contract
 
 Run this command to build specific smart contract.
@@ -300,13 +299,13 @@ Run this command in main folder to build & test all contract's
 
 All contracts have already being deployed. Inorder to interact with the specific contract you need to call it by its hash. The table below contains the contract hash (without the `hash-` prefix) for all the contracts on public Casper networks:
 
-| Network | Contract Name | Account info contract hash                                               |
-| ------- | ------------- | ------------------------------------------------------------------------ |
-| Testnet | ERC20         | `hash-279445c140615fd511759dfb96c610dee212769913f61a57b0f9dde42d6a8d10`  |
-| Testnet | WCSPR         | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b`  |
+| Network | Contract Name | Account info contract hash                                              |
+| ------- | ------------- | ----------------------------------------------------------------------- |
+| Testnet | ERC20         | `hash-279445c140615fd511759dfb96c610dee212769913f61a57b0f9dde42d6a8d10` |
+| Testnet | WCSPR         | `hash-4f2d1b772147b9ce3706919fe0750af6964249b0931e2115045f97e1e135e80b` |
 | Testnet | FLASHSWAPPER  | `hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` |
-| Testnet | PAIR          | `hash-de6ba94b699dad44e12bf98e35c1122eed7dba9eed8af6d8952875afaec8c7dd`  |
-| Testnet | FACTORY       | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7`  |
+| Testnet | PAIR          | `hash-de6ba94b699dad44e12bf98e35c1122eed7dba9eed8af6d8952875afaec8c7dd` |
+| Testnet | FACTORY       | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` |
 
 ### Deploying ERC20 contract manually
 
@@ -332,28 +331,30 @@ sudo casper-client put-deploy \
 Following are the ERC20's entry point methods.
 
 - #### transfer <a id="erc20-transfer"></a>
+
   Lets `self.get_caller()` send pool tokens to a recipient hash.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | recipient      | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | recipient      | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### transfer_from <a id="erc20-transfer-from"></a>
+
   Sends pool tokens from one hash to another.
   <br>User needs to call approve method before calling the `tranfer_from`.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
-  | recipient      | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
+  | recipient      | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
   <br>**Recommendation:**
@@ -364,15 +365,16 @@ Following are the ERC20's entry point methods.
   recommendations to app developers who work with their token contract.
 
 - #### approve <a id="erc20-approve"></a>
+
   Lets `self.get_caller()` set their allowance for a spender.
   <br>user needs to call this `approve` method before calling the `transfer_from` method.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
   <br>**Recommendation:**
@@ -383,53 +385,58 @@ Following are the ERC20's entry point methods.
   recommendations to app developers who work with their token contract.
 
 - #### balance_of <a id="erc20-balance-of"></a>
+
   This method will return the balance of owner in `ERC20 Contract`.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
 
   This method **returns** `U256`.
 
 - #### allowance <a id="erc20-allowance"></a>
+
   Returns the amount of liquidity tokens owned by an hash that a spender is allowed to transfer via `transfer_from`.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
-  | spender        | Address  |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
+  | spender        | Address |
 
   This method **returns** `U256`.
 
 - #### increase_allowance <a id="erc20-increase-allowance"></a>
+
   Increase the allowance of the spender.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### decrease_allowance <a id="erc20-decrease-allowance"></a>
+
   Decrease the allowance of the spender.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### total_supply <a id="erc20-total-supply"></a>
+
   Returns the total amount of pool tokens for a pair.
 
   Following is the table of parameters.
@@ -440,31 +447,34 @@ Following are the ERC20's entry point methods.
   This method **returns** `U256`.
 
 - #### mint <a id="erc20-mint"></a>
+
   This method mints the number of tokens provided by user against the hash provided by user.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | to             | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | to             | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### burn <a id="erc20-burn"></a>
+
   This method burns the number of tokens provided by user against the hash provided by user.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | from           | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | from           | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
   <br>**Note:** To `burn` the tokens against the hash provided by user, User needs to `mint` tokens first in `ERC20`.
 
 - #### name <a id="erc20-name"></a>
+
   Returns the `name` of tokens for a pair.
 
   Following is the table of parameters.
@@ -475,6 +485,7 @@ Following are the ERC20's entry point methods.
   This method **returns** `String`.
 
 - #### symbol <a id="erc20-symbol"></a>
+
   Returns the `symbol` of tokens for a pair.
 
   Following is the table of parameters.
@@ -485,6 +496,7 @@ Following are the ERC20's entry point methods.
   This method **returns** `String`.
 
 - #### decimals <a id="erc20-decimals"></a>
+
   Returns the `decimals` of tokens for a pair.
 
   Following is the table of parameters.
@@ -620,28 +632,30 @@ fn test_multiple_tokens() {
 Following are the WCSPR's entry point methods.
 
 - #### transfer <a id="wcspr-transfer"></a>
+
   Lets `self.get_caller()` send pool tokens to a recipient hash.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | recipient      | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | recipient      | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### transfer_from <a id="wcspr-transfer-from"></a>
+
   Sends pool tokens from one hash to another.
   <br>User needs to call `approve` method before calling the `tranfer_from`.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
-  | recipient      | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
+  | recipient      | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
   <br>**Recommendation:**
@@ -652,15 +666,16 @@ Following are the WCSPR's entry point methods.
   recommendations to app developers who work with their token contract.
 
 - #### approve <a id="wcspr-approve"></a>
+
   Lets `self.get_caller()` set their allowance for a spender.
   <br>user needs to call this `approve` method before calling the `transfer_from` method.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
   <br>**Recommendation:**
@@ -671,29 +686,32 @@ Following are the WCSPR's entry point methods.
   recommendations to app developers who work with their token contract.
 
 - #### balance_of <a id="wcspr-balance-of"></a>
+
   This method will return the balance of owner in `WCSPR Contract` .
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
 
   This method **returns** `U256`.
 
 - #### allowance <a id="wcspr-allowance"></a>
+
   Returns the amount of liquidity tokens owned by an hash that a spender is allowed to transfer via `transfer_from`.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
-  | spender        | Address  |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
+  | spender        | Address |
 
   This method **returns** `U256`.
 
 - #### total_supply<a id="wcspr-total-supply"></a>
+
   Returns the total amount of pool tokens for a pair.
 
   Following is the table of parameters.
@@ -704,31 +722,34 @@ Following are the WCSPR's entry point methods.
   This method **returns** `U256`.
 
 - #### deposit <a id="wcspr-deposit"></a>
+
   This method deposits the number of tokens provided by user against the hash provided by user.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type  |
-  | -------------- | ----- |
-  | amount         | U512  |
-  | purse          | URef  |
+  | Parameter Name | Type |
+  | -------------- | ---- |
+  | amount         | U512 |
+  | purse          | URef |
 
   This method **returns** nothing.
 
 - #### withdraw <a id="wcspr-withdraw"></a>
+
   This method withdraws the number of tokens provided by user against the hash provided by user.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type  |
-  | -------------- | ----- |
-  | amount         | U512  |
-  | purse          | URef  |
+  | Parameter Name | Type |
+  | -------------- | ---- |
+  | amount         | U512 |
+  | purse          | URef |
 
   This method **returns** nothing.
   <br>**Note:** To `withdraw` the tokens against the hash provided by user, User needs to `deposit` tokens first in `WCSPR`.
 
 - #### name <a id="wcspr-name"></a>
+
   Returns the `name` of tokens for a pair.
 
   Following is the table of parameters.
@@ -739,6 +760,7 @@ Following are the WCSPR's entry point methods.
   This method **returns** `String`.
 
 - #### symbol <a id="wcspr-symbol"></a>
+
   Returns the `symbol` of tokens for a pair.
 
   Following is the table of parameters.
@@ -749,6 +771,7 @@ Following are the WCSPR's entry point methods.
   This method **returns** `String`.
 
 - #### get_main_purse <a id="wcspr-get-main-purse"></a>
+
   This method returns the main purse.
 
   Following is the table of parameters.
@@ -759,6 +782,7 @@ Following are the WCSPR's entry point methods.
   This method **returns** `URef`.
 
 - #### get_main_purse_balance <a id="wcspr-get-main-purse-balance"></a>
+
   This method returns the main purse balance.
 
   Following is the table of parameters.
@@ -769,30 +793,33 @@ Following are the WCSPR's entry point methods.
   This method **returns** `U512`.
 
 - #### increase_allowance <a id="wcspr-increase-allowance"></a>
+
   Increase the allowance of the spender.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### decrease_allowance <a id="wcspr-decrease-allowance"></a>
+
   Decrease the allowance of the spender.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### decimals <a id="wcspr-decimals"></a>
+
   Returns the `decimals` of wcspr.
 
   Following is the table of parameters.
@@ -814,20 +841,20 @@ sudo casper-client put-deploy \
     --session-path path_to_wasm_file \
     --payment-amount 440000000000 \
     --session-arg="public_key:public_key='Public Key In Hex'" \
-    --session-arg="name:string='token-name'" 
-    --session-arg="symbol:string='token-symbol'" 
-    --session-arg="decimals:u8='unsigned integer value'" 
-    --session-arg="initial_supply:u256='unsigned integer value'" 
-    --session-arg="callee_package_hash:Key='Flash Swapper Contract Hash'" 
-    --session-arg="factory_hash:Key='Hash of factory Contract'" 
+    --session-arg="name:string='token-name'"
+    --session-arg="symbol:string='token-symbol'"
+    --session-arg="decimals:u8='unsigned integer value'"
+    --session-arg="initial_supply:u256='unsigned integer value'"
+    --session-arg="callee_package_hash:Key='Flash Swapper Contract Hash'"
+    --session-arg="factory_hash:Key='Hash of factory Contract'"
     --session-arg="contract_name:string='contract_name'"
 ```
 
 Before deploying `PAIR Contract`, you would need to deploy other contracts first and pass hashes of these contracts to the respective parameters above. We have already deployed these contracts and the tables belows displays the hashes of the contracts.
 
-| Name          | Network | Account info contract hash                                               |
-| ------------- | ------- | ------------------------------------------------------------------------ |
-| Factory       | Testnet | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7`  |
+| Name          | Network | Account info contract hash                                              |
+| ------------- | ------- | ----------------------------------------------------------------------- |
+| Factory       | Testnet | `hash-13cc83616c3fb4e6ea22ead5e61eb6319d728783ed02eab51b1f442085e605a7` |
 | Flash Swapper | Testnet | `hash-1c23f9e89033e5c2d2a21a6926411b2645c000cf43fc0db495821633da2aed6e` |
 
 ### Manual Deployment <a id="pair-manual-deployment"></a>
@@ -968,6 +995,7 @@ fn test_multiple_tokens() {
 Following are the PAIR's entry point methods.
 
 - #### name <a id="pair-name"></a>
+
   Returns the `name` of the pair.
 
   Following is the table of parameters.
@@ -978,6 +1006,7 @@ Following are the PAIR's entry point methods.
   This method **returns** `String`.
 
 - #### symbol <a id="pair-symbol"></a>
+
   Returns the `name` of the pair.
 
   Following is the table of parameters.
@@ -988,6 +1017,7 @@ Following are the PAIR's entry point methods.
   This method **returns** `String`.
 
 - #### decimals <a id="pair-decimals"></a>
+
   Returns the `decimals` of the pair.
 
   Following is the table of parameters.
@@ -998,32 +1028,35 @@ Following are the PAIR's entry point methods.
   This method **returns** `U8`.
 
 - #### transfer <a id="pair-transfer"></a>
+
   Lets `self.get_caller` send pool tokens to a recipient hash.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | recipient      | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | recipient      | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### transfer_from <a id="pair-transfer-from"></a>
+
   Sends pool tokens from one hash to another.
   <br>**Note:** User needs to call `approve` method before calling the `tranfer_from` .
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
-  | recipient      | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
+  | recipient      | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### swap <a id="pair-swap"></a>
+
   Swaps tokens. For regular swaps, `data.length` must be `0`.
   <br> **Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `mint` method in `pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `swap` method the user needs to have some balance in `reserve0` and `reserve1`.
 
@@ -1039,6 +1072,7 @@ Following are the PAIR's entry point methods.
   This method **returns** nothing.
 
 - #### skim <a id="pair-skim"></a>
+
   <br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them. To call the `skim` method the user needs to have some balance in `reserve0` and `reserve1`.
 
   Following is the table of parameters.
@@ -1050,6 +1084,7 @@ Following are the PAIR's entry point methods.
   This method **returns** nothing.
 
 - #### sync <a id="pair-sync"></a>
+
   <br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1` after this user needs to mint `token0` and `token1` by calling an `mint` method in `Pair contract` or you can transfer some tokens to it, so they have some balance in them.
 
   Following is the table of parameters.
@@ -1060,15 +1095,16 @@ Following are the PAIR's entry point methods.
   This method **returns** nothing.
 
 - #### approve <a id="pair-approve"></a>
+
   Lets `self.get_caller()` set their allowance for a spender.
   <br>user needs to call this `approve` method before calling the `transfer_from` method.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
   <br>**Recommendation:**
@@ -1079,25 +1115,27 @@ Following are the PAIR's entry point methods.
   recommendations to app developers who work with their token contract.
 
 - #### balance_of <a id="pair-balance-of"></a>
+
   Returns the amount of pool tokens owned by a hash.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
 
   This method **returns** `U256`.
 
 - #### allowance <a id="pair-allowance"></a>
+
   Returns the amount of liquidity tokens owned by an hash that a spender is allowed to transfer via `transfer_from`.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | owner          | Address  |
-  | spender        | Address  |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | owner          | Address |
+  | spender        | Address |
 
   This method **returns** `U256`.
   <br>**Recommendation:**
@@ -1108,30 +1146,33 @@ Following are the PAIR's entry point methods.
   recommendations to app developers who work with their token contract.
 
 - #### increase_allowance <a id="pair-increase-allowance"></a>
+
   Increase the allowance of the spender.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### decrease_allowance <a id="pair-decrease-allowance"></a>
+
   Decrease the allowance of the spender.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type     |
-  | -------------- | -------- |
-  | spender        | Address  |
-  | amount         | U256     |
+  | Parameter Name | Type    |
+  | -------------- | ------- |
+  | spender        | Address |
+  | amount         | U256    |
 
   This method **returns** nothing.
 
 - #### total_supply <a id="pair-total-supply"></a>
+
   Returns the total amount of pool tokens for a pair.
 
   Following is the table of parameters.
@@ -1142,6 +1183,7 @@ Following are the PAIR's entry point methods.
   This method **returns** `U256`.
 
 - #### mint <a id="pair-mint"></a>
+
   Creates pool tokens.
   <br>**Note:** To call this method explicitly, User needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` methods of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1`, To call the mint user needs to do all the above steps so he can proceed flawlessly.
 
@@ -1154,6 +1196,7 @@ Following are the PAIR's entry point methods.
   This method **returns** `U256`.
 
 - #### burn <a id="pair-burn"></a>
+
   Destroys pool tokens.
   <br>**Note:** User needs to mint tokens before burning them. And user needs to deploy a `Factory contract` first and call a method `create_pair` which invokes the `initialize` method of `Pair contract` that's how the `Pair contract` can access the `token0` and `token1`. To call the burn user needs to do all the above steps so he can proceed flawlessly.
 
@@ -1166,6 +1209,7 @@ Following are the PAIR's entry point methods.
   This method **returns** `Tuple(U256, U256)`.
 
 - #### treasury_fee <a id="pair-treasury-fee"></a>
+
   Returns the Treasury Fee for a pair.
 
   Following is the table of parameters.
@@ -1176,6 +1220,7 @@ Following are the PAIR's entry point methods.
   This method **returns** `U256`.
 
 - #### set_treasury_fee_percent <a id="pair-set-treasury-fee-percent"></a>
+
   sets the treasury fee for a pair.
   <br>**Note:** treasury_fee_percent Cannot be more than `30` and less than 3. If it’s more than `30` it will set it as `30` and if it's less than 3 it will set it as '3'.
 
@@ -1188,6 +1233,7 @@ Following are the PAIR's entry point methods.
   This method **returns** nothing.
 
 - #### token0 <a id="pair-token0"></a>
+
   Returns the hash of the pair token with the `lower sort order`.
 
   Following is the table of parameters.
@@ -1198,6 +1244,7 @@ Following are the PAIR's entry point methods.
   This method **returns** `Key`.
 
 - #### token1 <a id="pair-token1"></a>
+
   Returns the address of the pair token with the `higher sort order`.
 
   Following is the table of parameters.
@@ -1208,20 +1255,21 @@ Following are the PAIR's entry point methods.
   This method **returns** `Key`.
 
 - #### initialize <a id="pair-initialize"></a>
+
   Sets the `token0` and `token1` in pair contract.
   <br>**Note:** This method will be called by `Factory contract` only and the user needs to pass the factory hash to make sure is it a factory or not.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type |
-  | -------------- | ---- |
-  | token0         | Key  |
-  | token1         | Key  |
-  | factory_hash   | Key  |
+| Parameter Name | Type |
+| -------------- | ---- |
+| token0         | Key  |
+| token1         | Key  |
 
-  This method **returns** nothing.
+This method **returns** nothing.
 
 - #### get_reserves <a id="pair-get-reserves"></a>
+
   Returns the reserves of token0 and token1 used to price trades and distribute liquidity. Also returns the block_time_stamp `(mod 2**32)` of the last block during which an interaction occured for the pair.
 
   Following is the table of parameters.
@@ -1283,6 +1331,7 @@ Tests are implemented in `factory-tests/src/factory_tests.rs`.
 Following are the FACTORY's entry point methods.
 
 - #### create_pair <a id="factory-create-pair"></a>
+
   Creates a pair for `token_a` and `token_b` if one doesn't exist already.
   <br>**Note:** `token_a` and `token_b` are interchangeable and The user needs to deploy the pair contract before calling the create pair method so he can pass the `Pair contract` hash as a parameter which allows the `Factory contract` to call the `initialize` methods of `Pair Contract`.
 
@@ -1297,6 +1346,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** nothing.
 
 - #### get_pair <a id="factory-get-pair"></a>
+
   Returns the hash of the pair for `token0` and `token1`, if it has been created, else `“Hash-0000000000000000000000000000000000000000000000000000000000000000”`.
   <br>**Note:** `token0` and `token1` are interchangeable.
 
@@ -1310,6 +1360,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** `Key`.
 
 - #### fee_to <a id="factory-fee-to"></a>
+
   Returns the hash of `fee_to`.
 
   Following is the table of parameters.
@@ -1320,6 +1371,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** `Key`.
 
 - #### fee_to_setter <a id="factory-fee-to-setter"></a>
+
   Returns the hash of `fee_to_setter`.
 
   Following is the table of parameters.
@@ -1330,6 +1382,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** `Key`.
 
 - #### all_pairs <a id="factory-all-pairs"></a>
+
   Returns the list of all pairs created.
 
   Following is the table of parameters.
@@ -1340,6 +1393,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** `list of Keys`.
 
 - #### all_pairs_length <a id="factory-all-pairs-length"></a>
+
   Returns the total number of pairs created through the `factory` so far.
 
   Following is the table of parameters.
@@ -1350,6 +1404,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** `U256`.
 
 - #### set_fee_to <a id="factory-set-fee-to"></a>
+
   this will set the hash of `fee_to`
   <br>**Note:** Only `fee_to_setter` can set the `fee_to`
 
@@ -1362,6 +1417,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** nothing.
 
 - #### set_fee_to_setter <a id="factory-set-fee-to-setter"></a>
+
   this will set the Hash of `fee_to_setter`
   <br>**Note:** Only `fee_to_setter` can set the `fee_to_setter`
 
@@ -1374,6 +1430,7 @@ Following are the FACTORY's entry point methods.
   This method **returns** nothing.
 
 - #### set_white_list <a id="factory-set-white-list"></a>
+
   This function is to set the white list addresses which is only possible if the caller matched with owners's hash.
 
   Following is the table of parameters.
@@ -1489,6 +1546,7 @@ Following are the Flash Swapper's entry point methods.
   This method **returns** nothing.
 
 - #### uniswap_v2_call <a id="flashswapper-uniswap-v2-call"></a>
+
   This method is called by `swap` method of `pair contract`.
   <br>the sender must be a `Flash Swapper Contract` hash if user data has some value.
   `Uniswap_v2_call` must be called from a contract. Users cannot directly invoke this method.
@@ -1505,11 +1563,12 @@ Following are the Flash Swapper's entry point methods.
   This method **returns** nothing.
 
 - #### uniswap_v2_call <a id="flashswapper-uniswap-v2-call"></a>
+
   Return the purse.
 
   Following is the table of parameters.
 
-  | Parameter Name | Type   |
-  | -------------- | ------ |
+  | Parameter Name | Type |
+  | -------------- | ---- |
 
   This method **returns** `URef`.
