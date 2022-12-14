@@ -69,7 +69,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn skim(&self, to: Key) {
-        self._is_paused();
         if get_lock() != 0 {
             //UniswapV2: Locked
             runtime::revert(Errors::UniswapV2CorePairLocked1);
@@ -119,7 +118,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn sync(&self) {
-        self._is_paused();
         if get_lock() != 0 {
             //UniswapV2: Locked
             runtime::revert(Errors::UniswapV2CorePairLocked2);
@@ -146,7 +144,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn swap(&self, amount0_out: U256, amount1_out: U256, to: Key, _data: String) {
-        self._is_paused();
+        if get_lock() != 0 {
+            //UniswapV2: Locked
+            runtime::revert(Errors::UniswapV2CorePairLocked3);
+        }
+        set_lock(1);
         if amount0_out > 0.into() || amount1_out > 0.into() {
             let (reserve0, reserve1, _) = self.get_reserves(); // gas savings
             if amount0_out < U256::from(reserve0.as_u128())
@@ -284,6 +286,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
             runtime::revert(Errors::UniswapV2CorePairInsufficientOutputAmount);
         }
+        set_lock(0);
     }
 
     /// This function is to get signer and verify if it is equal
@@ -306,7 +309,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         digest: [u8; 32],
         owner: Key,
     ) -> bool {
-        self._is_paused();
         let public_key_without_spaces: String = public_key.split_whitespace().collect();
         let public_key_string: Vec<&str> = public_key_without_spaces.split(',').collect();
         let mut public_key_vec: Vec<u8> = Vec::new();
@@ -334,7 +336,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn set_treasury_fee_percent(&self, treasury_fee: U256) {
-        self._is_paused();
         if treasury_fee < 30.into() && treasury_fee > 3.into() {
             set_treasury_fee(treasury_fee);
         } else if treasury_fee >= 30.into() {
@@ -346,7 +347,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
 
     #[allow(unused_assignments)]
     fn mint(&self, to: Key) -> U256 {
-        self._is_paused();
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let balance0: U256 = runtime::call_versioned_contract(
             get_token0().into_hash().unwrap_or_revert().into(),
@@ -425,7 +425,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn burn(&self, to: Key) -> (U256, U256) {
-        self._is_paused();
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let balance0: U256 = runtime::call_versioned_contract(
             get_token0().into_hash().unwrap_or_revert().into(),
@@ -517,7 +516,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
 
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     fn mint_fee(&self, reserve0: U128, reserve1: U128) -> bool {
-        self._is_paused();
         let fee_to: Key = runtime::call_versioned_contract(
             get_factory_hash().into_hash().unwrap_or_revert().into(),
             None,
@@ -571,7 +569,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn initialize(&self, token0: Key, token1: Key, factory_hash: Key) {
-        self._is_paused();
         if factory_hash == get_factory_hash() {
             set_token0(token0);
             set_token1(token1);
@@ -582,12 +579,10 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn get_reserves(&self) -> (U128, U128, u64) {
-        self._is_paused();
         (get_reserve0(), get_reserve1(), get_block_timestamp_last())
     }
 
     fn sqrt(&self, y: U256) -> U256 {
-        self._is_paused();
         let mut z: U256 = 0.into();
         if y > 3.into() {
             z = y;
@@ -622,7 +617,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
 
     /// encode a U128 as a U256
     fn encode(&self, y: U128) -> U256 {
-        self._is_paused();
         let q128: U256 = (2 ^ 128).into();
         let y_u256: U256 = U256::from(y.as_u128());
         let z: U256 = y_u256 * q128; // never overflows
@@ -631,7 +625,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
 
     /// divide a U256 by a U128, returning a U256
     fn uqdiv(&self, x: U256, y: U128) -> U256 {
-        self._is_paused();
         let y_u256: U256 = U256::from(y.as_u128());
         let z: U256 = x / y_u256;
         z
@@ -645,7 +638,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         mut general_price_cumulative_last: U256,
         time_elapsed: u64,
     ) -> U256 {
-        self._is_paused();
         let encode_result: U256 = self.encode(encode_reserve);
         let uqdive_result: U256 = self.uqdiv(encode_result, uqdiv_reserve);
         general_price_cumulative_last += uqdive_result * time_elapsed;
@@ -653,7 +645,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn update(&self, balance0: U256, balance1: U256, reserve0: U128, reserve1: U128) {
-        self._is_paused();
         let one: U128 = 1.into();
         let overflow_check: U256 = U256::from(
             ((U128::MAX)

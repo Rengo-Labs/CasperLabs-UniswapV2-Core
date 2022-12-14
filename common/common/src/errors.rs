@@ -124,6 +124,8 @@ pub enum Errors {
     UniswapV2CoreCannotPause = 78,
     /// 65,615 for (UniswapV2 Core Cannot Unpause)
     UniswapV2CoreCannotUnpause = 79,
+    /// 65,616 for (UniswapV2 Core Pair Locked3)
+    UniswapV2CorePairLocked3 = 80,
 
     /// 65,644 for (UniswapV2 Core FlashSwapper Invalid Contract Address)
     UniswapV2CoreFlashSwapperInvalidContractAddress = 108,

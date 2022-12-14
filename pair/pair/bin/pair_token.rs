@@ -237,12 +237,14 @@ fn transfer_from() {
 #[no_mangle]
 fn skim() {
     let to: Key = runtime::get_named_arg("to");
+    Pair::default()._is_paused();
     Pair::default().skim(to);
 }
 
 /// force reserves to match balances
 #[no_mangle]
 fn sync() {
+    Pair::default()._is_paused();
     Pair::default().sync();
 }
 
@@ -253,6 +255,7 @@ fn swap() {
     let amount1_out: U256 = runtime::get_named_arg("amount1_out");
     let to: Key = runtime::get_named_arg("to");
     let data: String = runtime::get_named_arg("data");
+    Pair::default()._is_paused();
     Pair::default().swap(amount0_out, amount1_out, to, data);
 }
 
@@ -262,6 +265,7 @@ fn swap() {
 #[no_mangle]
 fn mint() {
     let to: Key = runtime::get_named_arg("to");
+    Pair::default()._is_paused();
     let liquidity: U256 = PAIR::mint(&Pair::default(), to);
     runtime::ret(CLValue::from_t(liquidity).unwrap_or_revert());
 }
@@ -272,6 +276,7 @@ fn mint() {
 #[no_mangle]
 fn burn() {
     let to: Key = runtime::get_named_arg("to");
+    Pair::default()._is_paused();
     let (amount0, amount1): (U256, U256) = PAIR::burn(&Pair::default(), to);
     runtime::ret(CLValue::from_t((amount0, amount1)).unwrap_or_revert());
 }
@@ -279,6 +284,7 @@ fn burn() {
 /// This function is to get the reserves like Reserve0, Reserve1 and Block Time Stamp
 #[no_mangle]
 fn get_reserves() {
+    Pair::default()._is_paused();
     let (reserve0, reserve1, block_timestamp_last): (U128, U128, u64) =
         Pair::default().get_reserves();
     runtime::ret(CLValue::from_t((reserve0, reserve1, block_timestamp_last)).unwrap_or_revert());
@@ -319,6 +325,7 @@ fn initialize() {
     let token0: Key = runtime::get_named_arg("token0");
     let token1: Key = runtime::get_named_arg("token1");
     let factory_hash: Key = runtime::get_named_arg("factory_hash");
+    Pair::default()._is_paused();
     Pair::default().initialize(token0, token1, factory_hash);
 }
 
