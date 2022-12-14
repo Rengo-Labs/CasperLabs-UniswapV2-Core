@@ -2,6 +2,7 @@ use crate::factory_instance::FACTORYInstance;
 use tests_common::{
     account::AccountHash,
     deploys::{deploy_erc20, deploy_wcspr},
+    functions::zero_address,
     helpers::*,
     *,
 };
@@ -108,7 +109,7 @@ fn test_factory_create_pair() {
     token.set_white_list(owner, Key::Account(user), now());
     assert_eq!(
         token.get_white_lists(Key::Account(user)),
-        Key::Account(user)
+        (Key::Account(user), zero_address())
     );
     token.create_pair(user, token0, token1, pair_hash, now());
     let pair_0_1: Key = token.get_pair(token0, token1);
@@ -121,20 +122,70 @@ fn test_factory_create_pair() {
 }
 
 #[test]
+fn test_factory_remove_pair() {
+    let (env, token, owner, pair_hash) = deploy();
+    assert_eq!(token.fee_to_setter(), Key::Account(owner));
+    let token0 = deploy_erc20(
+        &env,
+        "Token-1",
+        owner,
+        "Token 1",
+        "TK-1",
+        9,
+        0.into(),
+        now(),
+    );
+    let token1 = deploy_erc20(
+        &env,
+        "Token-2",
+        owner,
+        "Token 2",
+        "TK-2",
+        9,
+        0.into(),
+        now(),
+    );
+    let token0 = Key::Hash(token0.package_hash());
+    let token1 = Key::Hash(token1.package_hash());
+    let pair_hash = Key::Hash(pair_hash.package_hash());
+    let user = env.next_user();
+    token.set_white_list(owner, Key::Account(user), now());
+    assert_eq!(
+        token.get_white_lists(Key::Account(user)),
+        (Key::Account(user), zero_address())
+    );
+    token.create_pair(user, token0, token1, pair_hash, now());
+    let pair_0_1: Key = token.get_pair(token0, token1);
+    let pair_1_0: Key = token.get_pair(token1, token0);
+    let all_pairs: Vec<Key> = token.all_pairs();
+    assert_eq!(pair_0_1, pair_1_0);
+    assert_eq!(pair_0_1, pair_hash);
+    assert_eq!(pair_1_0, pair_hash);
+    assert_eq!(all_pairs.len(), 1);
+    token.remove_pair(user, pair_hash, now());
+    let pair_0_1: Key = token.get_pair(token0, token1);
+    let pair_1_0: Key = token.get_pair(token1, token0);
+    let all_pairs: Vec<Key> = token.all_pairs();
+    assert_eq!(pair_0_1, pair_1_0);
+    assert_eq!(pair_0_1, zero_address());
+    assert_eq!(pair_1_0, zero_address());
+    assert_eq!(all_pairs.len(), 0);
+}
+
+#[test]
 fn test_factory_set_white_list() {
-    let (env, token, owner, _pair_hash) = deploy();
+    let (env, token, owner, _) = deploy();
     assert_eq!(token.fee_to_setter(), Key::Account(owner));
     let user = env.next_user();
     token.set_white_list(owner, Key::Account(user), now());
-
     assert_eq!(
         token.get_white_lists(Key::Account(user)),
-        Key::Account(user)
+        (Key::Account(user), zero_address())
     );
     token.set_white_list(owner, Key::Account(owner), now());
     assert_eq!(
         token.get_white_lists(Key::Account(owner)),
-        Key::Account(owner)
+        (Key::Account(owner), zero_address())
     );
 }
 

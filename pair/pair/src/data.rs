@@ -1,4 +1,9 @@
-use common::{functions::account_zero_address, keys::*, unwrap_or_revert::UnwrapOrRevert, *};
+use common::{
+    functions::{account_zero_address, zero_address},
+    keys::*,
+    unwrap_or_revert::UnwrapOrRevert,
+    *,
+};
 
 pub fn set_factory_hash(factory_hash: Key) {
     set_key(FACTORY, factory_hash);
@@ -12,12 +17,20 @@ pub fn set_token0(token0: Key) {
     set_key(TOKEN0, token0);
 }
 
+pub fn remove_token0() {
+    set_key(TOKEN0, zero_address());
+}
+
 pub fn get_token0() -> Key {
     get_key(TOKEN0).unwrap_or_revert()
 }
 
 pub fn set_token1(token1: Key) {
     set_key(TOKEN1, token1);
+}
+
+pub fn remove_token1() {
+    set_key(TOKEN1, zero_address());
 }
 
 pub fn get_token1() -> Key {
