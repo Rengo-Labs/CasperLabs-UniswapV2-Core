@@ -108,6 +108,26 @@ fn test_pair_deploy() {
 }
 
 #[test]
+#[should_panic]
+fn test_pair_paused() {
+    let (env, owner, token, _) = deploy();
+    token.call_contract(owner, "pause", runtime_args! {}, now());
+    // test any pair call
+    let to = env.next_user();
+    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, AMOUNT);
+    token.call_contract(
+        owner,
+        "transfer",
+        runtime_args! {
+            "recipient" => Address::Account(to),
+            "amount" => AMOUNT,
+        },
+        now(),
+    );
+}
+
+#[test]
 fn test_pair_transfer() {
     let (env, owner, token, _) = deploy();
     let to = env.next_user();

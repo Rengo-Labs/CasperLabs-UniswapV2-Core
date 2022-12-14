@@ -41,7 +41,31 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         set_callee_package_hash(callee_package_hash);
         set_factory_hash(factory_hash);
         set_lock(lock);
+        set_owner(self.get_caller());
         ERC20::init(self, contract_hash, package_hash);
+    }
+
+    fn pause(&self) {
+        if !is_paused() && self.get_caller() == get_owner() {
+            pause();
+        } else {
+            runtime::revert(Errors::UniswapV2CoreCannotPause);
+        }
+    }
+
+    fn unpause(&self) {
+        if is_paused() && self.get_caller() == get_owner() {
+            unpause();
+        } else {
+            runtime::revert(Errors::UniswapV2CoreCannotUnpause);
+        }
+    }
+
+    fn _is_paused(&self) {
+        if is_paused() {
+            //UniswapV2: Paused
+            runtime::revert(Errors::UniswapV2CorePairPaused);
+        }
     }
 
     fn skim(&self, to: Key) {
