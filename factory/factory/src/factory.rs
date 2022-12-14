@@ -69,6 +69,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             let mut pairs: Vec<Key> = get_all_pairs();
             pairs.push(pair_hash);
             set_all_pairs(pairs);
+            Whitelists::instance().set(&self.get_caller(), self.get_caller(), pair_hash);
             self.emit(&FACTORYEvent::PairCreated {
                 token0,
                 token1,
@@ -80,15 +81,27 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         }
     }
 
-    fn remove_pair(&self, token_a: Key, token_b: Key, pair_hash: Key) {
+    fn remove_pair(&self, pair_hash: Key) {
         let white_lists: Whitelists = Whitelists::instance();
         let (white_list_user, whitelist_pair) = white_lists.get(&self.get_caller());
         if white_list_user == zero_address() || white_list_user == account_zero_address() {
             runtime::revert(Errors::UniswapV2FactoryNotInWhiteList);
         }
-        if whitelist_pair == pair_hash {
+        if whitelist_pair != pair_hash {
             runtime::revert(Errors::UniswapV2FactoryWhiteListPairMismatch);
         }
+        let token_a: Key = runtime::call_versioned_contract(
+            pair_hash.into_hash().unwrap_or_revert().into(),
+            None,
+            "token0",
+            runtime_args! {},
+        );
+        let token_b: Key = runtime::call_versioned_contract(
+            pair_hash.into_hash().unwrap_or_revert().into(),
+            None,
+            "token1",
+            runtime_args! {},
+        );
         if token_a == token_b {
             runtime::revert(Errors::UniswapV2FactoryIdenticalAddresses);
         }
@@ -124,11 +137,19 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         // handling the pair creation by updating the storage
         self.set_pair(token0, token1, zero_address());
         self.set_pair(token1, token0, zero_address());
-        set_all_pairs(Default::default());
+        let mut pairs: Vec<Key> = get_all_pairs();
+        let index = pairs
+            .iter()
+            .position(|&val| val == pair_hash)
+            .unwrap_or_revert();
+        pairs.swap_remove(index);
+        set_all_pairs(pairs);
+        Whitelists::instance().set(&self.get_caller(), self.get_caller(), zero_address());
         self.emit(&FACTORYEvent::PairRemoved {
             token0,
             token1,
             pair: pair_hash,
+            all_pairs_length: (get_all_pairs().len()).into(),
         });
     }
 
@@ -185,6 +206,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 token0,
                 token1,
                 pair,
+                all_pairs_length,
             } => {
                 let mut event = BTreeMap::new();
                 event.insert("contract_package_hash", package.to_string());
@@ -192,6 +214,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 event.insert("token0", token0.to_string());
                 event.insert("token1", token1.to_string());
                 event.insert("pair", pair.to_string());
+                event.insert("all_pairs_length", all_pairs_length.to_string());
                 events.push(event);
             }
         };

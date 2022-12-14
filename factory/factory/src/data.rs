@@ -16,6 +16,7 @@ pub enum FACTORYEvent {
         token0: Key,
         token1: Key,
         pair: Key,
+        all_pairs_length: U256,
     },
 }
 impl FACTORYEvent {
@@ -31,6 +32,7 @@ impl FACTORYEvent {
                 token0: _,
                 token1: _,
                 pair: _,
+                all_pairs_length: _,
             } => "pair_removed",
         }
         .to_string()

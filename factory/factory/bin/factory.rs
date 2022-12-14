@@ -130,10 +130,8 @@ fn create_pair() {
 
 #[no_mangle]
 fn remove_pair() {
-    let token_a: Key = runtime::get_named_arg("token_a");
-    let token_b: Key = runtime::get_named_arg("token_b");
     let pair_hash: Key = runtime::get_named_arg("pair_hash");
-    Factory::default().remove_pair(token_a, token_b, pair_hash);
+    Factory::default().remove_pair(pair_hash);
 }
 
 /// This function is to return the the pair against tokens provided by user. If pair not found it will return hash-0000000000000000000000000000000000000000000000000000000000000000
@@ -193,11 +191,7 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "remove_pair",
-        vec![
-            Parameter::new("token_a", Key::cl_type()),
-            Parameter::new("token_b", Key::cl_type()),
-            Parameter::new("pair_hash", Key::cl_type()),
-        ],
+        vec![Parameter::new("pair_hash", Key::cl_type())],
         <()>::cl_type(),
         EntryPointAccess::Public,
         EntryPointType::Contract,
