@@ -54,13 +54,11 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
     // Events
     fn emit(&self, wcspr_event: &WcsprEvents) {
         let mut events = Vec::new();
-        let formatted_package_hash = get_package_hash().to_formatted_string();
-        let package_hash_arr: Vec<&str> = formatted_package_hash.split('-').collect();
-        let package_hash: String = package_hash_arr[1].to_string();
+        let package_hash = get_package_hash();
         match wcspr_event {
             WcsprEvents::Deposit { purse, amount } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash);
+                event.insert("contract_package_hash", package_hash.to_string());
                 event.insert("event_type", wcspr_event.type_name());
                 event.insert("purse", purse.to_string());
                 event.insert("amount", amount.to_string());
@@ -68,7 +66,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
             }
             WcsprEvents::Withdraw { purse, amount } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash);
+                event.insert("contract_package_hash", package_hash.to_string());
                 event.insert("event_type", wcspr_event.type_name());
                 event.insert("purse", purse.to_string());
                 event.insert("amount", amount.to_string());

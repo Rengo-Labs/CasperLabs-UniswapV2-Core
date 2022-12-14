@@ -45,6 +45,29 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         ERC20::init(self, contract_hash, package_hash);
     }
 
+    fn pause(&self) {
+        if !is_paused() && self.get_caller() == get_owner() {
+            pause();
+        } else {
+            runtime::revert(Errors::UniswapV2CoreCannotPause);
+        }
+    }
+
+    fn unpause(&self) {
+        if is_paused() && self.get_caller() == get_owner() {
+            unpause();
+        } else {
+            runtime::revert(Errors::UniswapV2CoreCannotUnpause);
+        }
+    }
+
+    fn _is_paused(&self) {
+        if is_paused() {
+            //UniswapV2: Paused
+            runtime::revert(Errors::UniswapV2CorePairPaused);
+        }
+    }
+
     fn skim(&self, to: Key) {
         if get_lock() != 0 {
             //UniswapV2: Locked
@@ -121,6 +144,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn swap(&self, amount0_out: U256, amount1_out: U256, to: Key, _data: String) {
+        if get_lock() != 0 {
+            //UniswapV2: Locked
+            runtime::revert(Errors::UniswapV2CorePairLocked3);
+        }
+        set_lock(1);
         if amount0_out > 0.into() || amount1_out > 0.into() {
             let (reserve0, reserve1, _) = self.get_reserves(); // gas savings
             if amount0_out < U256::from(reserve0.as_u128())
@@ -258,6 +286,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
             runtime::revert(Errors::UniswapV2CorePairInsufficientOutputAmount);
         }
+        set_lock(0);
     }
 
     /// This function is to get signer and verify if it is equal
@@ -542,10 +571,20 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         fee_on
     }
 
-    fn initialize(&self, token0: Key, token1: Key, factory_hash: Key) {
-        if factory_hash == get_factory_hash() {
+    fn initialize(&self, token0: Key, token1: Key) {
+        if self.get_caller() == get_factory_hash() {
             set_token0(token0);
             set_token1(token1);
+        } else {
+            //(UniswapV2: FORBIDDEN)
+            runtime::revert(Errors::UniswapV2CorePairForbidden);
+        }
+    }
+
+    fn deinitialize(&self) {
+        if self.get_caller() == get_factory_hash() {
+            remove_token0();
+            remove_token1();
         } else {
             //(UniswapV2: FORBIDDEN)
             runtime::revert(Errors::UniswapV2CorePairForbidden);
@@ -658,9 +697,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
 
     fn emit(&self, pair_event: &PAIREvent) {
         let mut events = Vec::new();
-        let formatted_package_hash = get_package_hash().to_formatted_string();
-        let package_hash_arr: Vec<&str> = formatted_package_hash.split('-').collect();
-        let package_hash: String = package_hash_arr[1].to_string();
+        let package_hash = get_package_hash();
         match pair_event {
             PAIREvent::Mint {
                 sender,
@@ -669,7 +706,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash);
+                event.insert("contract_package_hash", package_hash.to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("sender", sender.to_string());
                 event.insert("amount0", amount0.to_string());
@@ -685,7 +722,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash);
+                event.insert("contract_package_hash", package_hash.to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("sender", sender.to_string());
                 event.insert("amount0", amount0.to_string());
@@ -705,7 +742,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash);
+                event.insert("contract_package_hash", package_hash.to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("sender", sender.to_string());
                 event.insert("amount0In", amount0_in.to_string());
@@ -723,7 +760,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash);
+                event.insert("contract_package_hash", package_hash.to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("reserve0", reserve0.to_string());
                 event.insert("reserve1", reserve1.to_string());

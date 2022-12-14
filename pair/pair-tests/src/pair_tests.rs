@@ -60,8 +60,7 @@ fn initialize(
         "initialize",
         runtime_args! {
             "token0" => Key::Hash(token0.package_hash()),
-            "token1" => Key::Hash(token1.package_hash()),
-            "factory_hash" => Key::Hash(factory.package_hash())
+            "token1" => Key::Hash(token1.package_hash())
         },
         now(),
     );
@@ -105,6 +104,26 @@ fn test_pair_deploy() {
     assert_eq!(SYMBOL, token.query_named_key::<String>("symbol".into()));
     assert_eq!(DECIMALS, token.query_named_key::<u8>("decimals".into()));
     assert_eq!(AMOUNT, token.query_named_key::<U256>("total_supply".into()));
+}
+
+#[test]
+#[should_panic]
+fn test_pair_paused() {
+    let (env, owner, token, _) = deploy();
+    token.call_contract(owner, "pause", runtime_args! {}, now());
+    // test any pair call
+    let to = env.next_user();
+    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, AMOUNT);
+    token.call_contract(
+        owner,
+        "transfer",
+        runtime_args! {
+            "recipient" => Address::Account(to),
+            "amount" => AMOUNT,
+        },
+        now(),
+    );
 }
 
 #[test]

@@ -9,6 +9,12 @@ pub enum Errors {
     /// 65,553 for (UniswapV2 Core WCSPR OverFlow3)
     UniswapV2CoreWCSPROverFlow3 = 17,
 
+    /// 65,556 for (UniswapV2 Factory No Pair Exists1)
+    UniswapV2FactoryNoPairExists1 = 20,
+    /// 65,557 for (UniswapV2 Factory No Pair Exists2)
+    UniswapV2FactoryNoPairExists2 = 21,
+    /// 65,558 for (UniswapV2 Factory WhiteList Pair Mismatch)
+    UniswapV2FactoryWhiteListPairMismatch = 22,
     /// 65,559 for (UniswapV2 Factory Zero Address)
     UniswapV2FactoryZeroAddress = 23,
     /// 65,560 for (UniswapV2 Factory Pair Exists1)
@@ -120,6 +126,14 @@ pub enum Errors {
     UniswapV2CorePairForbidden = 76,
     /// 65,613 for (UniswapV2 Core Pair Not Owner)
     UniswapV2CorePairNotOwner = 77,
+    /// 65,614 for (UniswapV2 Core Pair Paused)
+    UniswapV2CorePairPaused = 78,
+    /// 65,615 for (UniswapV2 Core Cannot Pause)
+    UniswapV2CoreCannotPause = 79,
+    /// 65,616 for (UniswapV2 Core Cannot Unpause)
+    UniswapV2CoreCannotUnpause = 80,
+    /// 65,617 for (UniswapV2 Core Pair Locked3)
+    UniswapV2CorePairLocked3 = 81,
 
     /// 65,644 for (UniswapV2 Core FlashSwapper Invalid Contract Address)
     UniswapV2CoreFlashSwapperInvalidContractAddress = 108,
