@@ -5,7 +5,7 @@ authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]
-casperlabs-erc20 = "2.0.1"
+casperlabs-erc20 = "2.0.3"
 cryptoxide = "0.3.3"
 common = { path = "../../common/common" }
 

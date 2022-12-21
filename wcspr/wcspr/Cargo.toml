@@ -5,7 +5,7 @@ name = "wcspr"
 version = "0.1.0"
 
 [dependencies]
-casperlabs-erc20 = "2.0.1"
+casperlabs-erc20 = "2.0.3"
 common = { path = "../../common/common" }
 
 [[bin]]

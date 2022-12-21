@@ -140,9 +140,9 @@ dependencies = [
 
 [[package]]
 name = "casper-erc20-crate"
-version = "0.1.0"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "920bb5c65a01218d63d1dc2ab0c71ddaeb41779e0d2cff8b0bcd8572638c22f1"
+checksum = "23a473efb443dc38ec8d6040333435e6a0db0747255ed315bc71c77fc8aa3bc1"
 dependencies = [
  "base64",
  "casper-contract",
@@ -255,21 +255,22 @@ dependencies = [
 
 [[package]]
 name = "casperlabs-contract-utils"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "45ced2fe577f0f6a7ab021d293de42233d7e6c1b9d1b50afe917f56690ba6178"
+checksum = "1f0e2f86c9fd4af61ca2230451489ba4beb988b93732f994dd678cb2928adfa6"
 dependencies = [
  "casper-contract",
  "casper-types",
  "casper_types_derive",
  "hex",
+ "once_cell",
 ]
 
 [[package]]
 name = "casperlabs-erc20"
-version = "2.0.1"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63bcd91abb3bd8b9e5f8eb0b4cfadf9b9dd848b008f35965c5fc53babadae8ee"
+checksum = "5e038f4a7da8482a4648976b41957d4f345222d294a6813de4aa5f22b389ae6d"
 dependencies = [
  "casper-contract",
  "casper-erc20-crate",
