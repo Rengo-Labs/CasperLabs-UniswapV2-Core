@@ -696,8 +696,6 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn emit(&self, pair_event: &PAIREvent) {
-        let mut events = Vec::new();
-        let package_hash = get_package_hash();
         match pair_event {
             PAIREvent::Mint {
                 sender,
@@ -706,13 +704,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("sender", sender.to_string());
                 event.insert("amount0", amount0.to_string());
                 event.insert("amount1", amount1.to_string());
                 event.insert("pair", pair.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
             PAIREvent::Burn {
                 sender,
@@ -722,14 +720,14 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("sender", sender.to_string());
                 event.insert("amount0", amount0.to_string());
                 event.insert("amount1", amount1.to_string());
                 event.insert("to", to.to_string());
                 event.insert("pair", pair.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
             PAIREvent::Swap {
                 sender,
@@ -742,7 +740,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("sender", sender.to_string());
                 event.insert("amount0In", amount0_in.to_string());
@@ -752,7 +750,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 event.insert("to", to.to_string());
                 event.insert("from", from.to_string());
                 event.insert("pair", pair.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
             PAIREvent::Sync {
                 reserve0,
@@ -760,16 +758,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 pair,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package_hash.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", pair_event.type_name());
                 event.insert("reserve0", reserve0.to_string());
                 event.insert("reserve1", reserve1.to_string());
                 event.insert("pair", pair.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
         };
-        for event in events {
-            storage::new_uref(event);
-        }
     }
 }
