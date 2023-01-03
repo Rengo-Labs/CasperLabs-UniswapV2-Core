@@ -181,8 +181,6 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn emit(&self, factory_event: &FACTORYEvent) {
-        let mut events = Vec::new();
-        let package = get_package_hash();
         match factory_event {
             FACTORYEvent::PairCreated {
                 token0,
@@ -191,13 +189,13 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 all_pairs_length,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", factory_event.type_name());
                 event.insert("token0", token0.to_string());
                 event.insert("token1", token1.to_string());
                 event.insert("pair", pair.to_string());
                 event.insert("all_pairs_length", all_pairs_length.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
             FACTORYEvent::PairRemoved {
                 token0,
@@ -206,18 +204,14 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
                 all_pairs_length,
             } => {
                 let mut event = BTreeMap::new();
-                event.insert("contract_package_hash", package.to_string());
+                event.insert("contract_package_hash", get_package_hash().to_string());
                 event.insert("event_type", factory_event.type_name());
                 event.insert("token0", token0.to_string());
                 event.insert("token1", token1.to_string());
                 event.insert("pair", pair.to_string());
                 event.insert("all_pairs_length", all_pairs_length.to_string());
-                events.push(event);
+                storage::new_uref(event);
             }
         };
-
-        for event in events {
-            storage::new_uref(event);
-        }
     }
 }
