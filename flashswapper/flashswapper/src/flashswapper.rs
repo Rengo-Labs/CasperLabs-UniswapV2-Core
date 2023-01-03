@@ -248,12 +248,10 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         }
         let fee: U256 = ((_amount * U256::from(3)) / 997)
             .checked_add(U256::from(1))
-            .ok_or(Errors::UniswapV2CoreFlashSwapperOverFlow1)
-            .unwrap_or_revert();
+            .unwrap_or_revert_with(Errors::UniswapV2CoreFlashSwapperOverFlow1);
         let amount_to_repay: U256 = _amount
             .checked_add(fee)
-            .ok_or(Errors::UniswapV2CoreFlashSwapperOverFlow2)
-            .unwrap_or_revert();
+            .unwrap_or_revert_with(Errors::UniswapV2CoreFlashSwapperOverFlow2);
         let token_borrowed: Key = if _is_borrowing_cspr {
             cspr
         } else {
@@ -480,8 +478,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         let amount_to_repay: U256 = ((amount_1000 * pair_balance_token_pay * amount)
             / (amount_997 * pair_balance_token_borrow))
             .checked_add(amount_1)
-            .ok_or(Errors::UniswapV2CoreFlashSwapperOverFlow3)
-            .unwrap_or_revert();
+            .unwrap_or_revert_with(Errors::UniswapV2CoreFlashSwapperOverFlow3);
         // get the orignal tokens the user requested
         let mut _token_borrowed: Key = zero_address();
         let mut _token_to_repay: Key = zero_address();
@@ -593,8 +590,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
                 if pair_balance_token_borrow_before >= amount {
                     let pair_balance_token_borrow_after: U256 = pair_balance_token_borrow_before
                         .checked_sub(amount)
-                        .ok_or(Errors::UniswapV2CoreFlashSwapperUnderFlow)
-                        .unwrap_or_revert();
+                        .unwrap_or_revert_with(Errors::UniswapV2CoreFlashSwapperUnderFlow);
                     //convert Key to ContractPackageHash
                     let wcspr_address_hash_add_array = match wcspr {
                         Key::Hash(package) => package,
