@@ -1,74 +1,110 @@
-use blake2::{
-    digest::{Update, VariableOutput},
-    VarBlake2b,
-};
-use casper_types::{bytesrepr::ToBytes, runtime_args, Key, RuntimeArgs};
-use test_env::{Sender, TestContract, TestEnv};
+use tests_common::{account::AccountHash, deploys::deploy_factory, *};
 
 pub struct FACTORYInstance(pub TestContract);
 
 impl FACTORYInstance {
-    pub fn new<T: Into<Key>>(
+    pub fn new(
         env: &TestEnv,
-        contract_name: &str,
-        sender: Sender,
-        fee_to_setter: T,
+        sender: AccountHash,
+        fee_to_setter: Key,
+        time: u64,
     ) -> FACTORYInstance {
-        FACTORYInstance(TestContract::new(
-            env,
-            "factory.wasm",
-            contract_name,
-            sender,
-            runtime_args! {
-                "fee_to_setter" => fee_to_setter.into(),
-            },
-        ))
+        FACTORYInstance(deploy_factory(env, sender, fee_to_setter, time))
     }
 
-    pub fn constructor<T: Into<Key>>(&self, sender: Sender, fee_to_setter: T) {
+    pub fn constructor<T: Into<Key>>(&self, sender: AccountHash, fee_to_setter: T, time: u64) {
         self.0.call_contract(
             sender,
             "constructor",
             runtime_args! {
                 "fee_to_setter" => fee_to_setter.into(),
             },
+            time,
         );
     }
 
-    pub fn set_fee_to_setter<T: Into<Key>>(&self, sender: Sender, fee_to_setter: T) {
+    pub fn set_fee_to_setter<T: Into<Key>>(
+        &self,
+        sender: AccountHash,
+        fee_to_setter: T,
+        time: u64,
+    ) {
         self.0.call_contract(
             sender,
             "set_fee_to_setter",
             runtime_args! {
                 "fee_to_setter" => fee_to_setter.into(),
             },
+            time,
         );
     }
 
-    pub fn set_fee_to<T: Into<Key>>(&self, sender: Sender, fee_to: T) {
+    pub fn set_fee_to<T: Into<Key>>(&self, sender: AccountHash, fee_to: T, time: u64) {
         self.0.call_contract(
             sender,
             "set_fee_to",
             runtime_args! {
                 "fee_to" => fee_to.into(),
             },
+            time,
         );
     }
 
-    pub fn create_pair<T: Into<Key>>(&self, sender: Sender, token_a: T, token_b: T, pair_hash: T) {
+    pub fn create_pair<T: Into<Key>>(
+        &self,
+        sender: AccountHash,
+        token_a: T,
+        token_b: T,
+        pair_hash: T,
+        time: u64,
+    ) {
         self.0.call_contract(
             sender,
             "create_pair",
             runtime_args! {
-            "token_a" => token_a.into(),
-            "token_b" => token_b.into(),
-            "pair_hash" => pair_hash.into(),
+                "token_a" => token_a.into(),
+                "token_b" => token_b.into(),
+                "pair_hash" => pair_hash.into(),
             },
+            time,
         );
     }
 
-    pub fn self_contract_hash(&self) -> Key {
+    pub fn remove_pair<T: Into<Key>>(&self, sender: AccountHash, pair_hash: T, time: u64) {
+        self.0.call_contract(
+            sender,
+            "remove_pair",
+            runtime_args! {
+                "pair_hash" => pair_hash.into(),
+            },
+            time,
+        );
+    }
+
+    pub fn set_white_list<T: Into<Key>>(&self, sender: AccountHash, white_list: T, time: u64) {
+        self.0.call_contract(
+            sender,
+            "set_white_list",
+            runtime_args! {
+                "white_list" => white_list.into(),
+            },
+            time,
+        );
+    }
+
+    pub fn get_white_lists<T: Into<Key>>(&self, account: T) -> (Key, Key) {
+        self.0
+            .query_dictionary("white_lists", helpers::key_to_str(&account.into()))
+            .unwrap()
+    }
+
+    pub fn self_contract_hash(&self) -> ContractHash {
         self.0.query_named_key(String::from("self_contract_hash"))
+    }
+
+    pub fn contract_package_hash(&self) -> ContractPackageHash {
+        self.0
+            .query_named_key(String::from("contract_package_hash"))
     }
 
     pub fn fee_to(&self) -> Key {
@@ -87,24 +123,7 @@ impl FACTORYInstance {
         let token0: Key = token0.into();
         let token1: Key = token1.into();
         self.0
-            .query_dictionary("pairs", keys_to_str(&token0, &token1))
+            .query_dictionary("pairs", helpers::keys_to_str(&token0, &token1))
             .unwrap()
     }
-}
-
-pub fn key_to_str(key: &Key) -> String {
-    match key {
-        Key::Account(account) => account.to_string(),
-        Key::Hash(package) => hex::encode(package),
-        _ => panic!("Unexpected key type"),
-    }
-}
-
-pub fn keys_to_str(key_a: &Key, key_b: &Key) -> String {
-    let mut hasher = VarBlake2b::new(32).unwrap();
-    hasher.update(key_a.to_bytes().unwrap());
-    hasher.update(key_b.to_bytes().unwrap());
-    let mut ret = [0u8; 32];
-    hasher.finalize_variable(|hash| ret.clone_from_slice(hash));
-    hex::encode(ret)
 }

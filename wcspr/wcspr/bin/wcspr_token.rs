@@ -1,245 +1,309 @@
 #![no_main]
-#![no_std]
 
-extern crate alloc;
-use alloc::{collections::BTreeSet, format, string::String, vec};
-use casper_contract::{
-    contract_api::{runtime, storage},
+use casperlabs_erc20::{Address, ERC20};
+use common::{
+    contract_api::{runtime, storage, system},
+    functions::get_purse,
+    runtime_args,
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    runtime_args, CLTyped, CLValue, ContractHash, EntryPoint, EntryPointAccess, EntryPointType,
-    EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256, U512
-};
-use contract_utils::{ContractContext, OnChainContractStorage};
+use std::collections::BTreeSet;
 use wcspr::{self, WCSPR};
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);
+impl Token {
+    fn constructor(
+        &self,
+        contract_hash: ContractHash,
+        package_hash: ContractPackageHash,
+        purse: URef,
+    ) {
+        WCSPR::init(self, contract_hash, package_hash, purse);
+    }
+}
 
 impl ContractContext<OnChainContractStorage> for Token {
     fn storage(&self) -> &OnChainContractStorage {
         &self.0
     }
 }
-
 impl WCSPR<OnChainContractStorage> for Token {}
-
-impl Token {
-    fn constructor(
-        &mut self,
-        name: String,
-        symbol: String,
-        decimals: u8,
-        contract_hash: ContractHash,
-    ) {
-        WCSPR::init(self, name, symbol, decimals, Key::from(contract_hash));
-    }
-}
+impl ERC20<OnChainContractStorage> for Token {}
 
 #[no_mangle]
 fn constructor() {
-    let name: String = runtime::get_named_arg("name");
-    let symbol: String = runtime::get_named_arg("symbol");
-    let decimals: u8 = runtime::get_named_arg("decimals");
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
-
-    Token::default().constructor(name, symbol, decimals, contract_hash);
-}
-
-/// This function is to transfer tokens against the address that user provided
-///
-/// # Parameters
-///
-/// * `recipient` - A Key that holds the account address of the user
-///
-/// * `amount` - A U256 that holds the amount for approve
-///
-
-#[no_mangle]
-fn transfer() {
-    let recipient: Key = runtime::get_named_arg("recipient");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer(recipient, amount);
-}
-
-/// This function is to transfer tokens against the address that has been approved before by owner
-///
-/// # Parameters
-///
-/// * `owner` - A Key that holds the account address of the user
-///  
-/// * `recipient` - A Key that holds the account address of the user
-///
-/// * `amount` - A U256 that holds the amount for approve
-///
-
-#[no_mangle]
-fn transfer_from() {
-    let owner: Key = runtime::get_named_arg("owner");
-    let recipient: Key = runtime::get_named_arg("recipient");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().transfer_from(owner, recipient, amount);
-}
-
-/// This function is to approve tokens against the address that user provided
-///
-/// # Parameters
-///
-/// * `spender` - A Key that holds the account address of the user
-///
-/// * `amount` - A U256 that holds the amount for approve
-///
-
-#[no_mangle]
-fn approve() {
-    let spender: Key = runtime::get_named_arg("spender");
-    let amount: U256 = runtime::get_named_arg("amount");
-    Token::default().approve(spender, amount);
-}
-
-/// This function is to deposit token against the address that user provided
-///
-/// # Parameters
-///
-/// * `to` - A Key that holds the account address of the user
-///
-/// * `amount` - A U256 that holds the amount for deposit
-///
-
-#[no_mangle]
-fn deposit()
-{
-    let amount: U512 = runtime::get_named_arg("amount");
+    let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     let purse: URef = runtime::get_named_arg("purse");
-    Token::default().deposit(amount, purse);
-}
-
-/// This function is to withdraw token against the address that user provided
-///
-/// # Parameters
-///
-/// * `from` - A Key that holds the account address of the user
-///
-/// * `amount` - A U256 that holds the amount for withdraw
-///
-
-#[no_mangle]
-fn withdraw() {
-    let to: Key = runtime::get_named_arg("to");
-    let amount: U512 = runtime::get_named_arg("amount");
-    Token::default().withdraw(to, amount);
-}
-
-/// This function is to return the Balance of owner against the address that user provided
-///
-/// # Parameters
-///
-/// * `owner` - A Key that holds the account address of the user against which user wants to get balance
-///
-
-#[no_mangle]
-fn balance_of() {
-    let owner: Key = runtime::get_named_arg("owner");
-    let ret: U256 = Token::default().balance_of(owner);
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    Token::default().constructor(contract_hash, package_hash, purse);
 }
 
 /// This function is to return the Name of contract
-///
-
 #[no_mangle]
 fn name() {
-    let ret: String = Token::default().name();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(Token::default().name()).unwrap_or_revert());
 }
 
 /// This function is to return the Symbol of contract
-///
-
 #[no_mangle]
 fn symbol() {
-    let ret: String = Token::default().symbol();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(Token::default().symbol()).unwrap_or_revert());
+}
+
+/// This function is to return the Decimals of contract
+#[no_mangle]
+fn decimals() {
+    runtime::ret(CLValue::from_t(Token::default().decimals()).unwrap_or_revert());
+}
+
+/// This function is to return the Total Supply of the contract
+#[no_mangle]
+fn total_supply() {
+    runtime::ret(CLValue::from_t(Token::default().total_supply()).unwrap_or_revert());
+}
+
+/// This function is to return the Balance  of owner against the address that user provided
+/// # Parameters
+/// * `owner` - Address that holds the account address of the user against which user wants to get balance
+#[no_mangle]
+fn balance_of() {
+    let owner: Address = runtime::get_named_arg("owner");
+    runtime::ret(CLValue::from_t(Token::default().balance_of(owner)).unwrap_or_revert());
 }
 
 /// This function is to return the Allowance of owner and spender that user provided
-///
 /// # Parameters
-///
-/// * `owner` - A Key that holds the account address of the user
-///
-/// * `spender` - A Key that holds the account address of the user
-///
-
+/// * `owner` - Address that holds the account address of the user
+/// * `spender` - Address that holds the account address of the user
 #[no_mangle]
 fn allowance() {
-    let owner: Key = runtime::get_named_arg("owner");
-    let spender: Key = runtime::get_named_arg("spender");
-    let ret: U256 = Token::default().allowance(owner, spender);
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    let owner: Address = runtime::get_named_arg("owner");
+    let spender: Address = runtime::get_named_arg("spender");
+    runtime::ret(CLValue::from_t(Token::default().allowance(owner, spender)).unwrap_or_revert());
 }
 
+/// NOTE: Custom function
+/// This function is to increase approval in the safe way, avoid front running
+/// # Parameters
+/// * `spender` - Address that holds the account address of the spender
+/// * `amount` - Amount of approval to be increased
+#[no_mangle]
+fn increase_allowance() {
+    let spender: Address = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Token::default()
+        .increase_allowance(spender, amount)
+        .unwrap_or_revert();
+}
+
+/// NOTE: Custom function
+/// This function is to decrease approval in the safe way, avoid front running
+/// # Parameters
+/// * `spender` - Address that holds the account address of the spender
+/// * `amount` - Amount of approval to be decreased
+#[no_mangle]
+fn decrease_allowance() {
+    let spender: Address = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Token::default()
+        .decrease_allowance(spender, amount)
+        .unwrap_or_revert();
+}
+
+/// This function is to approve tokens against the address that user provided
+/// # Parameters
+/// * `spender` - Address that holds the account address of the user
+/// * `amount` - A U256 that holds the amount for approve
+/// **Recommendation:**
+/// The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`.
+/// Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+/// should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+/// **Note:**  Teams who decide to wait for such a standard should make these
+/// recommendations to app developers who work with their token contract.
+#[no_mangle]
+fn approve() {
+    let spender: Address = runtime::get_named_arg("spender");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Token::default().approve(spender, amount).unwrap_or_revert();
+}
+
+/// This function is to transfer tokens against the address that user provided
+/// # Parameters
+/// * `recipient` - Address that holds the account address of the user
+/// * `amount` - A U256 that holds the amount for transfer
+#[no_mangle]
+fn transfer() {
+    let recipient: Address = runtime::get_named_arg("recipient");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Token::default()
+        .transfer(recipient, amount)
+        .unwrap_or_revert();
+}
+
+/// This function is to transfer tokens against the address that has been approved before by owner
+/// # Parameters
+/// * `owner` - Address that holds the account address of the user
+/// * `recipient` - Address that holds the account address of the user
+/// * `amount` - A U256 that holds the amount for transfer
+/// **Recommendation:**
+/// The exploit is mitigated through use of functions that increase/decrease the allowance relative to its current value, such as `increaseAllowance()` and `decreaseAllowance()`.
+/// Pending community agreement on an ERC standard that would protect against this exploit, we recommend that developers of applications dependent on approve() / transferFrom()
+/// should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
+/// **Note:**  Teams who decide to wait for such a standard should make these
+/// recommendations to app developers who work with their token contract.
+#[no_mangle]
+fn transfer_from() {
+    let owner: Address = runtime::get_named_arg("owner");
+    let recipient: Address = runtime::get_named_arg("recipient");
+    let amount: U256 = runtime::get_named_arg("amount");
+    Token::default()
+        .transfer_from(owner, recipient, amount)
+        .unwrap_or_revert();
+}
+
+/// This function is to deposit token against the address that user provided
+/// # Parameters
+/// * `purse` - A URef that holds the purse of the user
+/// * `amount` - A U512 that holds the amount for deposit
+#[no_mangle]
+fn deposit() {
+    let amount: U512 = runtime::get_named_arg("amount");
+    let purse: URef = runtime::get_named_arg("purse");
+    Token::default().deposit(amount, purse).unwrap_or_revert();
+}
+
+/// This function is to withdraw token against the address that user provided
+/// # Parameters
+/// * `purse` - A URef that holds the purse of the user
+/// * `amount` - A U512 that holds the amount for withdraw
+#[no_mangle]
+fn withdraw() {
+    let amount: U512 = runtime::get_named_arg("amount");
+    let purse: URef = runtime::get_named_arg("purse");
+    Token::default().withdraw(amount, purse).unwrap_or_revert();
+}
+
+#[no_mangle]
+fn get_main_purse() {
+    runtime::ret(CLValue::from_t(get_purse()).unwrap_or_revert());
+}
+
+#[no_mangle]
+fn get_main_purse_balance() {
+    runtime::ret(
+        CLValue::from_t(system::get_purse_balance(get_purse()).unwrap_or_revert())
+            .unwrap_or_revert(),
+    );
+}
 
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
         "constructor",
         vec![
-            Parameter::new("name", String::cl_type()),
-            Parameter::new("symbol", String::cl_type()),
-            Parameter::new("decimals", u8::cl_type()),
-            Parameter::new("contract_hash", ContractHash::cl_type())
+            Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "transfer",
-        vec![
-            Parameter::new("recipient", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
+        "name",
+        vec![],
+        CLType::String,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "transfer_from",
-        vec![
-            Parameter::new("owner", Key::cl_type()),
-            Parameter::new("recipient", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
+        "symbol",
+        vec![],
+        CLType::String,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "approve",
-        vec![
-            Parameter::new("spender", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-        ],
-        <()>::cl_type(),
+        "decimals",
+        vec![],
+        CLType::U8,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "total_supply",
+        vec![],
+        CLType::U256,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "balance_of",
-        vec![Parameter::new("owner", Key::cl_type())],
-        U256::cl_type(),
+        vec![Parameter::new("owner", Address::cl_type())],
+        CLType::U256,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "allowance",
         vec![
-            Parameter::new("owner", Key::cl_type()),
-            Parameter::new("spender", Key::cl_type()),
+            Parameter::new("owner", Address::cl_type()),
+            Parameter::new("spender", Address::cl_type()),
         ],
-        U256::cl_type(),
+        CLType::U256,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "increase_allowance",
+        vec![
+            Parameter::new("spender", Address::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "decrease_allowance",
+        vec![
+            Parameter::new("spender", Address::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "approve",
+        vec![
+            Parameter::new("spender", Address::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "transfer",
+        vec![
+            Parameter::new("recipient", Address::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "transfer_from",
+        vec![
+            Parameter::new("owner", Address::cl_type()),
+            Parameter::new("recipient", Address::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+        ],
+        CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -249,31 +313,31 @@ fn get_entry_points() -> EntryPoints {
             Parameter::new("amount", U512::cl_type()),
             Parameter::new("purse", URef::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "withdraw",
         vec![
-            Parameter::new("to", Key::cl_type()),
             Parameter::new("amount", U512::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
         ],
-        <()>::cl_type(),
+        CLType::Unit,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "name",
+        "get_main_purse",
         vec![],
-        String::cl_type(),
+        CLType::URef,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
-        "symbol",
+        "get_main_purse_balance",
         vec![],
-        String::cl_type(),
+        CLType::U512,
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
@@ -282,60 +346,94 @@ fn get_entry_points() -> EntryPoints {
 
 #[no_mangle]
 fn call() {
-    // Build new package with initial a first version of the contract.
-    let (package_hash, access_token) = storage::create_contract_package_at_hash();
-    let (contract_hash, _) =
-        storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+    // Contract name must be same for all new versions of the contracts
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
-    let name: String = runtime::get_named_arg("name");
-    let symbol: String = runtime::get_named_arg("symbol");
-    let decimals: u8 = runtime::get_named_arg("decimals");
+    // If this is the first deployment
+    if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
+        let name: String = runtime::get_named_arg("name");
+        let symbol: String = runtime::get_named_arg("symbol");
+        let decimals: u8 = runtime::get_named_arg("decimals");
 
-    // Prepare constructor args
-    let constructor_args = runtime_args! {
-        "name" => name,
-        "symbol" => symbol,
-        "decimals" => decimals,
-        "contract_hash" => contract_hash
-    };
+        // Build new package with initial a first version of the contract.
+        let (package_hash, access_token) = storage::create_contract_package_at_hash();
+        let (contract_hash, _) = storage::add_contract_version(
+            package_hash,
+            get_entry_points(),
+            Token::default()
+                .named_keys(name, symbol, decimals, 0.into())
+                .unwrap_or_revert(),
+        );
 
-    // Add the constructor group to the package hash with a single URef.
-    let constructor_access: URef =
-        storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
-            .unwrap_or_revert()
-            .pop()
+        let purse: URef = system::create_purse();
+
+        // Prepare constructor args
+        let constructor_args = runtime_args! {
+            "contract_hash" => contract_hash,
+            "package_hash"=> package_hash,
+            "purse" => purse
+        };
+
+        // Add the constructor group to the package hash with a single URef.
+        let constructor_access: URef =
+            storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
+                .unwrap_or_revert()
+                .pop()
+                .unwrap_or_revert();
+
+        // Call the constructor entry point
+        let _: () =
+            runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+
+        // Remove all URefs from the constructor group, so no one can call it for the second time.
+        let mut urefs = BTreeSet::new();
+        urefs.insert(constructor_access);
+        storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
             .unwrap_or_revert();
 
-    // Call the constructor entry point
-    let _: () =
-        runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+        // Store contract in the account's named keys.
+        runtime::put_key(
+            &format!("{}_package_hash", contract_name),
+            package_hash.into(),
+        );
+        runtime::put_key(
+            &format!("{}_package_hash_wrapped", contract_name),
+            storage::new_uref(package_hash).into(),
+        );
+        runtime::put_key(
+            &format!("{}_contract_hash", contract_name),
+            contract_hash.into(),
+        );
+        runtime::put_key(
+            &format!("{}_contract_hash_wrapped", contract_name),
+            storage::new_uref(contract_hash).into(),
+        );
+        runtime::put_key(
+            &format!("{}_package_access_token", contract_name),
+            access_token.into(),
+        );
+        runtime::put_key(&format!("{}_contract_purse", contract_name), purse.into());
+    } else {
+        // this is a contract upgrade
 
-    // Remove all URefs from the constructor group, so no one can call it for the second time.
-    let mut urefs = BTreeSet::new();
-    urefs.insert(constructor_access);
-    storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
-        .unwrap_or_revert();
+        let package_hash: ContractPackageHash =
+            runtime::get_key(&format!("{}_package_hash", contract_name))
+                .unwrap_or_revert()
+                .into_hash()
+                .unwrap()
+                .into();
 
-    // Store contract in the account's named keys.
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
-    runtime::put_key(
-        &format!("{}_package_hash", contract_name),
-        package_hash.into(),
-    );
-    runtime::put_key(
-        &format!("{}_package_hash_wrapped", contract_name),
-        storage::new_uref(package_hash).into(),
-    );
-    runtime::put_key(
-        &format!("{}_contract_hash", contract_name),
-        contract_hash.into(),
-    );
-    runtime::put_key(
-        &format!("{}_contract_hash_wrapped", contract_name),
-        storage::new_uref(contract_hash).into(),
-    );
-    runtime::put_key(
-        &format!("{}_package_access_token", contract_name),
-        access_token.into(),
-    );
+        let (contract_hash, _): (ContractHash, _) =
+            storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+
+        // update contract hash
+        runtime::put_key(
+            &format!("{}_contract_hash", contract_name),
+            contract_hash.into(),
+        );
+        runtime::put_key(
+            &format!("{}_contract_hash_wrapped", contract_name),
+            storage::new_uref(contract_hash).into(),
+        );
+    }
 }

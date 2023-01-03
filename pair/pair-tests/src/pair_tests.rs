@@ -1,385 +1,397 @@
-use casper_engine_test_support::AccountHash;
-use casper_types::{runtime_args, Key, RuntimeArgs, U256};
-use test_env::{Sender, TestContract, TestEnv};
+use tests_common::{account::AccountHash, deploys::*, helpers::*, *};
 
-use crate::pair_instance::PAIRInstance;
-use crate::test_instance::TESTInstance;
-
-const NAME: &str = "ERC20";
-const SYMBOL: &str = "ERC";
-const DECIMALS: u8 = 8;
-const INIT_TOTAL_SUPPLY: u64 = 1000;
-
-fn deploy_wcspr(env: &TestEnv) -> TestContract {
-    // deploy wcspr contract
-    let decimals: u8 = 18;
-    let init_total_supply: U256 = 1000.into();
-
-    let owner_wcspr = env.next_user();
-    let wcspr = TestContract::new(
-        &env,
-        "wcspr-token.wasm",
-        "wcspr",
-        Sender(owner_wcspr),
-        runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "token1",
-            "symbol" => "tk1",
-            "decimals" => decimals
-        },
-    );
-
-    wcspr
-}
-
-fn deploy_factory(env: &TestEnv, owner: AccountHash) -> TestContract {
-    // deploy factory contract
-    let owner_factory = env.next_user();
-    let factory = TestContract::new(
-        &env,
-        "factory.wasm",
-        "factory",
-        Sender(owner_factory),
-        runtime_args! {
-            "fee_to_setter" => Key::from(owner)
-            // contract_name is passed seperately, so we don't need to pass it here.
-        },
-    );
-
-    factory
-}
-
-fn deploy() -> (
-    TestEnv,
-    PAIRInstance,
-    AccountHash,
-    TestContract,
-    TESTInstance,
-) {
+fn deploy() -> (TestEnv, AccountHash, TestContract, TestContract) {
     let env = TestEnv::new();
     let owner = env.next_user();
-
-    // deploy factory contract
-    let _env_factory = TestEnv::new();
-    // let owner_factory = env.next_user();
-
-    let factory_contract = deploy_factory(&env, owner);
-    let wcspr = deploy_wcspr(&env);
-    let dai = deploy_wcspr(&env);
-    let callee_contract = TestContract::new(
-        //&env_factory,
+    let factory_contract = deploy_factory(&env, owner, Key::Account(owner), now());
+    let wcspr = deploy_wcspr(
         &env,
-        "flash-swapper.wasm",
-        "flash_swapper",
-        Sender(owner),
-        runtime_args! {
-            "wcspr" => Key::Hash(wcspr.contract_hash()),
-            "dai" => Key::Hash(dai.contract_hash()),
-            "uniswap_v2_factory" => Key::Hash(factory_contract.contract_hash())
-        },
+        "WCSPR-1",
+        owner,
+        WRAPPED_CSPR.into(),
+        "WCSPR".into(),
+        9,
+        0.into(),
+        now(),
     );
-    let token = PAIRInstance::new(
+    let dai = deploy_wcspr(
         &env,
-        NAME,
-        Sender(owner),
+        "WCSPR-2",
+        owner,
+        "dai token".into(),
+        "DAI".into(),
+        9,
+        0.into(),
+        now(),
+    );
+    let callee_contract = deploy_flashswapper(
+        &env,
+        owner,
+        Key::Hash(wcspr.package_hash()),
+        Key::Hash(dai.package_hash()),
+        Key::Hash(factory_contract.package_hash()),
+        now(),
+    );
+    let token = deploy_pair(
+        &env,
+        "PAIR",
+        owner,
         NAME,
         SYMBOL,
         DECIMALS,
-        INIT_TOTAL_SUPPLY.into(),
-        Key::Hash(callee_contract.contract_hash()),
-        Key::Hash(factory_contract.contract_hash()),
+        AMOUNT,
+        Key::Hash(callee_contract.package_hash()),
+        Key::Hash(factory_contract.package_hash()),
+        now(),
     );
-    let test = TESTInstance::new(&env, "TEST", Sender(owner), "TEST");
-    (env, token, owner, factory_contract, test)
+    (env, owner, token, factory_contract)
 }
-fn deploy_token0(env: &TestEnv) -> TestContract {
-    let decimals: u8 = 18;
-    let init_total_supply: U256 = 0.into();
 
-    let token0_env = TestEnv::new();
-    let token0_owner = token0_env.next_user();
-
-    let token0_contract = TestContract::new(
-        &env,
-        "erc20-token.wasm",
-        "token0_contract",
-        Sender(token0_owner),
+fn initialize(
+    env: &TestEnv,
+    owner: AccountHash,
+    token: &TestContract,
+    factory: &TestContract,
+) -> (TestContract, TestContract) {
+    let token0 = deploy_erc20(env, "ERC20-1", owner, "Token0", "TK-0", 9, 0.into(), now());
+    let token1 = deploy_erc20(env, "ERC20-2", owner, "Token1", "TK-1", 9, 0.into(), now());
+    token.call_contract(
+        owner,
+        "initialize",
         runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "token0",
-            "symbol" => "tk0",
-            "decimals" => decimals
+            "token0" => Key::Hash(token0.package_hash()),
+            "token1" => Key::Hash(token1.package_hash())
         },
+        now(),
     );
-    token0_contract
-}
-fn deploy_token1(env: &TestEnv) -> TestContract {
-    let decimals: u8 = 18;
-    let init_total_supply: U256 = 0.into();
-
-    let token1_env = TestEnv::new();
-    let token1_owner = token1_env.next_user();
-
-    let token1_contract = TestContract::new(
-        &env,
-        "erc20-token.wasm",
-        "token1_contract",
-        Sender(token1_owner),
+    assert_eq!(
+        Key::Hash(token0.package_hash()),
+        token.query_named_key("token0".into())
+    );
+    assert_eq!(
+        Key::Hash(token1.package_hash()),
+        token.query_named_key("token1".into())
+    );
+    assert_eq!(
+        Key::Hash(factory.package_hash()),
+        token.query_named_key("factory_hash".into())
+    );
+    token0.call_contract(
+        owner,
+        "mint",
         runtime_args! {
-            "initial_supply" => init_total_supply,
-            "name" => "token1",
-            "symbol" => "tk1",
-            "decimals" => decimals
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
         },
+        now(),
     );
-    token1_contract
+    token1.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
+    (token0, token1)
 }
 
 #[test]
 fn test_pair_deploy() {
-    let (env, token, owner, _factory_hash, _test) = deploy();
-    let user = env.next_user();
-    assert_eq!(token.name(), NAME);
-    assert_eq!(token.symbol(), SYMBOL);
-    assert_eq!(token.decimals(), DECIMALS);
-    assert_eq!(token.total_supply(), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(user), 0.into());
-    assert_eq!(token.allowance(owner, user), 0.into());
-    assert_eq!(token.allowance(user, owner), 0.into());
+    let (_, _, token, _) = deploy();
+    assert_eq!(NAME, token.query_named_key::<String>("name".into()));
+    assert_eq!(SYMBOL, token.query_named_key::<String>("symbol".into()));
+    assert_eq!(DECIMALS, token.query_named_key::<u8>("decimals".into()));
+    assert_eq!(AMOUNT, token.query_named_key::<U256>("total_supply".into()));
+}
+
+#[test]
+#[should_panic]
+fn test_pair_paused() {
+    let (env, owner, token, _) = deploy();
+    token.call_contract(owner, "pause", runtime_args! {}, now());
+    // test any pair call
+    let to = env.next_user();
+    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, AMOUNT);
+    token.call_contract(
+        owner,
+        "transfer",
+        runtime_args! {
+            "recipient" => Address::Account(to),
+            "amount" => AMOUNT,
+        },
+        now(),
+    );
 }
 
 #[test]
 fn test_pair_transfer() {
-    let (env, token, owner, _factory_hash, _test) = deploy();
-    let user = env.next_user();
-    let amount = 10.into();
-    token.transfer(Sender(owner), user, amount);
-    assert_eq!(
-        token.balance_of(owner),
-        U256::from(INIT_TOTAL_SUPPLY) - amount
+    let (env, owner, token, _) = deploy();
+    let to = env.next_user();
+    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, AMOUNT);
+    token.call_contract(
+        owner,
+        "transfer",
+        runtime_args! {
+            "recipient" => Address::Account(to),
+            "amount" => AMOUNT,
+        },
+        now(),
     );
-    assert_eq!(token.balance_of(user), amount);
+    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(to)));
+    assert_eq!(ret, AMOUNT);
+    let ret: U256 = token.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, 0.into());
 }
 
 #[test]
-#[should_panic]
-fn test_pair_transfer_too_much() {
-    let (env, token, owner, _factory_hash, _test) = deploy();
-    let user = env.next_user();
-    let amount = U256::from(INIT_TOTAL_SUPPLY) + U256::one();
-    token.transfer(Sender(owner), user, amount);
-}
-
-#[test]
-fn test_pair_approve() {
-    let (env, token, owner, _factory_hash, _test) = deploy();
-    let user = env.next_user();
-    let amount = 10.into();
-    token.approve(Sender(owner), user, amount);
-    assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(user), 0.into());
-    assert_eq!(token.allowance(owner, user), amount);
-    assert_eq!(token.allowance(user, owner), 0.into());
-}
-
-#[test]
+#[should_panic] // As can be called by factory only
 fn test_pair_initialize() {
-    let (env, token, owner, factory_hash, test) = deploy();
-    let user = env.next_user();
-    let token0 = deploy_token0(&env);
-    let token1 = deploy_token1(&env);
-    let token0 = Key::Hash(token0.contract_hash());
-    let token1 = Key::Hash(token1.contract_hash());
-    let factory_hash = Key::Hash(factory_hash.contract_hash());
-    token.initialize(Sender(owner), token0, token1, factory_hash);
-    test.set_fee_to(Sender(owner), user, factory_hash);
-    assert_eq!(token.factory_hash(), factory_hash);
-    assert_eq!(token.token0(), token0);
-    assert_eq!(token.token1(), token1);
+    let (env, owner, token, factory) = deploy();
+    initialize(&env, owner, &token, &factory);
 }
 
 #[test]
 fn test_pair_set_treasury_fee_percent() {
-    let (_env, token, owner, _factory_hash, _test) = deploy();
-    assert_eq!(token.treasury_fee(), 3.into());
-    let treasury_fee: U256 = 10.into();
-    token.set_treasury_fee_percent(Sender(owner), treasury_fee);
-    assert_eq!(token.treasury_fee(), treasury_fee);
-    // treasuary fee cannot be more than 30
-    let treasury_fee: U256 = 31.into();
-    token.set_treasury_fee_percent(Sender(owner), treasury_fee);
-    assert_eq!(token.treasury_fee(), 30.into());
-    // treasuary fee cannot be less than 3
-    let treasury_fee: U256 = 1.into();
-    token.set_treasury_fee_percent(Sender(owner), treasury_fee);
-    assert_eq!(token.treasury_fee(), 3.into());
-}
-
-#[test]
-fn test_pair_skim() {
-    let (env, token, owner, factory_hash, test) = deploy();
-    let user = env.next_user();
-    let token0 = deploy_token0(&env);
-    let token1 = deploy_token1(&env);
-    let token0 = Key::Hash(token0.contract_hash());
-    let token1 = Key::Hash(token1.contract_hash());
-    let factory_hash = Key::Hash(factory_hash.contract_hash());
-    let amount0: U256 = 1000.into();
-    let amount1: U256 = 1000.into();
-
-    token.initialize(Sender(owner), token0, token1, factory_hash);
-    assert_eq!(token.token0(), token0);
-    assert_eq!(token.token1(), token1);
-    assert_eq!(token.factory_hash(), factory_hash);
-
-    test.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount0,
+    let (_, owner, token, _) = deploy();
+    assert_eq!(token.query_named_key::<U256>(TREASURY_FEE.into()), 3.into());
+    token.call_contract(
+        owner,
+        "set_treasury_fee_percent",
+        runtime_args! {
+            TREASURY_FEE => U256::from(10)
+        },
+        now(),
     );
-    test.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount1,
-    );
-    token.skim(Sender(owner), user);
-}
-#[test]
-fn test_pair_sync() {
-    let (env, token, owner, factory_hash, test) = deploy();
-    let user = env.next_user();
-    let token0 = deploy_token0(&env);
-    let token1 = deploy_token1(&env);
-    let token0 = Key::Hash(token0.contract_hash());
-    let token1 = Key::Hash(token1.contract_hash());
-    let factory_hash = Key::Hash(factory_hash.contract_hash());
-    let amount: U256 = 50.into();
-    token.initialize(Sender(owner), token0, token1, factory_hash);
-    assert_eq!(token.factory_hash(), factory_hash);
-    assert_eq!(token.token0(), token0);
-    assert_eq!(token.token1(), token1);
-    test.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    test.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    token.sync(Sender(owner));
-    assert_eq!(token.total_supply(), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(user), 0.into());
-    assert_eq!(token.reserve0(), 50.into());
-    assert_eq!(token.reserve1(), 50.into());
-}
-#[test]
-fn test_pair_swap() {
-    let (env, token, owner, factory_hash, test) = deploy();
-    let user = env.next_user();
-    let token0 = deploy_token0(&env);
-    let token1 = deploy_token1(&env);
-    let token0 = Key::Hash(token0.contract_hash());
-    let token1 = Key::Hash(token1.contract_hash());
-    let factory_hash = Key::Hash(factory_hash.contract_hash());
-    let amount0: U256 = 2000.into();
-    let amount1: U256 = 2000.into();
-    let amount: U256 = 1000.into();
-    let amount2: U256 = 1000.into();
-    let amount3: U256 = 40.into();
-    let data: &str = "";
-
-    token.initialize(Sender(owner), token0, token1, factory_hash);
-    assert_eq!(token.token0(), token0);
-    assert_eq!(token.token1(), token1);
-    assert_eq!(token.factory_hash(), factory_hash);
-
-    test.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount0,
-    );
-    test.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount1,
-    );
-
-    token.sync(Sender(owner));
-    assert_eq!(token.reserve0(), 2000.into());
-    assert_eq!(token.reserve1(), 2000.into());
-    test.mint_with_caller(
-        Sender(owner),
-        token0,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    test.mint_with_caller(
-        Sender(owner),
-        token1,
-        Key::from(token.self_package_hash()),
-        amount,
-    );
-    // token.erc20_mint(Sender(owner), token0, amount);
-    // token.erc20_mint(Sender(owner), token1, amount);
-    // assert_eq!(token.balance_of(token0), 100.into());
-    // assert_eq!(token.balance_of(token1), 100.into());
-    token.swap(Sender(owner), amount2, amount3, user, data);
-}
-
-#[test]
-fn test_pair_transfer_from() {
-    let (env, token, owner, _factory_hash, _test) = deploy();
-    let spender = env.next_user();
-    let recipient = env.next_user();
-    let allowance = 10.into();
-    let amount = 3.into();
-    token.approve(Sender(owner), spender, allowance);
-    token.transfer_from(Sender(spender), owner, recipient, amount);
     assert_eq!(
-        token.balance_of(owner),
-        U256::from(INIT_TOTAL_SUPPLY) - amount
+        token.query_named_key::<U256>(TREASURY_FEE.into()),
+        10.into()
     );
-    assert_eq!(token.balance_of(spender), 0.into());
-    assert_eq!(token.balance_of(recipient), amount);
-    assert_eq!(token.allowance(owner, spender), allowance - amount);
 }
 
 #[test]
 #[should_panic]
-fn test_pair_transfer_from_too_much() {
-    let (env, token, owner, _factory_hash, _test) = deploy();
-    let spender = env.next_user();
-    let recipient = env.next_user();
-    let allowance = 10.into();
-    let amount = 12.into();
-    token.approve(Sender(owner), spender, allowance);
-    token.transfer_from(Sender(spender), owner, recipient, amount);
+fn test_pair_set_treasury_fee_percent_cannot_be_more_than_30() {
+    let (_, owner, token, _) = deploy();
+    assert_eq!(token.query_named_key::<U256>(TREASURY_FEE.into()), 3.into());
+    token.call_contract(
+        owner,
+        "set_treasury_fee_percent",
+        runtime_args! {
+            TREASURY_FEE => U256::from(31)
+        },
+        now(),
+    );
+    assert_eq!(
+        token.query_named_key::<U256>(TREASURY_FEE.into()),
+        10.into()
+    );
 }
 
 #[test]
 #[should_panic]
-fn test_calling_construction() {
-    let (_, token, owner, factory_hash, _test) = deploy();
-    token.constructor(
-        Sender(owner),
-        NAME,
-        SYMBOL,
-        DECIMALS,
-        INIT_TOTAL_SUPPLY.into(),
-        Key::from_formatted_str(
-            "hash-0000000000000000000000000000000000000000000000000000000000000000",
-        )
-        .unwrap(),
-        Key::Hash(factory_hash.contract_hash()),
+fn test_pair_set_treasury_fee_percent_cannot_be_less_than_3() {
+    let (_, owner, token, _) = deploy();
+    assert_eq!(token.query_named_key::<U256>(TREASURY_FEE.into()), 3.into());
+    token.call_contract(
+        owner,
+        "set_treasury_fee_percent",
+        runtime_args! {
+            TREASURY_FEE => U256::from(2)
+        },
+        now(),
+    );
+    assert_eq!(
+        token.query_named_key::<U256>(TREASURY_FEE.into()),
+        10.into()
+    );
+}
+
+#[test]
+#[should_panic] // As can be called by factory only
+fn test_pair_skim() {
+    let (env, owner, token, factory) = deploy();
+    let ret = initialize(&env, owner, &token, &factory);
+    let user = env.next_user();
+    token.call_contract(
+        owner,
+        "skim",
+        runtime_args! {
+            "to" => Key::Account(user)
+        },
+        now(),
+    );
+    assert_eq!(
+        ret.0
+            .query::<U256>(BALANCES, address_to_str(&Address::Account(user))),
+        100_000_000_000u64.into()
+    );
+    assert_eq!(
+        ret.1
+            .query::<U256>(BALANCES, address_to_str(&Address::Account(user))),
+        100_000_000_000u64.into()
+    );
+}
+
+#[test]
+#[should_panic] // As can be called by factory only
+fn test_pair_mint() {
+    let (env, owner, token, factory) = deploy();
+    let ret = initialize(&env, owner, &token, &factory);
+    token.call_contract(owner, "sync", runtime_args! {}, now());
+    ret.0.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
+    ret.1.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
+    token.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Key::Hash(token.package_hash())
+        },
+        now(),
+    );
+    assert_eq!(
+        token.query::<U256>(
+            BALANCES,
+            address_to_str(&Address::Contract(token.package_hash().into()))
+        ),
+        100000000000u64.into()
+    );
+}
+
+#[test]
+#[should_panic] // As can be called by factory only
+fn test_pair_burn() {
+    let (env, owner, token, factory) = deploy();
+    let ret = initialize(&env, owner, &token, &factory);
+    token.call_contract(owner, "sync", runtime_args! {}, now());
+    ret.0.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
+    ret.1.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => AMOUNT
+        },
+        now(),
+    );
+    token.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Key::Hash(token.package_hash())
+        },
+        now(),
+    );
+    assert_eq!(
+        token.query::<U256>(
+            BALANCES,
+            address_to_str(&Address::Contract(token.package_hash().into()))
+        ),
+        100000000000u64.into()
+    );
+    token.call_contract(
+        owner,
+        "burn",
+        runtime_args! {
+            "to" => Key::Hash(token.package_hash())
+        },
+        now(),
+    );
+    assert_eq!(
+        token.query::<U256>(
+            BALANCES,
+            address_to_str(&Address::Contract(token.package_hash().into()))
+        ),
+        0.into()
+    );
+}
+
+#[test]
+#[should_panic] // As can be called by factory only
+fn test_pair_sync() {
+    let (env, owner, token, factory) = deploy();
+    initialize(&env, owner, &token, &factory);
+    token.call_contract(owner, "sync", runtime_args! {}, now());
+    assert_eq!(
+        token.query_named_key::<U128>("reserve0".into()),
+        100_000_000_000u64.into()
+    );
+    assert_eq!(
+        token.query_named_key::<U128>("reserve1".into()),
+        100_000_000_000u64.into()
+    );
+}
+
+#[test]
+#[should_panic] // As can be called by factory only
+fn test_pair_swap() {
+    let (env, owner, token, factory) = deploy();
+    let amount0_out: U256 = 50_000_000_000u64.into();
+    let amount1_out: U256 = 20_000_000_000u64.into();
+    let data: &str = "";
+    let ret = initialize(&env, owner, &token, &factory);
+    token.call_contract(owner, "sync", runtime_args! {}, now());
+    ret.0.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => U256::from(100_000_000_000u64)
+        },
+        now(),
+    );
+    ret.1.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Contract(token.package_hash().into()),
+            "amount" => U256::from(100_000_000_000u64)
+        },
+        now(),
+    );
+    token.call_contract(
+        owner,
+        "swap",
+        runtime_args! {
+            "amount0_out" => amount0_out,
+            "amount1_out" => amount1_out,
+            "to" => Key::Hash(token.package_hash()),
+            "data" => data
+        },
+        now(),
+    );
+    assert_eq!(
+        ret.0.query::<U256>(
+            BALANCES,
+            address_to_str(&Address::Contract(token.package_hash().into()))
+        ),
+        200_000_000_000u64.into()
     );
 }

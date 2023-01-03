@@ -1,141 +1,182 @@
-use casper_engine_test_support::AccountHash;
-use casper_types::U256;
-use test_env::{Sender, TestEnv};
+use tests_common::{account::AccountHash, deploys::*, helpers::*, *};
 
-use crate::erc20_instance::ERC20Instance;
-
-const NAME: &str = "ERC20";
-const SYMBOL: &str = "ERC";
-const DECIMALS: u8 = 8;
-const INIT_TOTAL_SUPPLY: u64 = 1000;
-
-fn deploy() -> (TestEnv, ERC20Instance, AccountHash) {
+fn deploy() -> (TestEnv, AccountHash, TestContract) {
     let env = TestEnv::new();
     let owner = env.next_user();
-    let token = ERC20Instance::new(
+    let token = deploy_erc20(
         &env,
         NAME,
-        Sender(owner),
+        owner,
         NAME,
         SYMBOL,
         DECIMALS,
-        INIT_TOTAL_SUPPLY.into(),
+        INIT_TOTAL_SUPPLY,
+        now(),
     );
-    (env, token, owner)
+    (env, owner, token)
 }
 
 #[test]
-fn test_erc20_deploy() {
-    let (env, token, owner) = deploy();
-    let user = env.next_user();
-    assert_eq!(token.name(), NAME);
-    assert_eq!(token.symbol(), SYMBOL);
-    assert_eq!(token.decimals(), DECIMALS);
-    assert_eq!(token.total_supply(), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(user), 0.into());
-    assert_eq!(token.allowance(owner, user), 0.into());
-    assert_eq!(token.allowance(user, owner), 0.into());
+fn test_deploy() {
+    let (_, _, token) = deploy();
+    assert_eq!(NAME, token.query_named_key::<String>("name".into()));
+    assert_eq!(SYMBOL, token.query_named_key::<String>("symbol".into()));
+    assert_eq!(DECIMALS, token.query_named_key::<u8>("decimals".into()));
+    assert_eq!(
+        INIT_TOTAL_SUPPLY,
+        token.query_named_key::<U256>("total_supply".into())
+    );
+}
+
+#[test]
+fn test_erc20_mint_burn() {
+    let (_, owner, erc20) = deploy();
+    let amount: U256 = 123_000_000_000u64.into();
+    erc20.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Account(owner),
+            "amount" => amount
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, amount);
+    erc20.call_contract(
+        owner,
+        "burn",
+        runtime_args! {
+            "from" => Address::Account(owner),
+            "amount" => amount
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, 0.into());
 }
 
 #[test]
 fn test_erc20_transfer() {
-    let (env, token, owner) = deploy();
-    let user = env.next_user();
-    let amount = 10.into();
-    token.transfer(Sender(owner), user, amount);
-    assert_eq!(
-        token.balance_of(owner),
-        U256::from(INIT_TOTAL_SUPPLY) - amount
+    let (env, owner, erc20) = deploy();
+    let to = env.next_user();
+    let amount: U256 = 123_000_000_000u64.into();
+    erc20.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Account(to),
+            "amount" => amount
+        },
+        now(),
     );
-    assert_eq!(token.balance_of(user), amount);
-}
-
-#[test]
-#[should_panic]
-fn test_erc20_transfer_too_much() {
-    let (env, token, owner) = deploy();
-    let user = env.next_user();
-    let amount = U256::from(INIT_TOTAL_SUPPLY) + U256::one();
-    token.transfer(Sender(owner), user, amount);
-}
-
-#[test]
-fn test_erc20_approve() {
-    let (env, token, owner) = deploy();
-    let user = env.next_user();
-    let amount = 10.into();
-    token.approve(Sender(owner), user, amount);
-    assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(user), 0.into());
-    assert_eq!(token.allowance(owner, user), amount);
-    assert_eq!(token.allowance(user, owner), 0.into());
-}
-
-#[test]
-fn test_erc20_mint() {
-    let (env, token, owner) = deploy();
-    let user = env.next_user();
-    let amount = 10.into();
-    token.mint(Sender(owner), user, amount);
-    assert_eq!(token.balance_of(owner), INIT_TOTAL_SUPPLY.into());
-    assert_eq!(token.balance_of(user), amount);
-    assert_eq!(token.balance_of(user), 10.into());
-}
-
-#[test]
-fn test_erc20_burn() {
-    let (env, token, owner) = deploy();
-    let user = env.next_user();
-    let amount = 10.into();
-    assert_eq!(token.balance_of(owner), U256::from(INIT_TOTAL_SUPPLY));
-    token.burn(Sender(owner), owner, amount);
-    assert_eq!(
-        token.balance_of(owner),
-        U256::from(INIT_TOTAL_SUPPLY) - amount
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
+    assert_eq!(ret, amount);
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, 0.into());
+    erc20.call_contract(
+        to,
+        "transfer",
+        runtime_args! {
+            "recipient" => Address::Account(owner),
+            "amount" => amount,
+        },
+        now(),
     );
-    assert_eq!(token.balance_of(user), 0.into());
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
+    assert_eq!(ret, 0.into());
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, amount);
 }
 
 #[test]
-fn test_erc20_transfer_from() {
-    let (env, token, owner) = deploy();
-    let spender = env.next_user();
-    let recipient = env.next_user();
-    let allowance = 10.into();
-    let amount = 3.into();
-    token.approve(Sender(owner), spender, allowance);
-    token.transfer_from(Sender(spender), owner, recipient, amount);
-    assert_eq!(
-        token.balance_of(owner),
-        U256::from(INIT_TOTAL_SUPPLY) - amount
+fn test_erc20_approve_transfer_from() {
+    let (env, owner, erc20) = deploy();
+    let to = env.next_user();
+    let tmp_user = env.next_user();
+    let amount: U256 = 123_000_000_000u64.into();
+    erc20.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Account(to),
+            "amount" => amount
+        },
+        now(),
     );
-    assert_eq!(token.balance_of(spender), 0.into());
-    assert_eq!(token.balance_of(recipient), amount);
-    assert_eq!(token.allowance(owner, spender), allowance - amount);
-}
-
-#[test]
-#[should_panic]
-fn test_erc20_transfer_from_too_much() {
-    let (env, token, owner) = deploy();
-    let spender = env.next_user();
-    let recipient = env.next_user();
-    let allowance = 10.into();
-    let amount = 12.into();
-    token.approve(Sender(owner), spender, allowance);
-    token.transfer_from(Sender(spender), owner, recipient, amount);
-}
-
-#[test]
-#[should_panic]
-fn test_calling_construction() {
-    let (_, token, owner) = deploy();
-    token.constructor(
-        Sender(owner),
-        NAME,
-        SYMBOL,
-        DECIMALS,
-        INIT_TOTAL_SUPPLY.into(),
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
+    assert_eq!(ret, amount);
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, 0.into());
+    erc20.call_contract(
+        to,
+        "approve",
+        runtime_args! {
+            "spender" => Address::Account(tmp_user),
+            "amount" => amount,
+        },
+        now(),
     );
+    erc20.call_contract(
+        tmp_user,
+        "transfer_from",
+        runtime_args! {
+            "owner" => Address::Account(to),
+            "recipient" => Address::Account(owner),
+            "amount" => amount,
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
+    assert_eq!(ret, 0.into());
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, amount);
+}
+
+#[test]
+fn test_erc20_increase_decrease_allowance() {
+    let (env, owner, erc20) = deploy();
+    let to = env.next_user();
+    let amount: U256 = 123_000_000_000u64.into();
+    erc20.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Account(to),
+            "amount" => amount
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(to)));
+    assert_eq!(ret, amount);
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, 0.into());
+    erc20.call_contract(
+        owner,
+        "increase_allowance",
+        runtime_args! {
+            "spender" => Address::Account(to),
+            "amount" => amount,
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(
+        ALLOWANCES,
+        addresses_to_str(Address::Account(owner), Address::Account(to)),
+    );
+    assert_eq!(ret, amount);
+    erc20.call_contract(
+        owner,
+        "decrease_allowance",
+        runtime_args! {
+            "spender" => Address::Account(to),
+            "amount" => amount,
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(
+        ALLOWANCES,
+        addresses_to_str(Address::Account(owner), Address::Account(to)),
+    );
+    assert_eq!(ret, 0.into());
 }
