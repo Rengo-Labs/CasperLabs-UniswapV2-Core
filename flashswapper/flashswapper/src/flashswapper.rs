@@ -636,6 +636,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
 
     /// @notice Helper function for `triangularFlashSwap` to avoid `stack too deep` errors
     ///
+    #[allow(clippy::too_many_arguments)]
     fn triangular_flash_swap_helper(
         &mut self,
         token_borrow: Key,
