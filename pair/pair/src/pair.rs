@@ -577,7 +577,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             set_token1(token1);
         } else {
             //(UniswapV2: FORBIDDEN)
-            runtime::revert(Errors::UniswapV2CorePairForbidden);
+            runtime::revert(Errors::UniswapV2CorePairForbidden1);
         }
     }
 
@@ -587,7 +587,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             remove_token1();
         } else {
             //(UniswapV2: FORBIDDEN)
-            runtime::revert(Errors::UniswapV2CorePairForbidden);
+            runtime::revert(Errors::UniswapV2CorePairForbidden2);
         }
     }
 
