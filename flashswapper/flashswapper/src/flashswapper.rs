@@ -330,82 +330,81 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
         );
         set_permissioned_pair_address(token_borrow_token_pay_pair_address);
         let pair_address: Key = token_borrow_token_pay_pair_address; // gas efficiency
-        if pair_address != zero_address() {
-            //convert Key to ContractPackageHash
-            let pair_address_hash_add_array = match pair_address {
-                Key::Hash(package) => package,
-                _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-            };
-            let pair_address_hash_add: ContractPackageHash =
-                ContractPackageHash::new(pair_address_hash_add_array);
-            let token0: Key = runtime::call_versioned_contract(
-                pair_address_hash_add,
-                None,
-                "token0",
-                runtime_args! {},
-            );
-            let token1: Key = runtime::call_versioned_contract(
-                pair_address_hash_add,
-                None,
-                "token1",
-                runtime_args! {},
-            );
-            let amount0_out: U256 = if token_borrow == token0 {
-                amount
-            } else {
-                0.into()
-            };
-            let amount1_out: U256 = if token_borrow == token1 {
-                amount
-            } else {
-                0.into()
-            };
-            let _token_borrow_hash_add_array = match token_borrow {
-                Key::Hash(package) => package,
-                _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-            };
-            let _token_borrow_hash_add: ContractPackageHash =
-                ContractPackageHash::new(_token_borrow_hash_add_array);
-            let _token_borrow_str: String = _token_borrow_hash_add.to_formatted_string();
-            let _token_borrow_vec: Vec<&str> = _token_borrow_str.split('-').collect();
-            let _token_borrow_hash: &str = _token_borrow_vec[1];
-            let _token_pay_hash_add_array = match token_pay {
-                Key::Hash(package) => package,
-                _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-            };
-            let _token_pay_hash_add: ContractPackageHash =
-                ContractPackageHash::new(_token_pay_hash_add_array);
-            let _token_pay_str: String = _token_pay_hash_add.to_formatted_string();
-            let _token_pay_vec: Vec<&str> = _token_pay_str.split('-').collect();
-            let _token_pay_hash: &str = _token_pay_vec[1];
-            let data: String = format!(
-                "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
-                "simple_swap",
-                ",",
-                _token_borrow_hash,
-                ",",
-                amount,
-                ",",
-                _token_pay_hash,
-                ",",
-                is_borrowing_cspr,
-                ",",
-                is_paying_cspr,
-                ",",
-                "",
-                ",",
-                user_data
-            );
-            let _ret: () = runtime::call_versioned_contract(
-                pair_address_hash_add,
-                None,
-                "swap",
-                runtime_args! {"amount0_out" => amount0_out, "amount1_out"  => amount1_out, "to" => Key::from(get_package_hash()), "data" => data },
-            );
-        } else {
+        if pair_address == zero_address() {
             // requested pair is not available
             runtime::revert(Errors::UniswapV2CoreFlashSwapperRequestedRequestedPairIsNotAvailable);
         }
+        //convert Key to ContractPackageHash
+        let pair_address_hash_add_array = match pair_address {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        let pair_address_hash_add: ContractPackageHash =
+            ContractPackageHash::new(pair_address_hash_add_array);
+        let token0: Key = runtime::call_versioned_contract(
+            pair_address_hash_add,
+            None,
+            "token0",
+            runtime_args! {},
+        );
+        let token1: Key = runtime::call_versioned_contract(
+            pair_address_hash_add,
+            None,
+            "token1",
+            runtime_args! {},
+        );
+        let amount0_out: U256 = if token_borrow == token0 {
+            amount
+        } else {
+            0.into()
+        };
+        let amount1_out: U256 = if token_borrow == token1 {
+            amount
+        } else {
+            0.into()
+        };
+        let _token_borrow_hash_add_array = match token_borrow {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        let _token_borrow_hash_add: ContractPackageHash =
+            ContractPackageHash::new(_token_borrow_hash_add_array);
+        let _token_borrow_str: String = _token_borrow_hash_add.to_formatted_string();
+        let _token_borrow_vec: Vec<&str> = _token_borrow_str.split('-').collect();
+        let _token_borrow_hash: &str = _token_borrow_vec[1];
+        let _token_pay_hash_add_array = match token_pay {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        let _token_pay_hash_add: ContractPackageHash =
+            ContractPackageHash::new(_token_pay_hash_add_array);
+        let _token_pay_str: String = _token_pay_hash_add.to_formatted_string();
+        let _token_pay_vec: Vec<&str> = _token_pay_str.split('-').collect();
+        let _token_pay_hash: &str = _token_pay_vec[1];
+        let data: String = format!(
+            "{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}",
+            "simple_swap",
+            ",",
+            _token_borrow_hash,
+            ",",
+            amount,
+            ",",
+            _token_pay_hash,
+            ",",
+            is_borrowing_cspr,
+            ",",
+            is_paying_cspr,
+            ",",
+            "",
+            ",",
+            user_data
+        );
+        let _ret: () = runtime::call_versioned_contract(
+            pair_address_hash_add,
+            None,
+            "swap",
+            runtime_args! {"amount0_out" => amount0_out, "amount1_out"  => amount1_out, "to" => Key::from(get_package_hash()), "data" => data },
+        );
     }
 
     /// @notice This is the code that is executed after `simpleFlashSwap` initiated the flash-borrow
@@ -562,76 +561,72 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             "hash-0000000000000000000000000000000000000000000000000000000000000000",
         )
         .unwrap();
-        if borrow_pair_address != address_0 {
-            let permissioned_pair_address: Key = runtime::call_versioned_contract(
-                uniswap_v2_factory_package_hash,
-                None,
-                "get_pair",
-                runtime_args! {"token0" => token_pay, "token1" => wcspr},
-            );
-            set_permissioned_pair_address(permissioned_pair_address);
-            let pay_pair_address: Key = permissioned_pair_address; // gas efficiency
-            if pay_pair_address != address_0 {
-                // STEP 1: Compute how much wcspr will be needed to get _amount of _tokenBorrow out of the _tokenBorrow/wcspr pool
-                //convert Key to ContractPackageHash
-                let token_borrow_address_hash_add_array = match token_borrow {
-                    Key::Hash(package) => package,
-                    _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-                };
-                let token_borrow_package_hash: ContractPackageHash =
-                    ContractPackageHash::new(token_borrow_address_hash_add_array);
-                let pair_balance_token_borrow_before: U256 = runtime::call_versioned_contract(
-                    token_borrow_package_hash,
-                    None,
-                    "balance_of",
-                    runtime_args! {"owner" => borrow_pair_address},
-                );
-
-                if pair_balance_token_borrow_before >= amount {
-                    let pair_balance_token_borrow_after: U256 = pair_balance_token_borrow_before
-                        .checked_sub(amount)
-                        .unwrap_or_revert_with(Errors::UniswapV2CoreFlashSwapperUnderFlow);
-                    //convert Key to ContractPackageHash
-                    let wcspr_address_hash_add_array = match wcspr {
-                        Key::Hash(package) => package,
-                        _ => runtime::revert(ApiError::UnexpectedKeyVariant),
-                    };
-                    let wcspr_package_hash: ContractPackageHash =
-                        ContractPackageHash::new(wcspr_address_hash_add_array);
-                    let pair_balance_wcspr: U256 = runtime::call_versioned_contract(
-                        wcspr_package_hash,
-                        None,
-                        "balance_of",
-                        runtime_args! {"owner" => borrow_pair_address},
-                    );
-                    let amount_1000: U256 = 1000.into();
-                    let amount_997: U256 = 997.into();
-                    let amount_1: U256 = 1.into();
-                    let amount_of_wcspr: U256 = ((amount_1000 * pair_balance_wcspr * amount)
-                        / (amount_997 * pair_balance_token_borrow_after))
-                        + amount_1;
-                    // using a helper function here to avoid "stack too deep" :(
-                    self.triangular_flash_swap_helper(
-                        token_borrow,
-                        amount,
-                        token_pay,
-                        borrow_pair_address,
-                        pay_pair_address,
-                        amount_of_wcspr,
-                        user_data,
-                    );
-                } else {
-                    // _amount is too big
-                    runtime::revert(Errors::UniswapV2CoreFlashSwapperAmountTooBig);
-                }
-            } else {
-                // Requested pay token is not available
-                runtime::revert(Errors::UniswapV2CoreFlashSwapperRequestedPayTokenIsNotAvailable);
-            }
-        } else {
+        if borrow_pair_address == address_0 {
             // Requested borrow token is not available
             runtime::revert(Errors::UniswapV2CoreFlashSwapperRequestedBorrowTokenIsNotAvailable);
         }
+        let permissioned_pair_address: Key = runtime::call_versioned_contract(
+            uniswap_v2_factory_package_hash,
+            None,
+            "get_pair",
+            runtime_args! {"token0" => token_pay, "token1" => wcspr},
+        );
+        set_permissioned_pair_address(permissioned_pair_address);
+        let pay_pair_address: Key = permissioned_pair_address; // gas efficiency
+        if pay_pair_address == address_0 {
+            // Requested pay token is not available
+            runtime::revert(Errors::UniswapV2CoreFlashSwapperRequestedPayTokenIsNotAvailable);
+        }
+        // STEP 1: Compute how much wcspr will be needed to get _amount of _tokenBorrow out of the _tokenBorrow/wcspr pool
+        //convert Key to ContractPackageHash
+        let token_borrow_address_hash_add_array = match token_borrow {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        let token_borrow_package_hash: ContractPackageHash =
+            ContractPackageHash::new(token_borrow_address_hash_add_array);
+        let pair_balance_token_borrow_before: U256 = runtime::call_versioned_contract(
+            token_borrow_package_hash,
+            None,
+            "balance_of",
+            runtime_args! {"owner" => borrow_pair_address},
+        );
+        if pair_balance_token_borrow_before < amount {
+            // _amount is too big
+            runtime::revert(Errors::UniswapV2CoreFlashSwapperAmountTooBig);
+        }
+        let pair_balance_token_borrow_after: U256 = pair_balance_token_borrow_before
+            .checked_sub(amount)
+            .unwrap_or_revert_with(Errors::UniswapV2CoreFlashSwapperUnderFlow);
+        //convert Key to ContractPackageHash
+        let wcspr_address_hash_add_array = match wcspr {
+            Key::Hash(package) => package,
+            _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        };
+        let wcspr_package_hash: ContractPackageHash =
+            ContractPackageHash::new(wcspr_address_hash_add_array);
+        let pair_balance_wcspr: U256 = runtime::call_versioned_contract(
+            wcspr_package_hash,
+            None,
+            "balance_of",
+            runtime_args! {"owner" => borrow_pair_address},
+        );
+        let amount_1000: U256 = 1000.into();
+        let amount_997: U256 = 997.into();
+        let amount_1: U256 = 1.into();
+        let amount_of_wcspr: U256 = ((amount_1000 * pair_balance_wcspr * amount)
+            / (amount_997 * pair_balance_token_borrow_after))
+            + amount_1;
+        // using a helper function here to avoid "stack too deep" :(
+        self.triangular_flash_swap_helper(
+            token_borrow,
+            amount,
+            token_pay,
+            borrow_pair_address,
+            pay_pair_address,
+            amount_of_wcspr,
+            user_data,
+        );
     }
 
     /// @notice Helper function for `triangularFlashSwap` to avoid `stack too deep` errors

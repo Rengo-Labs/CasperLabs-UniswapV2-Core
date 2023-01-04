@@ -46,19 +46,17 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn pause(&self) {
-        if !is_paused() && self.get_caller() == get_owner() {
-            pause();
-        } else {
+        if is_paused() || self.get_caller() != get_owner() {
             runtime::revert(Errors::UniswapV2CoreCannotPause);
         }
+        pause();
     }
 
     fn unpause(&self) {
-        if is_paused() && self.get_caller() == get_owner() {
-            unpause();
-        } else {
+        if !is_paused() || self.get_caller() != get_owner() {
             runtime::revert(Errors::UniswapV2CoreCannotUnpause);
         }
+        unpause();
     }
 
     fn _is_paused(&self) {
@@ -149,143 +147,134 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             runtime::revert(Errors::UniswapV2CorePairLocked3);
         }
         set_lock(1);
-        if amount0_out > 0.into() || amount1_out > 0.into() {
-            let (reserve0, reserve1, _) = self.get_reserves(); // gas savings
-            if amount0_out < U256::from(reserve0.as_u128())
-                && amount1_out < U256::from(reserve1.as_u128())
-            {
-                if to != get_token0() && to != get_token1() {
-                    if amount0_out > 0.into() {
-                        // optimistically transfer tokens
-                        () = runtime::call_versioned_contract(
-                            get_token0().into_hash().unwrap_or_revert().into(),
-                            None,
-                            "transfer",
-                            runtime_args! {
-                                "recipient" => Address::from(to),
-                                "amount" => amount0_out
-                            },
-                        );
-                    }
-                    if amount1_out > 0.into() {
-                        // optimistically transfer tokens
-                        () = runtime::call_versioned_contract(
-                            get_token1().into_hash().unwrap_or_revert().into(),
-                            None,
-                            "transfer",
-                            runtime_args! {
-                                "recipient" => Address::from(to),
-                                "amount" => amount1_out
-                            },
-                        );
-                    }
-                    // FLASH SWAPPER DISABLED : HALBORN ISSUE #19
-                    // if !data.is_empty() {
-                    //     () = runtime::call_versioned_contract(
-                    //         to.into_hash().unwrap_or_revert().into(),
-                    //         None,
-                    //         "uniswap_v2_call",
-                    //         runtime_args! {
-                    //             "sender" => get_callee_package_hash(),
-                    //             "amount0" => amount0_out,
-                    //             "amount1" => amount1_out,
-                    //             "data" => data
-                    //         },
-                    //     );
-                    // }
-                    let balance0: U256 = runtime::call_versioned_contract(
-                        get_token0().into_hash().unwrap_or_revert().into(),
-                        None,
-                        "balance_of",
-                        runtime_args! {
-                            "owner" => Address::Contract(get_package_hash())
-                        },
-                    );
-                    let balance1: U256 = runtime::call_versioned_contract(
-                        get_token1().into_hash().unwrap_or_revert().into(),
-                        None,
-                        "balance_of",
-                        runtime_args! {
-                            "owner" => Address::Contract(get_package_hash())
-                        },
-                    );
-                    let mut amount0_in: U256 = 0.into();
-                    let mut amount1_in: U256 = 0.into();
-                    if balance0 > U256::from(reserve0.as_u128()) - amount0_out {
-                        amount0_in = balance0 - (U256::from(reserve0.as_u128()) - amount0_out)
-                    }
-                    if balance1 > U256::from(reserve1.as_u128()) - amount1_out {
-                        amount1_in = balance1 - (U256::from(reserve1.as_u128()) - amount1_out);
-                    }
-                    if amount0_in > 0.into() || amount1_in > 0.into() {
-                        let amount_1000: U256 = 1000.into();
-                        let amount_3: U256 = 3.into();
-                        let balance0_adjusted: U256 =
-                            (balance0.checked_mul(amount_1000).unwrap_or_revert_with(
-                                Errors::UniswapV2CorePairMultiplicationOverFlow1,
-                            ))
-                            .checked_sub(amount0_in.checked_mul(amount_3).unwrap_or_revert_with(
-                                Errors::UniswapV2CorePairMultiplicationOverFlow2,
-                            ))
-                            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow3);
-                        let balance1_adjusted: U256 =
-                            (balance1.checked_mul(amount_1000).unwrap_or_revert_with(
-                                Errors::UniswapV2CorePairMultiplicationOverFlow3,
-                            ))
-                            .checked_sub(amount1_in.checked_mul(amount_3).unwrap_or_revert_with(
-                                Errors::UniswapV2CorePairMultiplicationOverFlow4,
-                            ))
-                            .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow4);
-                        let reserve0_conversion: U256 = U256::from(reserve0.as_u128());
-                        let reserve1_conversion: U256 = U256::from(reserve1.as_u128());
-                        let base: i32 = 1000;
-                        let reserve_multiply: U256 = (base.pow(2)).into();
-                        if (balance0_adjusted
-                            .checked_mul(balance1_adjusted)
-                            .unwrap_or_revert_with(
-                                Errors::UniswapV2CorePairMultiplicationOverFlow5,
-                            ))
-                            >= (reserve0_conversion
-                                .checked_mul(reserve1_conversion)
-                                .unwrap_or_revert_with(
-                                    Errors::UniswapV2CorePairMultiplicationOverFlow6,
-                                )
-                                .checked_mul(reserve_multiply)
-                                .unwrap_or_revert_with(
-                                    Errors::UniswapV2CorePairMultiplicationOverFlow7,
-                                ))
-                        {
-                            self.update(balance0, balance1, reserve0, reserve1);
-                            self.emit(&PAIREvent::Swap {
-                                sender: self.get_caller(),
-                                amount0_in,
-                                amount1_in,
-                                amount0_out,
-                                amount1_out,
-                                to,
-                                from: self.get_caller(),
-                                pair: Key::from(get_package_hash()),
-                            });
-                        } else {
-                            //UniswapV2: K
-                            runtime::revert(Errors::UniswapV2CorePairInsufficientConvertedBalance);
-                        }
-                    } else {
-                        //UniswapV2: INSUFFICIENT_INPUT_AMOUNT
-                        runtime::revert(Errors::UniswapV2CorePairInsufficientInputAmount);
-                    }
-                } else {
-                    //UniswapV2: INVALID_TO
-                    runtime::revert(Errors::UniswapV2CorePairInvalidTo);
-                }
-            } else {
-                //UniswapV2: INSUFFICIENT_LIQUIDITY
-                runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidity);
-            }
-        } else {
+        if amount0_out <= 0.into() && amount1_out <= 0.into() {
             //UniswapV2: INSUFFICIENT_OUTPUT_AMOUNT
             runtime::revert(Errors::UniswapV2CorePairInsufficientOutputAmount);
         }
+        let (reserve0, reserve1, _) = self.get_reserves(); // gas savings
+        if amount0_out >= U256::from(reserve0.as_u128())
+            || amount1_out >= U256::from(reserve1.as_u128())
+        {
+            //UniswapV2: INSUFFICIENT_LIQUIDITY
+            runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidity);
+        }
+        if to == get_token0() || to == get_token1() {
+            //UniswapV2: INVALID_TO
+            runtime::revert(Errors::UniswapV2CorePairInvalidTo);
+        }
+        if amount0_out > 0.into() {
+            // optimistically transfer tokens
+            () = runtime::call_versioned_contract(
+                get_token0().into_hash().unwrap_or_revert().into(),
+                None,
+                "transfer",
+                runtime_args! {
+                    "recipient" => Address::from(to),
+                    "amount" => amount0_out
+                },
+            );
+        }
+        if amount1_out > 0.into() {
+            // optimistically transfer tokens
+            () = runtime::call_versioned_contract(
+                get_token1().into_hash().unwrap_or_revert().into(),
+                None,
+                "transfer",
+                runtime_args! {
+                    "recipient" => Address::from(to),
+                    "amount" => amount1_out
+                },
+            );
+        }
+        // FLASH SWAPPER DISABLED : HALBORN ISSUE #19
+        // if !data.is_empty() {
+        //     () = runtime::call_versioned_contract(
+        //         to.into_hash().unwrap_or_revert().into(),
+        //         None,
+        //         "uniswap_v2_call",
+        //         runtime_args! {
+        //             "sender" => get_callee_package_hash(),
+        //             "amount0" => amount0_out,
+        //             "amount1" => amount1_out,
+        //             "data" => data
+        //         },
+        //     );
+        // }
+        let balance0: U256 = runtime::call_versioned_contract(
+            get_token0().into_hash().unwrap_or_revert().into(),
+            None,
+            "balance_of",
+            runtime_args! {
+                "owner" => Address::Contract(get_package_hash())
+            },
+        );
+        let balance1: U256 = runtime::call_versioned_contract(
+            get_token1().into_hash().unwrap_or_revert().into(),
+            None,
+            "balance_of",
+            runtime_args! {
+                "owner" => Address::Contract(get_package_hash())
+            },
+        );
+        let mut amount0_in: U256 = 0.into();
+        let mut amount1_in: U256 = 0.into();
+        if balance0 > U256::from(reserve0.as_u128()) - amount0_out {
+            amount0_in = balance0 - (U256::from(reserve0.as_u128()) - amount0_out)
+        }
+        if balance1 > U256::from(reserve1.as_u128()) - amount1_out {
+            amount1_in = balance1 - (U256::from(reserve1.as_u128()) - amount1_out);
+        }
+        if amount0_in <= 0.into() && amount1_in <= 0.into() {
+            //UniswapV2: INSUFFICIENT_INPUT_AMOUNT
+            runtime::revert(Errors::UniswapV2CorePairInsufficientInputAmount);
+        }
+        let amount_1000: U256 = 1000.into();
+        let amount_3: U256 = 3.into();
+        let balance0_adjusted: U256 = (balance0
+            .checked_mul(amount_1000)
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow1))
+        .checked_sub(
+            amount0_in
+                .checked_mul(amount_3)
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow2),
+        )
+        .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow3);
+        let balance1_adjusted: U256 = (balance1
+            .checked_mul(amount_1000)
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow3))
+        .checked_sub(
+            amount1_in
+                .checked_mul(amount_3)
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow4),
+        )
+        .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow4);
+        let reserve0_conversion: U256 = U256::from(reserve0.as_u128());
+        let reserve1_conversion: U256 = U256::from(reserve1.as_u128());
+        let base: i32 = 1000;
+        let reserve_multiply: U256 = (base.pow(2)).into();
+        if (balance0_adjusted
+            .checked_mul(balance1_adjusted)
+            .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow5))
+            < (reserve0_conversion
+                .checked_mul(reserve1_conversion)
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow6)
+                .checked_mul(reserve_multiply)
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow7))
+        {
+            //UniswapV2: K
+            runtime::revert(Errors::UniswapV2CorePairInsufficientConvertedBalance);
+        }
+        self.update(balance0, balance1, reserve0, reserve1);
+        self.emit(&PAIREvent::Swap {
+            sender: self.get_caller(),
+            amount0_in,
+            amount1_in,
+            amount0_out,
+            amount1_out,
+            to,
+            from: self.get_caller(),
+            pair: Key::from(get_package_hash()),
+        });
         set_lock(0);
     }
 
@@ -401,30 +390,29 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 / U256::from(reserve1.as_u128());
             liquidity = self.min(x, y);
         }
-        if liquidity > 0.into() {
-            ERC20::mint(self, Address::from(to), liquidity).unwrap_or_revert();
-            self.update(balance0, balance1, reserve0, reserve1);
-            if fee_on {
-                let k_last: U256 = U256::from(
-                    (reserve0
-                        .checked_mul(reserve1)
-                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow11))
-                    .as_u128(),
-                ); // reserve0 and reserve1 are up-to-date
-                set_k_last(k_last);
-            }
-            set_liquidity(liquidity); // return liquidity
-            self.emit(&PAIREvent::Mint {
-                sender: self.get_caller(),
-                amount0,
-                amount1,
-                pair: Key::from(get_package_hash()),
-            });
-            liquidity // return liquidity
-        } else {
+        if liquidity <= 0.into() {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
             runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidityMinted);
         }
+        ERC20::mint(self, Address::from(to), liquidity).unwrap_or_revert();
+        self.update(balance0, balance1, reserve0, reserve1);
+        if fee_on {
+            let k_last: U256 = U256::from(
+                (reserve0
+                    .checked_mul(reserve1)
+                    .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow11))
+                .as_u128(),
+            ); // reserve0 and reserve1 are up-to-date
+            set_k_last(k_last);
+        }
+        set_liquidity(liquidity); // return liquidity
+        self.emit(&PAIREvent::Mint {
+            sender: self.get_caller(),
+            amount0,
+            amount1,
+            pair: Key::from(get_package_hash()),
+        });
+        liquidity // return liquidity
     }
 
     fn burn(&self, to: Key) -> (U256, U256) {
@@ -455,66 +443,65 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             .checked_mul(balance1)
             .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow13))
             / self.total_supply();
-        if amount0 > 0.into() && amount1 > 0.into() {
-            ERC20::burn(self, Address::Contract(get_package_hash()), liquidity).unwrap_or_revert();
-            () = runtime::call_versioned_contract(
-                get_token0().into_hash().unwrap_or_revert().into(),
-                None,
-                "transfer",
-                runtime_args! {
-                    "recipient" => Address::from(to),
-                    "amount" => amount0
-                },
-            );
-            () = runtime::call_versioned_contract(
-                get_token1().into_hash().unwrap_or_revert().into(),
-                None,
-                "transfer",
-                runtime_args! {
-                    "recipient" => Address::from(to),
-                    "amount" => amount1
-                },
-            );
-            let balance0: U256 = runtime::call_versioned_contract(
-                get_token0().into_hash().unwrap_or_revert().into(),
-                None,
-                "balance_of",
-                runtime_args! {
-                    "owner" => Address::Contract(get_package_hash())
-                },
-            );
-            let balance1: U256 = runtime::call_versioned_contract(
-                get_token1().into_hash().unwrap_or_revert().into(),
-                None,
-                "balance_of",
-                runtime_args! {
-                    "owner" => Address::Contract(get_package_hash())
-                },
-            );
-            self.update(balance0, balance1, reserve0, reserve1);
-            if fee_on {
-                let k_last: U256 = U256::from(
-                    (reserve0
-                        .checked_mul(reserve1)
-                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow14))
-                    .as_u128(),
-                ); // reserve0 and reserve1 are up-to-date
-                set_k_last(k_last);
-            }
-            set_amount0(amount0);
-            set_amount1(amount1);
-            self.emit(&PAIREvent::Burn {
-                sender: self.get_caller(),
-                amount0,
-                amount1,
-                to,
-                pair: Key::from(get_package_hash()),
-            });
-            (amount0, amount1)
-        } else {
+        if amount0 <= 0.into() || amount1 <= 0.into() {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_BURNED
             runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidityBurned);
         }
+        ERC20::burn(self, Address::Contract(get_package_hash()), liquidity).unwrap_or_revert();
+        () = runtime::call_versioned_contract(
+            get_token0().into_hash().unwrap_or_revert().into(),
+            None,
+            "transfer",
+            runtime_args! {
+                "recipient" => Address::from(to),
+                "amount" => amount0
+            },
+        );
+        () = runtime::call_versioned_contract(
+            get_token1().into_hash().unwrap_or_revert().into(),
+            None,
+            "transfer",
+            runtime_args! {
+                "recipient" => Address::from(to),
+                "amount" => amount1
+            },
+        );
+        let balance0: U256 = runtime::call_versioned_contract(
+            get_token0().into_hash().unwrap_or_revert().into(),
+            None,
+            "balance_of",
+            runtime_args! {
+                "owner" => Address::Contract(get_package_hash())
+            },
+        );
+        let balance1: U256 = runtime::call_versioned_contract(
+            get_token1().into_hash().unwrap_or_revert().into(),
+            None,
+            "balance_of",
+            runtime_args! {
+                "owner" => Address::Contract(get_package_hash())
+            },
+        );
+        self.update(balance0, balance1, reserve0, reserve1);
+        if fee_on {
+            let k_last: U256 = U256::from(
+                (reserve0
+                    .checked_mul(reserve1)
+                    .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow14))
+                .as_u128(),
+            ); // reserve0 and reserve1 are up-to-date
+            set_k_last(k_last);
+        }
+        set_amount0(amount0);
+        set_amount1(amount1);
+        self.emit(&PAIREvent::Burn {
+            sender: self.get_caller(),
+            amount0,
+            amount1,
+            to,
+            pair: Key::from(get_package_hash()),
+        });
+        (amount0, amount1)
     }
 
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
@@ -554,14 +541,13 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                         .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow17))
                     .checked_add(root_k_last)
                     .unwrap_or_revert_with(Errors::UniswapV2CorePairOverFlow3);
-                    if denominator > U256::from(0) {
-                        let liquidity: U256 = numerator / denominator;
-                        if liquidity > 0.into() {
-                            ERC20::mint(self, Address::from(fee_to), liquidity).unwrap_or_revert();
-                        }
-                    } else {
+                    if denominator <= U256::from(0) {
                         //UniswapV2: DENOMINATOR IS ZERO
                         runtime::revert(Errors::UniswapV2CorePairDenominatorIsZero);
+                    }
+                    let liquidity: U256 = numerator / denominator;
+                    if liquidity > 0.into() {
+                        ERC20::mint(self, Address::from(fee_to), liquidity).unwrap_or_revert();
                     }
                 }
             }
@@ -572,23 +558,21 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     }
 
     fn initialize(&self, token0: Key, token1: Key) {
-        if self.get_caller() == get_factory_hash() {
-            set_token0(token0);
-            set_token1(token1);
-        } else {
+        if self.get_caller() != get_factory_hash() {
             //(UniswapV2: FORBIDDEN)
             runtime::revert(Errors::UniswapV2CorePairForbidden);
         }
+        set_token0(token0);
+        set_token1(token1);
     }
 
     fn deinitialize(&self) {
-        if self.get_caller() == get_factory_hash() {
-            remove_token0();
-            remove_token1();
-        } else {
+        if self.get_caller() != get_factory_hash() {
             //(UniswapV2: FORBIDDEN)
             runtime::revert(Errors::UniswapV2CorePairForbidden);
         }
+        remove_token0();
+        remove_token1();
     }
 
     fn get_reserves(&self) -> (U128, U128, u64) {
@@ -665,34 +649,33 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow9))
             .as_u128(),
         );
-        if balance0 <= overflow_check && balance1 <= overflow_check {
-            let block_timestamp: u64 = runtime::get_blocktime().into();
-            let block_timestamp_last: u64 = get_block_timestamp_last();
-            let time_elapsed: u64 = block_timestamp - block_timestamp_last; // overflow is desired
-            if time_elapsed > 0 && reserve0 != 0.into() && reserve1 != 0.into() {
-                let price0_cumulative_last: U256 = get_price0_cumulative_last();
-                let price1_cumulative_last: U256 = get_price1_cumulative_last();
-                let price0_cumulative_last_result: U256 =
-                    self.encode_uqdiv(reserve1, reserve0, price0_cumulative_last, time_elapsed);
-                set_price0_cumulative_last(price0_cumulative_last_result);
-                let price1_cumulative_last_result: U256 =
-                    self.encode_uqdiv(reserve0, reserve1, price1_cumulative_last, time_elapsed);
-                set_price1_cumulative_last(price1_cumulative_last_result);
-            }
-            let reserve0_conversion: U128 = U128::from(balance0.as_u128());
-            let reserve1_conversion: U128 = U128::from(balance1.as_u128());
-            set_reserve0(reserve0_conversion);
-            set_reserve1(reserve1_conversion);
-            set_block_timestamp_last(block_timestamp);
-            self.emit(&PAIREvent::Sync {
-                reserve0: reserve0_conversion,
-                reserve1: reserve1_conversion,
-                pair: Key::from(get_package_hash()),
-            });
-        } else {
+        if balance0 > overflow_check || balance1 > overflow_check {
             //UniswapV2: OVERFLOW
             runtime::revert(Errors::UniswapV2CorePairOverFlow6);
         }
+        let block_timestamp: u64 = runtime::get_blocktime().into();
+        let block_timestamp_last: u64 = get_block_timestamp_last();
+        let time_elapsed: u64 = block_timestamp - block_timestamp_last; // overflow is desired
+        if time_elapsed > 0 && reserve0 != 0.into() && reserve1 != 0.into() {
+            let price0_cumulative_last: U256 = get_price0_cumulative_last();
+            let price1_cumulative_last: U256 = get_price1_cumulative_last();
+            let price0_cumulative_last_result: U256 =
+                self.encode_uqdiv(reserve1, reserve0, price0_cumulative_last, time_elapsed);
+            set_price0_cumulative_last(price0_cumulative_last_result);
+            let price1_cumulative_last_result: U256 =
+                self.encode_uqdiv(reserve0, reserve1, price1_cumulative_last, time_elapsed);
+            set_price1_cumulative_last(price1_cumulative_last_result);
+        }
+        let reserve0_conversion: U128 = U128::from(balance0.as_u128());
+        let reserve1_conversion: U128 = U128::from(balance1.as_u128());
+        set_reserve0(reserve0_conversion);
+        set_reserve1(reserve1_conversion);
+        set_block_timestamp_last(block_timestamp);
+        self.emit(&PAIREvent::Sync {
+            reserve0: reserve0_conversion,
+            reserve1: reserve1_conversion,
+            pair: Key::from(get_package_hash()),
+        });
     }
 
     fn emit(&self, pair_event: &PAIREvent) {
