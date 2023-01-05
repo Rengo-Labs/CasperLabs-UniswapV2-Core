@@ -1,16 +1,10 @@
 #![no_main]
 
-use casperlabs_erc20::{Address, ERC20};
-use common::{
+use pair_crate::{
     contract_api::{runtime, storage},
-    runtime_args,
+    data::*,
     unwrap_or_revert::UnwrapOrRevert,
     *,
-};
-use pair::{
-    self,
-    data::{get_token0, get_token1, get_treasury_fee},
-    PAIR,
 };
 use std::collections::BTreeSet;
 

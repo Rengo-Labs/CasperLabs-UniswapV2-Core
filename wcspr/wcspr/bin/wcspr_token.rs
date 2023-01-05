@@ -1,15 +1,12 @@
 #![no_main]
 
-use casperlabs_erc20::{Address, ERC20};
-use common::{
+use std::collections::BTreeSet;
+use wcspr_crate::{
     contract_api::{runtime, storage, system},
     functions::get_purse,
-    runtime_args,
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
-use std::collections::BTreeSet;
-use wcspr::{self, WCSPR};
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);

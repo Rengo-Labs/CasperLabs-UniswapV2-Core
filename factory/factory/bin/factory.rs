@@ -1,11 +1,11 @@
 #![no_main]
 
-use common::{
+use factory_crate::{
     contract_api::{runtime, storage},
+    data::*,
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
-use factory::{self, data::*, FACTORY};
 use std::collections::BTreeSet;
 
 #[derive(Default)]

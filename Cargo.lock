@@ -575,6 +575,13 @@ dependencies = [
 name = "factory"
 version = "0.2.0"
 dependencies = [
+ "factory-crate",
+]
+
+[[package]]
+name = "factory-crate"
+version = "0.2.0"
+dependencies = [
  "common",
 ]
 
@@ -616,6 +623,13 @@ dependencies = [
 
 [[package]]
 name = "flashswapper"
+version = "0.2.0"
+dependencies = [
+ "flashswapper-crate",
+]
+
+[[package]]
+name = "flashswapper-crate"
 version = "0.2.0"
 dependencies = [
  "common",
@@ -1035,6 +1049,13 @@ checksum = "624a8340c38c1b80fd549087862da4ba43e08858af025b236e509b6649fc13d5"
 
 [[package]]
 name = "pair"
+version = "0.2.0"
+dependencies = [
+ "pair-crate",
+]
+
+[[package]]
+name = "pair-crate"
 version = "0.2.0"
 dependencies = [
  "casperlabs-erc20",
@@ -1665,6 +1686,13 @@ dependencies = [
 
 [[package]]
 name = "wcspr"
+version = "0.1.0"
+dependencies = [
+ "wcspr-crate",
+]
+
+[[package]]
+name = "wcspr-crate"
 version = "0.1.0"
 dependencies = [
  "casperlabs-erc20",
