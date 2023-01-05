@@ -29,10 +29,10 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         let white_lists: Whitelists = Whitelists::instance();
         let (white_list_user, _) = white_lists.get(&self.get_caller());
         if white_list_user == account_zero_address() || white_list_user == zero_address() {
-            runtime::revert(Errors::UniswapV2FactoryNotInWhiteList);
+            runtime::revert(Errors::UniswapV2FactoryNotInWhiteList1);
         }
         if token_a == token_b {
-            runtime::revert(Errors::UniswapV2FactoryIdenticalAddresses);
+            runtime::revert(Errors::UniswapV2FactoryIdenticalAddresses1);
         }
         let token0: Key;
         let token1: Key;
@@ -45,7 +45,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         }
         // in before 0 address was hash-0000000000000000000000000000000000000000000000000000000000000000
         if token0 == zero_address() {
-            runtime::revert(Errors::UniswapV2FactoryZeroAddress);
+            runtime::revert(Errors::UniswapV2FactoryZeroAddress1);
         }
         let pair_0_1_key: Key = self.get_pair(token0, token1);
         let pair_1_0_key: Key = self.get_pair(token1, token0);
@@ -83,7 +83,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         let white_lists: Whitelists = Whitelists::instance();
         let (white_list_user, whitelist_pair) = white_lists.get(&self.get_caller());
         if white_list_user == zero_address() || white_list_user == account_zero_address() {
-            runtime::revert(Errors::UniswapV2FactoryNotInWhiteList);
+            runtime::revert(Errors::UniswapV2FactoryNotInWhiteList2);
         }
         if whitelist_pair != pair_hash {
             runtime::revert(Errors::UniswapV2FactoryWhiteListPairMismatch);
@@ -101,7 +101,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
             runtime_args! {},
         );
         if token_a == token_b {
-            runtime::revert(Errors::UniswapV2FactoryIdenticalAddresses);
+            runtime::revert(Errors::UniswapV2FactoryIdenticalAddresses2);
         }
         let token0: Key;
         let token1: Key;
@@ -114,7 +114,7 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
         }
         // in before 0 address was hash-0000000000000000000000000000000000000000000000000000000000000000
         if token0 == zero_address() {
-            runtime::revert(Errors::UniswapV2FactoryZeroAddress);
+            runtime::revert(Errors::UniswapV2FactoryZeroAddress2);
         }
         let pair_0_1_key: Key = self.get_pair(token0, token1);
         let pair_1_0_key: Key = self.get_pair(token1, token0);

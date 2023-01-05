@@ -560,7 +560,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     fn initialize(&self, token0: Key, token1: Key) {
         if self.get_caller() != get_factory_hash() {
             //(UniswapV2: FORBIDDEN)
-            runtime::revert(Errors::UniswapV2CorePairForbidden);
+            runtime::revert(Errors::UniswapV2CorePairForbidden1);
         }
         set_token0(token0);
         set_token1(token1);
@@ -569,7 +569,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
     fn deinitialize(&self) {
         if self.get_caller() != get_factory_hash() {
             //(UniswapV2: FORBIDDEN)
-            runtime::revert(Errors::UniswapV2CorePairForbidden);
+            runtime::revert(Errors::UniswapV2CorePairForbidden2);
         }
         remove_token0();
         remove_token1();
