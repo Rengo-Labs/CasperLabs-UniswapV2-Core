@@ -5,8 +5,7 @@ name = "wcspr"
 version = "0.1.0"
 
 [dependencies]
-casperlabs-erc20 = "2.0.3"
-common = { path = "../../common/common" }
+wcspr-crate = { path = "../wcspr-crate" }
 
 [[bin]]
 bench = false

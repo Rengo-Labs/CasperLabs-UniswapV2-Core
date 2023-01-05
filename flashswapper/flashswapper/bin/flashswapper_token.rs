@@ -1,12 +1,11 @@
 #![no_main]
 
-use common::{
+use flashswapper_crate::{
     contract_api::{runtime, storage, system},
     functions::get_purse,
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
-use flashswapper::FLASHSWAPPER;
 use std::collections::BTreeSet;
 
 #[derive(Default)]

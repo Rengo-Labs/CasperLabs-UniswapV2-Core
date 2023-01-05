@@ -1,0 +1,9 @@
+[package]
+authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
+edition = "2018"
+name = "wcspr-crate"
+version = "0.1.0"
+
+[dependencies]
+casperlabs-erc20 = "2.0.3"
+common = { path = "../../common/common" }
