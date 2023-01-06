@@ -5,13 +5,6 @@ authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
 edition = "2018"
 
 [dependencies]
-casperlabs-erc20 = "2.0.3"
+uniswap-erc20 = "0.1.0"
 cryptoxide = "0.3.3"
 common = { path = "../../common/common" }
-
-[[bin]]
-name = "pair-token"
-path = "bin/pair_token.rs"
-bench = false
-doctest = false
-test = false

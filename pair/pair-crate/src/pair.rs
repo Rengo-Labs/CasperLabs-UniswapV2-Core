@@ -2,7 +2,6 @@ use std::collections::BTreeMap;
 
 use crate::data::*;
 use crate::events::PAIREvent;
-use casperlabs_erc20::{data::*, Address, ERC20};
 use common::{
     contract_api::{runtime, storage},
     errors::Errors,
@@ -11,6 +10,7 @@ use common::{
     *,
 };
 use cryptoxide::ed25519;
+use uniswap_erc20::{Address, ERC20};
 
 pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Storage> {
     #[allow(clippy::too_many_arguments)]

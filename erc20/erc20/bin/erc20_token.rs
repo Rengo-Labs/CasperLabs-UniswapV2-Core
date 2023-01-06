@@ -1,12 +1,12 @@
 #![no_main]
 
-use casperlabs_erc20::{Address, ERC20};
 use common::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
 use std::collections::BTreeSet;
+use uniswap_erc20::{Address, ERC20};
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);

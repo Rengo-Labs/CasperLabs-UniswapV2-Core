@@ -267,18 +267,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "casperlabs-erc20"
-version = "2.0.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e038f4a7da8482a4648976b41957d4f345222d294a6813de4aa5f22b389ae6d"
-dependencies = [
- "casper-contract",
- "casper-erc20-crate",
- "casper-types",
- "casperlabs-contract-utils",
-]
-
-[[package]]
 name = "casperlabs-test-env"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -341,8 +329,8 @@ dependencies = [
  "casper-contract",
  "casper-types",
  "casperlabs-contract-utils",
- "casperlabs-erc20",
  "num-traits",
+ "uniswap-erc20",
 ]
 
 [[package]]
@@ -560,8 +548,8 @@ dependencies = [
 name = "erc20"
 version = "0.2.0"
 dependencies = [
- "casperlabs-erc20",
  "common",
+ "uniswap-erc20",
 ]
 
 [[package]]
@@ -1058,9 +1046,9 @@ dependencies = [
 name = "pair-crate"
 version = "0.2.0"
 dependencies = [
- "casperlabs-erc20",
  "common",
  "cryptoxide",
+ "uniswap-erc20",
 ]
 
 [[package]]
@@ -1560,6 +1548,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
 
 [[package]]
+name = "uniswap-erc20"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac06c8c6ab092262422d10adeeadb82e73b2388b9e2dcbb711441754b5f03d1d"
+dependencies = [
+ "casper-contract",
+ "casper-erc20-crate",
+ "casper-types",
+ "casperlabs-contract-utils",
+]
+
+[[package]]
 name = "uuid"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1695,8 +1695,8 @@ dependencies = [
 name = "wcspr-crate"
 version = "0.1.0"
 dependencies = [
- "casperlabs-erc20",
  "common",
+ "uniswap-erc20",
 ]
 
 [[package]]

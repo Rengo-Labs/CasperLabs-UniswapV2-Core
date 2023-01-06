@@ -165,7 +165,6 @@ pub enum Errors {
     UniswapV2CoreFlashSwapperZeroAddress = 93,
     /// 65,655 for (UniswapV2 Core FlashSwapper Permissioned Pair Access)
     UniswapV2CoreFlashSwapperPermissionedPairAccess = 94,
-
 }
 
 impl From<Errors> for ApiError {

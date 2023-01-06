@@ -1,7 +1,6 @@
 use std::collections::BTreeMap;
 
 use crate::data::WcsprEvents;
-use casperlabs_erc20::{data::get_package_hash, Address, ERC20};
 use common::{
     contract_api::{runtime, storage, system},
     errors::Errors,
@@ -9,6 +8,7 @@ use common::{
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
+use uniswap_erc20::{data::get_package_hash, Address, ERC20};
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Storage> {
     fn init(&self, contract_hash: ContractHash, package_hash: ContractPackageHash, purse: URef) {

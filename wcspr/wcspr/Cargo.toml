@@ -8,8 +8,8 @@ version = "0.1.0"
 wcspr-crate = { path = "../wcspr-crate" }
 
 [[bin]]
-bench = false
-doctest = false
 name = "wcspr-token"
 path = "bin/wcspr_token.rs"
+bench = false
+doctest = false
 test = false
