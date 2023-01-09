@@ -87,11 +87,7 @@ lint: clippy
 clean:
 	cargo clean
 	rm -rf Cargo.lock
-	rm -rf erc20-tests/wasm/*.wasm
-	rm -rf wcspr-tests/wasm/*.wasm
-	rm -rf factory-tests/wasm/*.wasm
-	rm -rf flashswapper-tests/wasm/*.wasm
-	rm -rf pair-tests/wasm/*.wasm
+	find . -name "*.wasm" -delete
 
 git-clean:
 	git rm -rf --cached .
