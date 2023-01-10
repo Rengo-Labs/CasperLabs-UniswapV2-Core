@@ -1,21 +1,12 @@
 #![no_main]
-#![no_std]
 
-#[macro_use]
-extern crate alloc;
-
-use alloc::{boxed::Box, collections::BTreeSet, format,  vec::Vec};
-use casper_contract::{
+use factory_crate::{
     contract_api::{runtime, storage},
+    data::*,
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    runtime_args, CLType, CLTyped, CLValue, ContractHash, ContractPackageHash,
-    EntryPoint, EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs,
-    URef, U256,
-};
-use contract_utils::{ContractContext, OnChainContractStorage};
-use factory::{self, FACTORY};
+use std::collections::BTreeSet;
 
 #[derive(Default)]
 struct Factory(OnChainContractStorage);
@@ -29,19 +20,13 @@ impl ContractContext<OnChainContractStorage> for Factory {
 impl FACTORY<OnChainContractStorage> for Factory {}
 impl Factory {
     fn constructor(
-        &mut self,
+        &self,
         fee_to_setter: Key,
         all_pairs: Vec<Key>,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
     ) {
-        FACTORY::init(
-            self,
-            fee_to_setter,
-            all_pairs,
-            Key::from(contract_hash),
-            Key::from(package_hash),
-        );
+        FACTORY::init(self, fee_to_setter, all_pairs, contract_hash, package_hash);
     }
 }
 
@@ -60,8 +45,7 @@ fn constructor() {
 
 #[no_mangle]
 fn fee_to() {
-    let ret: Key = Factory::default().get_fee_to();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(get_fee_to()).unwrap_or_revert());
 }
 
 /// This function is to return the fee to setter's hash
@@ -69,8 +53,7 @@ fn fee_to() {
 
 #[no_mangle]
 fn fee_to_setter() {
-    let ret: Key = Factory::default().get_fee_to_setter();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(get_fee_to_setter()).unwrap_or_revert());
 }
 
 /// This function is to return the all Pairs
@@ -78,8 +61,7 @@ fn fee_to_setter() {
 
 #[no_mangle]
 fn all_pairs() {
-    let ret: Vec<Key> = Factory::default().get_all_pairs();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(get_all_pairs()).unwrap_or_revert());
 }
 
 /// This function is to return the total length of Pairs
@@ -87,8 +69,7 @@ fn all_pairs() {
 
 #[no_mangle]
 fn all_pairs_length() {
-    let ret: Vec<Key> = Factory::default().get_all_pairs();
-    runtime::ret(CLValue::from_t(U256::from(ret.len())).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(U256::from(get_all_pairs().len())).unwrap_or_revert());
 }
 
 /// This function is to set the fee to address which is only possible if the caller matched with fee to setter's hash
@@ -136,6 +117,19 @@ fn create_pair() {
     Factory::default().create_pair(token_a, token_b, pair_hash);
 }
 
+/// This function is to remove pair of tokens provided by user agains the pair hash provided by user
+///
+/// # Parameters
+///
+/// * `pair_hash` - A Key that holds the Hash of Pair Contract
+///
+
+#[no_mangle]
+fn remove_pair() {
+    let pair_hash: Key = runtime::get_named_arg("pair_hash");
+    Factory::default().remove_pair(pair_hash);
+}
+
 /// This function is to return the the pair against tokens provided by user. If pair not found it will return hash-0000000000000000000000000000000000000000000000000000000000000000
 ///
 /// # Parameters
@@ -166,19 +160,104 @@ fn set_white_list() {
     Factory::default().set_white_list(white_list, white_list);
 }
 
-/// This function is to fetch a Contract Package Hash
-///
-
-#[no_mangle]
-fn package_hash() {
-    let ret: ContractPackageHash = Factory::default().get_package_hash();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+fn get_entry_points() -> EntryPoints {
+    let mut entry_points = EntryPoints::new();
+    entry_points.add_entry_point(EntryPoint::new(
+        "constructor",
+        vec![
+            Parameter::new("fee_to_setter", Key::cl_type()),
+            Parameter::new("all_pairs", CLType::List(Box::new(Key::cl_type()))),
+            Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Groups(vec![Group::new("constructor")]),
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "create_pair",
+        vec![
+            Parameter::new("token_a", Key::cl_type()),
+            Parameter::new("token_b", Key::cl_type()),
+            Parameter::new("pair_hash", Key::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "remove_pair",
+        vec![Parameter::new("pair_hash", Key::cl_type())],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "get_pair",
+        vec![
+            Parameter::new("token0", Key::cl_type()),
+            Parameter::new("token1", Key::cl_type()),
+        ],
+        Key::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "fee_to",
+        vec![],
+        Key::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "fee_to_setter",
+        vec![],
+        Key::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "all_pairs",
+        vec![],
+        CLType::List(Box::new(Key::cl_type())),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "all_pairs_length",
+        vec![],
+        CLType::U256,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_fee_to",
+        vec![Parameter::new("fee_to", Key::cl_type())],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_fee_to_setter",
+        vec![Parameter::new("fee_to_setter", Key::cl_type())],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "set_white_list",
+        vec![Parameter::new("white_list", Key::cl_type())],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points
 }
 
 #[no_mangle]
 fn call() {
     // Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
@@ -259,98 +338,4 @@ fn call() {
             storage::new_uref(contract_hash).into(),
         );
     }
-}
-
-fn get_entry_points() -> EntryPoints {
-    let mut entry_points = EntryPoints::new();
-    entry_points.add_entry_point(EntryPoint::new(
-        "constructor",
-        vec![
-            Parameter::new("fee_to_setter", Key::cl_type()),
-            Parameter::new("all_pairs", CLType::List(Box::new(Key::cl_type()))),
-            Parameter::new("contract_hash", ContractHash::cl_type()),
-            Parameter::new("package_hash", ContractPackageHash::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Groups(vec![Group::new("constructor")]),
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "create_pair",
-        vec![
-            Parameter::new("token_a", Key::cl_type()),
-            Parameter::new("token_b", Key::cl_type()),
-            Parameter::new("pair_hash", Key::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "get_pair",
-        vec![
-            Parameter::new("token0", Key::cl_type()),
-            Parameter::new("token1", Key::cl_type()),
-        ],
-        Key::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "fee_to",
-        vec![],
-        Key::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "fee_to_setter",
-        vec![],
-        Key::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "all_pairs",
-        vec![],
-        CLType::List(Box::new(Key::cl_type())),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "all_pairs_length",
-        vec![],
-        CLType::U256,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_fee_to",
-        vec![Parameter::new("fee_to", Key::cl_type())],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_fee_to_setter",
-        vec![Parameter::new("fee_to_setter", Key::cl_type())],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "set_white_list",
-        vec![Parameter::new("white_list", Key::cl_type())],
-        CLType::Unit,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "package_hash",
-        vec![],
-        ContractPackageHash::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points
 }

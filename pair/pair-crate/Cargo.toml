@@ -1,0 +1,10 @@
+[package]
+name = "pair-crate"
+version = "0.2.0"
+authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
+edition = "2018"
+
+[dependencies]
+uniswap-erc20 = "0.1.0"
+cryptoxide = "0.3.3"
+common = { path = "../../common/common" }

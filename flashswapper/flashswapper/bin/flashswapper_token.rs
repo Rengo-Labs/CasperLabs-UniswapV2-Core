@@ -1,20 +1,12 @@
 #![no_main]
-#![no_std]
 
-#[macro_use]
-extern crate alloc;
-
-use alloc::{ collections::BTreeSet, format, string::String};
-use casper_contract::{
+use flashswapper_crate::{
     contract_api::{runtime, storage, system},
+    functions::get_purse,
     unwrap_or_revert::UnwrapOrRevert,
+    *,
 };
-use casper_types::{
-    runtime_args, CLTyped, CLValue, ContractHash, ContractPackageHash, EntryPoint,
-    EntryPointAccess, EntryPointType, EntryPoints, Group, Key, Parameter, RuntimeArgs, URef, U256,
-};
-use contract_utils::{ContractContext, OnChainContractStorage};
-use flashswapper::FLASHSWAPPER;
+use std::collections::BTreeSet;
 
 #[derive(Default)]
 struct Token(OnChainContractStorage);
@@ -29,7 +21,7 @@ impl FLASHSWAPPER<OnChainContractStorage> for Token {}
 
 impl Token {
     fn constructor(
-        &mut self,
+        &self,
         wcspr: Key,
         dai: Key,
         uniswap_v2_factory: Key,
@@ -42,8 +34,8 @@ impl Token {
             wcspr,
             dai,
             uniswap_v2_factory,
-            Key::from(contract_hash),
-            Key::from(package_hash),
+            contract_hash,
+            package_hash,
             purse,
         );
     }
@@ -100,22 +92,63 @@ fn uniswap_v2_call() {
 
 #[no_mangle]
 fn purse() {
-    let ret: URef = Token::default().purse();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+    runtime::ret(CLValue::from_t(get_purse()).unwrap_or_revert());
 }
 
-/// This function is to fetch a Contract Package Hash
-///
-
-#[no_mangle]
-fn package_hash() {
-    let ret: Key = Token::default().get_package_hash();
-    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+fn get_entry_points() -> EntryPoints {
+    let mut entry_points = EntryPoints::new();
+    entry_points.add_entry_point(EntryPoint::new(
+        "constructor",
+        vec![
+            Parameter::new("wcspr", Key::cl_type()),
+            Parameter::new("dai", Key::cl_type()),
+            Parameter::new("uniswap_v2_factory", Key::cl_type()),
+            Parameter::new("contract_hash", ContractHash::cl_type()),
+            Parameter::new("package_hash", ContractPackageHash::cl_type()),
+            Parameter::new("purse", URef::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Groups(vec![Group::new("constructor")]),
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "start_swap",
+        vec![
+            Parameter::new("token_borrow", Key::cl_type()),
+            Parameter::new("amount", U256::cl_type()),
+            Parameter::new("token_pay", Key::cl_type()),
+            Parameter::new("user_data", String::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "uniswap_v2_call",
+        vec![
+            Parameter::new("sender", Key::cl_type()),
+            Parameter::new("amount0", U256::cl_type()),
+            Parameter::new("amount1", U256::cl_type()),
+            Parameter::new("data", String::cl_type()),
+        ],
+        <()>::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "purse",
+        vec![],
+        URef::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points
 }
+
 #[no_mangle]
 fn call() {
     // Contract name must be same for all new versions of the contracts
-    let contract_name: alloc::string::String = runtime::get_named_arg("contract_name");
+    let contract_name: String = runtime::get_named_arg("contract_name");
 
     // If this is the first deployment
     if !runtime::has_key(&format!("{}_package_hash", contract_name)) {
@@ -199,61 +232,4 @@ fn call() {
             storage::new_uref(contract_hash).into(),
         );
     }
-}
-
-fn get_entry_points() -> EntryPoints {
-    let mut entry_points = EntryPoints::new();
-    entry_points.add_entry_point(EntryPoint::new(
-        "constructor",
-        vec![
-            Parameter::new("wcspr", Key::cl_type()),
-            Parameter::new("dai", Key::cl_type()),
-            Parameter::new("uniswap_v2_factory", Key::cl_type()),
-            Parameter::new("contract_hash", ContractHash::cl_type()),
-            Parameter::new("package_hash", ContractPackageHash::cl_type()),
-            Parameter::new("purse", URef::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Groups(vec![Group::new("constructor")]),
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "start_swap",
-        vec![
-            Parameter::new("token_borrow", Key::cl_type()),
-            Parameter::new("amount", U256::cl_type()),
-            Parameter::new("token_pay", Key::cl_type()),
-            Parameter::new("user_data", String::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "uniswap_v2_call",
-        vec![
-            Parameter::new("sender", Key::cl_type()),
-            Parameter::new("amount0", U256::cl_type()),
-            Parameter::new("amount1", U256::cl_type()),
-            Parameter::new("data", String::cl_type()),
-        ],
-        <()>::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "purse",
-        vec![],
-        URef::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "package_hash",
-        vec![],
-        Key::cl_type(),
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points
 }
