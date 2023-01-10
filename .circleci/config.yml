@@ -17,7 +17,7 @@ jobs:
           command: rustup target add wasm32-unknown-unknown && make all
       - run: 
           name: Run Tests Casper Core
-          command: make test
+          command: make test-all
       
 # Invoke jobs via workflows
 # See: https://circleci.com/docs/2.0/configuration-reference/#workflows
