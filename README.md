@@ -3,9 +3,10 @@
 
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
-## Security Audit
+## Security Review Status
+![QuantstampSecured](https://s3-us-west-1.amazonaws.com/qsp-www-images/certificate-gh-badge.svg)
+
 [Halborn](./audits//Casper_RengoLabs_Uniswap_Smart_Contract_Audit.pdf)
-[Quantstamp](https://certificate.quantstamp.com/full/rengo-labs)
 
 ## Steps
 
