@@ -6,7 +6,7 @@ Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR`
 ## Security Review Status
 ![QuantstampSecured](https://s3-us-west-1.amazonaws.com/qsp-www-images/certificate-gh-badge.svg)
 
-[Quantstamp - commit 237cf3fa15ee95843603ab3857789cf2b53d58b7](RengoLabs-Report.pdf)
+[Quantstamp - commit 237cf3fa15ee95843603ab3857789cf2b53d58b7](https://certificate.quantstamp.com/full/rengo-labs)
 
 [Halborn](./audits//Casper_RengoLabs_Uniswap_Smart_Contract_Audit.pdf)
 
