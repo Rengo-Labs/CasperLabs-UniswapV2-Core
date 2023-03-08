@@ -6,8 +6,7 @@ The following is a set of rules and guidelines for contributing to this repo. Pl
 
 If you have questions about how to use Uniswap V2 Core, please direct these to the related discord channels and do not file an issue:
 
-- [#validators-general](https://discord.gg/9CTHRvvA4d)
-- [#node-tech-support](https://discord.gg/9CTHRvvA4d)
+* [#dev](https://discord.gg/5Vx8gheq)
 
 If you have feature enhancements or other requests, please feel free to file issues.
 
@@ -20,7 +19,7 @@ If you have feature enhancements or other requests, please feel free to file iss
 
 ## Contributing to Uniswap V2 Core - Casper Blockchain
 
-All contributions to this repository from September 9, 2021 on are considered to be licensed under MIT License.
+All contributions to this repository from September 9, 2021 on are considered to be licensed under Apache 2.0 License.
 
 Workflow for bug fixes:
 
