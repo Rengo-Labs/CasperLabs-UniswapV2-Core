@@ -1,0 +1,16 @@
+[package]
+name = "erc20-secure"
+version = "0.2.0"
+authors = ["Nouman <nouman.nadeem.zafar@scytalelabs.com>"]
+edition = "2018"
+
+[dependencies]
+erc20-secure-crate = { path = "../erc20-secure-crate" }
+common = { path = "../../common/common" }
+
+[[bin]]
+name = "erc20-secure"
+path = "bin/erc20_secure_token.rs"
+bench = false
+doctest = false
+test = false

@@ -122,3 +122,28 @@ pub fn deploy_pair(
         time,
     )
 }
+#[allow(clippy::too_many_arguments)]
+pub fn deploy_erc20_secure(
+    env: &TestEnv,
+    contract_name: &str,
+    sender: AccountHash,
+    name: &str,
+    symbol: &str,
+    decimals: u8,
+    supply: U256,
+    time: u64,
+) -> TestContract {
+    TestContract::new(
+        env,
+        "erc20-secure.wasm",
+        contract_name,
+        sender,
+        runtime_args! {
+            "initial_supply" => supply,
+            "name" => name,
+            "symbol" => symbol,
+            "decimals" => decimals
+        },
+        time,
+    )
+}

@@ -4,6 +4,9 @@ members = [
     "common/common",
     "common/tests-common",
     # ERC20
+    "erc20-secure/erc20-secure-crate",
+    "erc20-secure/erc20-secure",
+    "erc20-secure/erc20-secure-tests",
     "erc20/erc20",
     "erc20/erc20-tests",
     # FACTORY

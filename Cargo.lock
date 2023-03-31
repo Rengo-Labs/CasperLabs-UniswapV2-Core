@@ -553,6 +553,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "erc20-secure"
+version = "0.2.0"
+dependencies = [
+ "common",
+ "erc20-secure-crate",
+]
+
+[[package]]
+name = "erc20-secure-crate"
+version = "0.2.0"
+dependencies = [
+ "casper-contract",
+ "casper-erc20-crate",
+ "casper-types",
+ "casperlabs-contract-utils",
+ "common",
+]
+
+[[package]]
+name = "erc20-secure-tests"
+version = "0.1.0"
+dependencies = [
+ "tests-common",
+]
+
+[[package]]
 name = "erc20-tests"
 version = "0.1.0"
 dependencies = [
