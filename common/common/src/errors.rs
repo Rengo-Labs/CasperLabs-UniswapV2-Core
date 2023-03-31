@@ -169,7 +169,6 @@ pub enum Errors {
     UniswapV2CoreErc20SecureOnlyAdmin1 = 95,
     /// 65,655 for (UniswapV2 Core Erc20 Secure Only Admin)
     UniswapV2CoreErc20SecureOnlyAdmin2 = 96,
-
 }
 
 impl From<Errors> for ApiError {

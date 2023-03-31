@@ -13,10 +13,9 @@ fn deploy() -> (TestEnv, AccountHash, TestContract) {
         INIT_TOTAL_SUPPLY,
         now(),
     );
-    
+
     (env, owner, token)
 }
-
 
 #[test]
 fn test_deploy() {
@@ -186,7 +185,7 @@ fn test_erc20_increase_decrease_allowance() {
 #[should_panic]
 fn test_erc20_invalid_mint_access() {
     let (env, owner, erc20) = deploy();
-    let user=env.next_user();
+    let user = env.next_user();
     let amount: U256 = 123_000_000_000u64.into();
     erc20.call_contract(
         user,
@@ -204,7 +203,7 @@ fn test_erc20_invalid_mint_access() {
 #[should_panic]
 fn test_erc20_invalid_burn_access() {
     let (env, owner, erc20) = deploy();
-    let user=env.next_user();
+    let user = env.next_user();
     let amount: U256 = 123_000_000_000u64.into();
     erc20.call_contract(
         user,

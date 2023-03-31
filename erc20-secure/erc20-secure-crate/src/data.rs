@@ -1,12 +1,9 @@
 use casper_types::{ContractHash, ContractPackageHash, Key};
 use casperlabs_contract_utils::{get_key, set_key};
-use common::{
-    functions::{ zero_address},
-};
+use common::functions::zero_address;
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
 pub const ADMIN: &str = "admin";
-
 
 pub fn set_contract_hash(contract_hash: ContractHash) {
     set_key(SELF_CONTRACT_HASH, contract_hash);

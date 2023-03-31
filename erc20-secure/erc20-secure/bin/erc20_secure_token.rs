@@ -5,8 +5,8 @@ use common::{
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
+use erc20_secure_crate::{Address, ERC20};
 use std::collections::BTreeSet;
-use erc20_secure_crate::{ERC20,Address};
 #[derive(Default)]
 struct Token(OnChainContractStorage);
 impl Token {

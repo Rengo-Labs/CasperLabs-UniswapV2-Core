@@ -69,7 +69,7 @@ test-flashswapper:
 test-pair:
 	cargo test -p pair-tests
 test-erc20-secure:
-	make build-contract-erc20-secure && make copy-wasm-file-erc20-secure && cargo test -p erc20-secure-tests
+	cargo test -p erc20-secure-tests
 
 
 test-all:
