@@ -1,0 +1,7 @@
+[package]
+name = "erc20-secure-tests"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+tests-common = { path = "../../common/tests-common" }

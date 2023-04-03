@@ -267,6 +267,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "casperlabs-ownable"
+version = "0.1.0"
+dependencies = [
+ "casper-contract",
+ "casper-types",
+ "casperlabs-contract-utils",
+ "cryptoxide",
+ "hex",
+]
+
+[[package]]
 name = "casperlabs-test-env"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -550,6 +561,34 @@ version = "0.2.0"
 dependencies = [
  "common",
  "uniswap-erc20",
+]
+
+[[package]]
+name = "erc20-secure"
+version = "0.2.0"
+dependencies = [
+ "casperlabs-ownable",
+ "common",
+ "erc20-secure-crate",
+]
+
+[[package]]
+name = "erc20-secure-crate"
+version = "0.2.0"
+dependencies = [
+ "casper-contract",
+ "casper-erc20-crate",
+ "casper-types",
+ "casperlabs-contract-utils",
+ "casperlabs-ownable",
+ "common",
+]
+
+[[package]]
+name = "erc20-secure-tests"
+version = "0.1.0"
+dependencies = [
+ "tests-common",
 ]
 
 [[package]]
