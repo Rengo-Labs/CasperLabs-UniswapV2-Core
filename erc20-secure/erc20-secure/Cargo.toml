@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 erc20-secure-crate = { path = "../erc20-secure-crate" }
+casperlabs-ownable = { path = "../ownable-crate" }
 common = { path = "../../common/common" }
 
 [[bin]]

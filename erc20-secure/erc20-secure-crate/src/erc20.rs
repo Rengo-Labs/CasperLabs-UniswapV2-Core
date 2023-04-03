@@ -2,8 +2,6 @@ use std::collections::BTreeMap;
 
 use crate::data;
 
-use crate::data::get_admin;
-use crate::data::set_admin;
 use crate::event::*;
 use alloc::string::String;
 use casper_contract::contract_api::runtime;
@@ -14,13 +12,13 @@ use casper_types::ContractHash;
 use casper_types::Key;
 use casper_types::{ContractPackageHash, U256};
 use casperlabs_contract_utils::{ContractContext, ContractStorage};
+use casperlabs_ownable::OWNABLE;
 
-use common::errors::Errors;
-pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
-    fn init(&self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
+pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> + OWNABLE<Storage> {
+    fn init(&mut self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
         data::set_contract_hash(contract_hash);
         data::set_package_hash(package_hash);
-        set_admin(self.get_caller());
+        OWNABLE::init(self, contract_hash, package_hash);
     }
 
     fn name(&self) -> String {
@@ -96,9 +94,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn mint(&self, to: Address, value: U256) -> Result<(), Error> {
-        if self.get_caller() != get_admin() {
-            runtime::revert(Errors::UniswapV2CoreErc20SecureOnlyAdmin1);
-        }
+        OWNABLE::only_owner(self);
         let ret = CasperErc20::default().mint(to, value);
         if ret.is_ok() {
             emit(&ERC20Event::Transfer {
@@ -114,9 +110,7 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn burn(&self, from: Address, value: U256) -> Result<(), Error> {
-        if self.get_caller() != get_admin() {
-            runtime::revert(Errors::UniswapV2CoreErc20SecureOnlyAdmin2);
-        }
+        OWNABLE::only_owner(self);
         let ret = CasperErc20::default().burn(from, value);
         if ret.is_ok() {
             emit(&ERC20Event::Transfer {
@@ -138,6 +132,17 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> {
         decimals: u8,
         initial_supply: U256,
     ) -> Result<BTreeMap<String, Key>, Error> {
-        CasperErc20::default().named_keys(name, symbol, decimals, initial_supply)
+        let ret = CasperErc20::default().named_keys(name, symbol, decimals, initial_supply);
+        if ret.is_ok() {
+            emit(&ERC20Event::Transfer {
+                from: Key::from_formatted_str(
+                    "hash-0000000000000000000000000000000000000000000000000000000000000000",
+                )
+                .unwrap(),
+                to: Key::from(runtime::get_caller()),
+                value: initial_supply,
+            });
+        }
+        ret
     }
 }

@@ -1,5 +1,6 @@
 #![no_main]
 
+use casperlabs_ownable::OWNABLE;
 use common::{
     contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
@@ -10,12 +11,13 @@ use std::collections::BTreeSet;
 #[derive(Default)]
 struct Token(OnChainContractStorage);
 impl Token {
-    fn constructor(&self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
+    fn constructor(&mut self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
         ERC20::init(self, contract_hash, package_hash);
     }
 }
 
 impl ERC20<OnChainContractStorage> for Token {}
+impl OWNABLE<OnChainContractStorage> for Token {}
 impl ContractContext<OnChainContractStorage> for Token {
     fn storage(&self) -> &OnChainContractStorage {
         &self.0
@@ -27,6 +29,25 @@ fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
     Token::default().constructor(contract_hash, package_hash)
+}
+#[no_mangle]
+fn owner() {
+    let ret: Key = OWNABLE::owner(&Token::default());
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+#[no_mangle]
+fn is_owner() {
+    let ret: bool = OWNABLE::is_owner(&Token::default());
+    runtime::ret(CLValue::from_t(ret).unwrap_or_revert());
+}
+#[no_mangle]
+fn renounce_ownership() {
+    OWNABLE::renounce_ownership(&mut Token::default());
+}
+#[no_mangle]
+fn transfer_ownership() {
+    let new_owner: Key = runtime::get_named_arg("new_owner");
+    OWNABLE::transfer_ownership(&mut Token::default(), new_owner);
 }
 
 /// This function is to return the Name of contract
@@ -184,6 +205,34 @@ fn get_entry_points() -> EntryPoints {
         ],
         CLType::Unit,
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "owner",
+        vec![],
+        Key::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "is_owner",
+        vec![],
+        bool::cl_type(),
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "renounce_ownership",
+        vec![],
+        CLType::Unit,
+        EntryPointAccess::Public,
+        EntryPointType::Contract,
+    ));
+    entry_points.add_entry_point(EntryPoint::new(
+        "transfer_ownership",
+        vec![Parameter::new("new_owner", Key::cl_type())],
+        CLType::Unit,
+        EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(

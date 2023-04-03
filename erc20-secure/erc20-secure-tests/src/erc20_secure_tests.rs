@@ -203,8 +203,19 @@ fn test_erc20_invalid_mint_access() {
 #[should_panic]
 fn test_erc20_invalid_burn_access() {
     let (env, owner, erc20) = deploy();
-    let user = env.next_user();
     let amount: U256 = 123_000_000_000u64.into();
+    erc20.call_contract(
+        owner,
+        "mint",
+        runtime_args! {
+            "to" => Address::Account(owner),
+            "amount" => amount
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, amount);
+    let user = env.next_user();
     erc20.call_contract(
         user,
         "burn",
@@ -216,4 +227,69 @@ fn test_erc20_invalid_burn_access() {
     );
     let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
     assert_eq!(ret, 0.into());
+}
+#[test]
+fn test_erc20_transfer_ownership() {
+    let (env, owner, erc20) = deploy();
+
+    let user = env.next_user();
+
+    erc20.call_contract(
+        owner,
+        "transfer_ownership",
+        runtime_args! {
+            "new_owner" => Address::Account(user)
+        },
+        now(),
+    );
+    let amount: U256 = 123_000_000_000u64.into();
+    erc20.call_contract(
+        user,
+        "mint",
+        runtime_args! {
+            "to" => Address::Account(owner),
+            "amount" => amount
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, amount);
+    erc20.call_contract(
+        user,
+        "burn",
+        runtime_args! {
+            "from" => Address::Account(owner),
+            "amount" => amount
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, 0.into());
+}
+#[test]
+#[should_panic]
+fn test_erc20_renounce_ownership() {
+    let (env, owner, erc20) = deploy();
+    let user = env.next_user();
+    erc20.call_contract(owner, "renounce_ownership", runtime_args! {}, now());
+    erc20.call_contract(
+        owner,
+        "transfer_ownership",
+        runtime_args! {
+            "new_owner" => Address::Account(user)
+        },
+        now(),
+    );
+    let amount: U256 = 123_000_000_000u64.into();
+    erc20.call_contract(
+        user,
+        "mint",
+        runtime_args! {
+            "to" => Address::Account(owner),
+            "amount" => amount
+        },
+        now(),
+    );
+    let ret: U256 = erc20.query(BALANCES, address_to_str(&Address::Account(owner)));
+    assert_eq!(ret, amount);
 }

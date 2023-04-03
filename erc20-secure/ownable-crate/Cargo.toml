@@ -1,0 +1,17 @@
+[package]
+name = "casperlabs-ownable"
+version = "0.1.0"
+edition = "2018"
+authors = ["Muhammad Adrees <muhammad.adrees@scytalelabs.com>"]
+license = "MIT"
+description = "this package have basic functionalities for CasperLabs Curve Dao's Ownable Contract"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+casper-contract = "1.4.4"
+casper-types = "= 1.5.0"
+casperlabs-contract-utils = "0.2.1"
+
+hex = { version = "0.4.3", default-features = false }
+cryptoxide = "0.3.3"
