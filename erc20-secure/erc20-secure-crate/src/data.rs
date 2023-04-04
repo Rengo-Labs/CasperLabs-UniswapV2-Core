@@ -1,5 +1,6 @@
 use casper_types::{ContractHash, ContractPackageHash};
 use casperlabs_contract_utils::{get_key, set_key};
+
 pub const SELF_CONTRACT_HASH: &str = "self_contract_hash";
 pub const CONTRACT_PACKAGE_HASH: &str = "contract_package_hash";
 
