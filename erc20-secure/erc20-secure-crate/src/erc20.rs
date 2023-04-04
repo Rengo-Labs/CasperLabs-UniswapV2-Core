@@ -5,13 +5,13 @@ use crate::data;
 use crate::event::*;
 use alloc::string::String;
 use casper_contract::contract_api::runtime;
-
+use casper_contract::contract_api::storage;
 use casper_erc20_crate::{Address, Error, ERC20 as CasperErc20};
-
 use casper_types::ContractHash;
 use casper_types::Key;
 use casper_types::{ContractPackageHash, U256};
 use casperlabs_contract_utils::{ContractContext, ContractStorage};
+use casperlabs_ownable::data::zero_address;
 use casperlabs_ownable::OWNABLE;
 
 pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> + OWNABLE<Storage> {
@@ -131,17 +131,17 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> + OWNABLE<St
         symbol: String,
         decimals: u8,
         initial_supply: U256,
+        package_hash: ContractPackageHash,
     ) -> Result<BTreeMap<String, Key>, Error> {
         let ret = CasperErc20::default().named_keys(name, symbol, decimals, initial_supply);
         if ret.is_ok() {
-            emit(&ERC20Event::Transfer {
-                from: Key::from_formatted_str(
-                    "hash-0000000000000000000000000000000000000000000000000000000000000000",
-                )
-                .unwrap(),
-                to: Key::from(runtime::get_caller()),
-                value: initial_supply,
-            });
+            let mut event = BTreeMap::new();
+            event.insert("contract_package_hash", package_hash.to_string());
+            event.insert("event_type", "transfer".to_string());
+            event.insert("from", zero_address().to_string());
+            event.insert("to", Key::from(runtime::get_caller()).to_string());
+            event.insert("value", initial_supply.to_string());
+            storage::new_uref(event);
         }
         ret
     }

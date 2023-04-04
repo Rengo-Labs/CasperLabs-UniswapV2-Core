@@ -373,7 +373,7 @@ fn call() {
             package_hash,
             get_entry_points(),
             Token::default()
-                .named_keys(name, symbol, decimals, initial_supply)
+                .named_keys(name, symbol, decimals, initial_supply, package_hash)
                 .unwrap_or_revert(),
         );
 
