@@ -25,6 +25,7 @@ build-contract-erc20-secure:
 
 build-all:
 	make build-contract-erc20
+	make build-contract-erc20-secure
 	make build-contract-wcspr
 	make build-contract-factory
 	make build-contract-flashswapper
