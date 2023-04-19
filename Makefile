@@ -5,6 +5,7 @@ wasm_dest_wcspr = wcspr/wcspr-tests/wasm/
 wasm_dest_factory = factory/factory-tests/wasm/
 wasm_dest_flashswapper = flashswapper/flashswapper-tests/wasm/
 wasm_dest_pair = pair/pair-tests/wasm/
+wasm_dest_erc20_secure = erc20-secure/erc20-secure-tests/wasm/
 
 prepare:
 	rustup target add wasm32-unknown-unknown
@@ -19,6 +20,8 @@ build-contract-flashswapper:
 	cargo build --release -p flashswapper --target wasm32-unknown-unknown
 build-contract-pair:
 	cargo build --release -p pair --target wasm32-unknown-unknown
+build-contract-erc20-secure:
+	cargo build --release -p erc20-secure --target wasm32-unknown-unknown
 
 build-all:
 	make build-contract-erc20
@@ -44,6 +47,8 @@ copy-wasm-file-flashswapper:
 	cp ${wasm_src_path}wcspr-token.wasm ${wasm_dest_flashswapper}
 copy-wasm-file-pair:
 	cp ${wasm_src_path}*.wasm ${wasm_dest_pair}
+copy-wasm-file-erc20-secure:
+	cp ${wasm_src_path}erc20-secure.wasm ${wasm_dest_erc20_secure}
 
 copy-wasm-file-all:
 	make copy-wasm-file-erc20
@@ -51,6 +56,7 @@ copy-wasm-file-all:
 	make copy-wasm-file-factory
 	make copy-wasm-file-flashswapper
 	make copy-wasm-file-pair
+	make copy-wasm-file-erc20-secure
 
 test-erc20:
 	cargo test -p erc20-tests
@@ -62,6 +68,9 @@ test-flashswapper:
 	cargo test -p flashswapper-tests
 test-pair:
 	cargo test -p pair-tests
+test-erc20-secure:
+	cargo test -p erc20-secure-tests
+
 
 test-all:
 	make test-erc20
@@ -69,6 +78,8 @@ test-all:
 	make test-factory
 	make test-flashswapper
 	make test-pair
+	make test-erc20-secure
+
 
 all:
 	make build-all
