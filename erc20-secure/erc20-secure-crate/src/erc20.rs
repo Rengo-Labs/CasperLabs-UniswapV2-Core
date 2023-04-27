@@ -37,8 +37,8 @@ pub trait ERC20<Storage: ContractStorage>: ContractContext<Storage> + OWNABLE<St
         CasperErc20::default().total_supply()
     }
 
-    fn balance_of(&self, owner: Address) -> U256 {
-        CasperErc20::default().balance_of(owner)
+    fn balance_of(&self, address: Address) -> U256 {
+        CasperErc20::default().balance_of(address)
     }
 
     fn allowance(&self, owner: Address, spender: Address) -> U256 {

@@ -66,8 +66,8 @@ fn total_supply() {
 /// * `owner` - Address that holds the account address of the user against which user wants to get balance
 #[no_mangle]
 fn balance_of() {
-    let owner: Address = runtime::get_named_arg("owner");
-    runtime::ret(CLValue::from_t(Token::default().balance_of(owner)).unwrap_or_revert());
+    let address: Address = runtime::get_named_arg("address");
+    runtime::ret(CLValue::from_t(Token::default().balance_of(address)).unwrap_or_revert());
 }
 
 /// This function is to return the Allowance of owner and spender that user provided
@@ -238,7 +238,7 @@ fn get_entry_points() -> EntryPoints {
     ));
     entry_points.add_entry_point(EntryPoint::new(
         "balance_of",
-        vec![Parameter::new("owner", Address::cl_type())],
+        vec![Parameter::new("address", Address::cl_type())],
         CLType::U256,
         EntryPointAccess::Public,
         EntryPointType::Contract,

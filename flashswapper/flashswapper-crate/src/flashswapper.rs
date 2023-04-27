@@ -456,7 +456,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             token_borrow_package_hash,
             None,
             "balance_of",
-            runtime_args! {"owner" => pair_address},
+            runtime_args! {"address" => pair_address},
         );
         //convert Key to ContractPackageHash
         let token_pay_address_hash_add_array = match token_pay {
@@ -469,7 +469,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             token_pay_package_hash,
             None,
             "balance_of",
-            runtime_args! {"owner" => pair_address},
+            runtime_args! {"address" => pair_address},
         );
         let amount_1000: U256 = U256::from(1000);
         let amount_997: U256 = 997.into();
@@ -589,7 +589,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             token_borrow_package_hash,
             None,
             "balance_of",
-            runtime_args! {"owner" => borrow_pair_address},
+            runtime_args! {"address" => borrow_pair_address},
         );
         if pair_balance_token_borrow_before < amount {
             // _amount is too big
@@ -609,7 +609,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             wcspr_package_hash,
             None,
             "balance_of",
-            runtime_args! {"owner" => borrow_pair_address},
+            runtime_args! {"address" => borrow_pair_address},
         );
         let amount_1000: U256 = 1000.into();
         let amount_997: U256 = 997.into();
@@ -805,7 +805,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             wcspr_package_hash,
             None,
             "balance_of",
-            runtime_args! {"owner" => pay_pair_address},
+            runtime_args! {"address" => pay_pair_address},
         );
         //convert Key to ContractPackageHash
         let token_pay_address_hash_add_array = match token_pay {
@@ -818,7 +818,7 @@ pub trait FLASHSWAPPER<Storage: ContractStorage>: ContractContext<Storage> {
             token_pay_package_hash,
             None,
             "balance_of",
-            runtime_args! {"owner" => pay_pair_address},
+            runtime_args! {"address" => pay_pair_address},
         );
         let amount_1000: U256 = 1000.into();
         let amount_997: U256 = 997.into();

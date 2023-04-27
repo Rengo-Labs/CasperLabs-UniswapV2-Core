@@ -77,7 +77,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let balance1: U256 = runtime::call_versioned_contract(
@@ -85,7 +85,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let amount0: U256 = balance0
@@ -126,7 +126,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let balance1: U256 = runtime::call_versioned_contract(
@@ -134,7 +134,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         self.update(balance0, balance1, get_reserve0(), get_reserve1());
@@ -205,7 +205,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let balance1: U256 = runtime::call_versioned_contract(
@@ -213,7 +213,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let mut amount0_in: U256 = 0.into();
@@ -345,7 +345,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let balance1: U256 = runtime::call_versioned_contract(
@@ -353,7 +353,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let amount0: U256 = balance0
@@ -422,7 +422,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let balance1: U256 = runtime::call_versioned_contract(
@@ -430,7 +430,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let liquidity: U256 = self.balance_of(Address::Contract(get_package_hash()));
@@ -471,7 +471,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         let balance1: U256 = runtime::call_versioned_contract(
@@ -479,7 +479,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             None,
             "balance_of",
             runtime_args! {
-                "owner" => Address::Contract(get_package_hash())
+                "address" => Address::Contract(get_package_hash())
             },
         );
         self.update(balance0, balance1, reserve0, reserve1);
