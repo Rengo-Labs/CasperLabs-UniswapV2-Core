@@ -1,9 +1,11 @@
 # Uniswap V2 Core - Casper Blockchain
+
 [![Rengo-Labs/CasperLabs-UniswapV2-Core](https://circleci.com/gh/Rengo-Labs/CasperLabs-UniswapV2-Core.svg?style=svg)](https://circleci.com/gh/Rengo-Labs/CasperLabs-UniswapV2-Core)
 
 Implementation of `ERC20 Token`, `Pair` ,`Factory`, `Flash Swapper`, and `WCSPR` Contract for the CasperLabs platform.
 
 ## Security Review Status
+
 ![QuantstampSecured](https://s3-us-west-1.amazonaws.com/qsp-www-images/certificate-gh-badge.svg)
 
 [Quantstamp - commit 237cf3fa15ee95843603ab3857789cf2b53d58b7](https://certificate.quantstamp.com/full/rengo-labs)
@@ -404,7 +406,7 @@ Following are the ERC20's entry point methods.
 
   | Parameter Name | Type    |
   | -------------- | ------- |
-  | owner          | Address |
+  | address        | Address |
 
   This method **returns** `U256`.
 
@@ -705,7 +707,7 @@ Following are the WCSPR's entry point methods.
 
   | Parameter Name | Type    |
   | -------------- | ------- |
-  | owner          | Address |
+  | address        | Address |
 
   This method **returns** `U256`.
 
@@ -1156,7 +1158,7 @@ Following are the PAIR's entry point methods.
 
   | Parameter Name | Type    |
   | -------------- | ------- |
-  | owner          | Address |
+  | address        | Address |
 
   This method **returns** `U256`.
 
