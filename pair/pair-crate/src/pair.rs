@@ -514,12 +514,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         let treasury_fee: U256 = get_treasury_fee();
         if fee_on {
             if k_last != 0.into() {
-                let mul_val: U256 = U256::from(
-                    (reserve1
-                        .checked_mul(reserve0)
-                        .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow15))
-                    .as_u128(),
-                );
+                let mul_val: U256 = U256::from(reserve0.as_u128())
+                    .checked_mul(U256::from(reserve1.as_u128()))
+                    .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow15);
                 let root_k: U256 = self.sqrt(mul_val);
                 let root_k_last: U256 = self.sqrt(k_last);
                 if root_k > root_k_last {
