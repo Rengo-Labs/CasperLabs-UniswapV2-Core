@@ -397,12 +397,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         ERC20::mint(self, Address::from(to), liquidity).unwrap_or_revert();
         self.update(balance0, balance1, reserve0, reserve1);
         if fee_on {
-            let k_last: U256 = U256::from(
-                (reserve0
-                    .checked_mul(reserve1)
-                    .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow11))
-                .as_u128(),
-            ); // reserve0 and reserve1 are up-to-date
+            let k_last: U256 = U256::from(reserve0.as_u128())
+                .checked_mul(U256::from(reserve1.as_u128()))
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow11); // reserve0 and reserve1 are up-to-date
             set_k_last(k_last);
         }
         set_liquidity(liquidity); // return liquidity
@@ -484,12 +481,9 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         );
         self.update(balance0, balance1, reserve0, reserve1);
         if fee_on {
-            let k_last: U256 = U256::from(
-                (reserve0
-                    .checked_mul(reserve1)
-                    .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow14))
-                .as_u128(),
-            ); // reserve0 and reserve1 are up-to-date
+            let k_last: U256 = U256::from(reserve0.as_u128())
+                .checked_mul(U256::from(reserve1.as_u128()))
+                .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow14); // reserve0 and reserve1 are up-to-date
             set_k_last(k_last);
         }
         set_amount0(amount0);
