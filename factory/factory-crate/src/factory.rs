@@ -158,9 +158,14 @@ pub trait FACTORY<Storage: ContractStorage>: ContractContext<Storage> {
     }
 
     fn set_fee_to(&self, fee_to: Key) {
+        runtime::print("set_fee_to");
+        runtime::print(&format!("fee_to {:?}", fee_to));
+        runtime::print(&format!("get_caller {:?}", self.get_caller()));
+        runtime::print(&format!("get_fee_to_setter {:?}", get_fee_to_setter()));
         if self.get_caller() != get_fee_to_setter() {
             runtime::revert(Errors::UniswapV2FactoryForbidden1);
         }
+
         set_fee_to(fee_to);
     }
 

@@ -37,6 +37,8 @@ fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
 
+    runtime::print("factory_constructor");
+    runtime::print(&format!("fee_to_setter {:?}", fee_to_setter));
     Factory::default().constructor(fee_to_setter, all_pairs, contract_hash, package_hash);
 }
 
@@ -269,6 +271,7 @@ fn call() {
         let fee_to_setter: Key = runtime::get_named_arg("fee_to_setter");
         let all_pairs: Vec<Key> = Vec::new();
 
+        runtime::print("factory_call");
         // Prepare constructor args
         let constructor_args = runtime_args! {
             "fee_to_setter" => fee_to_setter,
@@ -276,6 +279,7 @@ fn call() {
             "contract_hash" => contract_hash,
             "package_hash"=> package_hash
         };
+        runtime::print(&format!("fee_to_setter {:?}", fee_to_setter));
 
         // Add the constructor group to the package hash with a single URef.
         let constructor_access: URef =

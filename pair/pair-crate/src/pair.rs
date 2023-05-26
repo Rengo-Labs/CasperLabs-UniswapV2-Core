@@ -339,6 +339,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
 
     #[allow(unused_assignments)]
     fn mint(&self, to: Key) -> U256 {
+        runtime::print("mint");
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let balance0: U256 = runtime::call_versioned_contract(
             get_token0().into_hash().unwrap_or_revert().into(),
@@ -363,6 +364,16 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             .checked_sub(U256::from(reserve1.as_u128()))
             .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow6);
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
+        
+        runtime::print(&format!("reserve0 {:?}", reserve0));
+        runtime::print(&format!("reserve1 {:?}", reserve1));
+        runtime::print(&format!("_block_timestamp_last {:?}", _block_timestamp_last));
+        
+        runtime::print(&format!("balance0 {:?}", balance0));
+        runtime::print(&format!("balance1 {:?}", balance1));
+        runtime::print(&format!("amount0 {:?}", amount0));
+        runtime::print(&format!("amount1 {:?}", amount1));
+        runtime::print(&format!("fee_on {:?}", fee_on));
         let mut liquidity: U256 = 0.into();
         if self.total_supply() == 0.into() {
             liquidity = self
@@ -390,6 +401,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 / U256::from(reserve1.as_u128());
             liquidity = self.min(x, y);
         }
+        runtime::print(&format!("liquidity {:?}", liquidity));
         if liquidity <= 0.into() {
             //UniswapV2: INSUFFICIENT_LIQUIDITY_MINTED
             runtime::revert(Errors::UniswapV2CorePairInsufficientLiquidityMinted);
@@ -400,6 +412,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             let k_last: U256 = U256::from(reserve0.as_u128())
                 .checked_mul(U256::from(reserve1.as_u128()))
                 .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow11); // reserve0 and reserve1 are up-to-date
+            runtime::print(&format!("k_last {:?}", k_last));
             set_k_last(k_last);
         }
         set_liquidity(liquidity); // return liquidity
@@ -500,18 +513,23 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
 
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     fn mint_fee(&self, reserve0: U128, reserve1: U128) -> bool {
+        runtime::print("mint_fee");
         let fee_to: Key = runtime::call_versioned_contract(
             get_factory_hash().into_hash().unwrap_or_revert().into(),
             None,
             "fee_to",
             runtime_args! {},
         );
+        runtime::print(&format!("fee_to {:?}", fee_to));
         let mut fee_on: bool = false;
         if fee_to != account_zero_address() {
             fee_on = true;
         }
         let k_last: U256 = get_k_last(); // gas savings
         let treasury_fee: U256 = get_treasury_fee();
+        runtime::print(&format!("fee_on {:?}", fee_on));
+        runtime::print(&format!("k_last {:?}", k_last));
+        runtime::print(&format!("treasury_fee {:?}", treasury_fee));
         if fee_on {
             if k_last != 0.into() {
                 let mul_val: U256 = U256::from(reserve0.as_u128())
@@ -519,6 +537,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                     .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow15);
                 let root_k: U256 = self.sqrt(mul_val);
                 let root_k_last: U256 = self.sqrt(k_last);
+                runtime::print(&format!("root_k {:?}", root_k));
+                runtime::print(&format!("root_k_last {:?}", root_k_last));
                 if root_k > root_k_last {
                     let subtracted_root_k: U256 = root_k
                         .checked_sub(root_k_last)
@@ -537,6 +557,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                         runtime::revert(Errors::UniswapV2CorePairDenominatorIsZero);
                     }
                     let liquidity: U256 = numerator / denominator;
+                    runtime::print(&format!("liquidity(fee) {:?}", liquidity));
                     if liquidity > 0.into() {
                         ERC20::mint(self, Address::from(fee_to), liquidity).unwrap_or_revert();
                     }
