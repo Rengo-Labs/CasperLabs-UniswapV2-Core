@@ -23,6 +23,7 @@ impl ContractContext<OnChainContractStorage> for Token {
     }
 }
 
+#[inline(always)]
 #[no_mangle]
 fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
@@ -31,24 +32,28 @@ fn constructor() {
 }
 
 /// This function is to return the Name of contract
+#[inline(always)]
 #[no_mangle]
 fn name() {
     runtime::ret(CLValue::from_t(Token::default().name()).unwrap_or_revert());
 }
 
 /// This function is to return the Symbol of contract
+#[inline(always)]
 #[no_mangle]
 fn symbol() {
     runtime::ret(CLValue::from_t(Token::default().symbol()).unwrap_or_revert());
 }
 
 /// This function is to return the Decimals of contract
+#[inline(always)]
 #[no_mangle]
 fn decimals() {
     runtime::ret(CLValue::from_t(Token::default().decimals()).unwrap_or_revert());
 }
 
 /// This function is to return the Total Supply of the contract
+#[inline(always)]
 #[no_mangle]
 fn total_supply() {
     runtime::ret(CLValue::from_t(Token::default().total_supply()).unwrap_or_revert());
@@ -57,6 +62,7 @@ fn total_supply() {
 /// This function is to return the Balance  of owner against the address that user provided
 /// # Parameters
 /// * `owner` - Address that holds the account address of the user against which user wants to get balance
+#[inline(always)]
 #[no_mangle]
 fn balance_of() {
     let address: Address = runtime::get_named_arg("address");
@@ -67,6 +73,7 @@ fn balance_of() {
 /// # Parameters
 /// * `owner` - Address that holds the account address of the user
 /// * `spender` - Address that holds the account address of the user
+#[inline(always)]
 #[no_mangle]
 fn allowance() {
     let owner: Address = runtime::get_named_arg("owner");
@@ -79,6 +86,7 @@ fn allowance() {
 /// # Parameters
 /// * `spender` - Address that holds the account address of the spender
 /// * `amount` - Amount of approval to be increased
+#[inline(always)]
 #[no_mangle]
 fn increase_allowance() {
     let spender: Address = runtime::get_named_arg("spender");
@@ -93,6 +101,7 @@ fn increase_allowance() {
 /// # Parameters
 /// * `spender` - Address that holds the account address of the spender
 /// * `amount` - Amount of approval to be decreased
+#[inline(always)]
 #[no_mangle]
 fn decrease_allowance() {
     let spender: Address = runtime::get_named_arg("spender");
@@ -112,6 +121,7 @@ fn decrease_allowance() {
 /// should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
 /// **Note:**  Teams who decide to wait for such a standard should make these
 /// recommendations to app developers who work with their token contract.
+#[inline(always)]
 #[no_mangle]
 fn approve() {
     let spender: Address = runtime::get_named_arg("spender");
@@ -123,6 +133,7 @@ fn approve() {
 /// # Parameters
 /// * `recipient` - Address that holds the account address of the user
 /// * `amount` - A U256 that holds the amount for transfer
+#[inline(always)]
 #[no_mangle]
 fn transfer() {
     let recipient: Address = runtime::get_named_arg("recipient");
@@ -143,6 +154,7 @@ fn transfer() {
 /// should keep in mind that they have to set allowance to 0 first and verify if it was used before setting the new value.
 /// **Note:**  Teams who decide to wait for such a standard should make these
 /// recommendations to app developers who work with their token contract.
+#[inline(always)]
 #[no_mangle]
 fn transfer_from() {
     let owner: Address = runtime::get_named_arg("owner");
@@ -157,6 +169,7 @@ fn transfer_from() {
 /// # Parameters
 /// * `to` - Address that holds the account address of the user
 /// * `amount` - A U256 that holds the amount for mint
+#[inline(always)]
 #[no_mangle]
 fn mint() {
     let to: Address = runtime::get_named_arg("to");
@@ -168,6 +181,7 @@ fn mint() {
 /// # Parameters
 /// * `from` - Address that holds the account address of the user
 /// * `amount` - A U256 that holds the amount for burn
+#[inline(always)]
 #[no_mangle]
 fn burn() {
     let from: Address = runtime::get_named_arg("from");
