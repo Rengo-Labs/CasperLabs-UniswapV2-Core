@@ -437,9 +437,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             },
         );
         
+        /*
         set_key("diag_starting_balance0", balance0);
         set_key("diag_starting_balance1", balance1);
-
+        */
+        
         let liquidity: U256 = self.balance_of(Address::Contract(get_package_hash()));
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let amount0: U256 = (liquidity
@@ -497,9 +499,11 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             set_k_last(k_last);
         }
         
+        /*
         set_key("diag_fee_on", fee_on);
         set_key("diag_balance0", balance0);
         set_key("diag_balance1", balance1);
+        */
         set_amount0(amount0);
         set_amount1(amount1);
         
