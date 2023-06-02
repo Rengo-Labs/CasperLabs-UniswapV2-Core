@@ -32,6 +32,18 @@ fn call() {
                 },
             );
         }
-        _ => runtime::revert(ApiError::UnexpectedKeyVariant),
+        WITHDRAW => {
+          let amount: U512 = runtime::get_named_arg("amount");
+          let () = runtime::call_versioned_contract(
+              package_hash.into_hash().unwrap_or_revert().into(),
+              None,
+              WITHDRAW,
+              runtime_args! {
+                  "purse" => account::get_main_purse(),
+                  "amount" => amount
+              },
+          );
+      }
+      _ => runtime::revert(ApiError::UnexpectedKeyVariant),
     };
 }
