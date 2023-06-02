@@ -66,6 +66,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         }
     }
 
+    #[inline(always)]
     fn skim(&self, to: Key) {
         if get_lock() != 0 {
             //UniswapV2: Locked
@@ -115,6 +116,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         set_lock(0);
     }
 
+    #[inline(always)]
     fn sync(&self) {
         if get_lock() != 0 {
             //UniswapV2: Locked
@@ -141,6 +143,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         set_lock(0);
     }
 
+    #[inline(always)]
     fn swap(&self, amount0_out: U256, amount1_out: U256, to: Key, _data: String) {
         if get_lock() != 0 {
             //UniswapV2: Locked
@@ -337,6 +340,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         }
     }
 
+    #[inline(always)]
     #[allow(unused_assignments)]
     fn mint(&self, to: Key) -> U256 {
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
@@ -363,6 +367,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
             .checked_sub(U256::from(reserve1.as_u128()))
             .unwrap_or_revert_with(Errors::UniswapV2CorePairUnderFlow6);
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
+        
         let mut liquidity: U256 = 0.into();
         if self.total_supply() == 0.into() {
             liquidity = self
@@ -411,7 +416,8 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         });
         liquidity // return liquidity
     }
-
+    
+    #[inline(always)]
     fn burn(&self, to: Key) -> (U256, U256) {
         let (reserve0, reserve1, _block_timestamp_last) = self.get_reserves(); // gas savings
         let balance0: U256 = runtime::call_versioned_contract(
@@ -430,6 +436,12 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 "address" => Address::Contract(get_package_hash())
             },
         );
+        
+        /*
+        set_key("diag_starting_balance0", balance0);
+        set_key("diag_starting_balance1", balance1);
+        */
+        
         let liquidity: U256 = self.balance_of(Address::Contract(get_package_hash()));
         let fee_on: bool = self.mint_fee(reserve0, reserve1);
         let amount0: U256 = (liquidity
@@ -486,8 +498,15 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
                 .unwrap_or_revert_with(Errors::UniswapV2CorePairMultiplicationOverFlow14); // reserve0 and reserve1 are up-to-date
             set_k_last(k_last);
         }
+        
+        /*
+        set_key("diag_fee_on", fee_on);
+        set_key("diag_balance0", balance0);
+        set_key("diag_balance1", balance1);
+        */
         set_amount0(amount0);
         set_amount1(amount1);
+        
         self.emit(&PAIREvent::Burn {
             sender: self.get_caller(),
             amount0,
@@ -498,6 +517,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         (amount0, amount1)
     }
 
+    #[inline(always)]
     // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
     fn mint_fee(&self, reserve0: U128, reserve1: U128) -> bool {
         let fee_to: Key = runtime::call_versioned_contract(
@@ -632,6 +652,7 @@ pub trait PAIR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stora
         general_price_cumulative_last
     }
 
+    #[inline(always)]
     fn update(&self, balance0: U256, balance1: U256, reserve0: U128, reserve1: U128) {
         let one: U128 = 1.into();
         let overflow_check: U256 = U256::from(
