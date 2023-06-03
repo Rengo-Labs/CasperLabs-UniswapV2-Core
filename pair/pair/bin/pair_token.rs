@@ -594,7 +594,7 @@ fn call() {
         let price0_cumulative_last: U256 = 0.into();
         let price1_cumulative_last: U256 = 0.into();
         let k_last: U256 = 0.into(); // reserve0 * reserve1, as of immediately after the most recent liquidity event
-        let treasury_fee: U256 = 3.into();
+        let treasury_fee: U256 = 5.into();
         let lock: u64 = 0;
 
         // Prepare constructor args
