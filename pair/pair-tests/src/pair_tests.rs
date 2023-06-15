@@ -157,7 +157,7 @@ fn test_pair_initialize() {
 #[test]
 fn test_pair_set_treasury_fee_percent() {
     let (_, owner, token, _) = deploy();
-    assert_eq!(token.query_named_key::<U256>(TREASURY_FEE.into()), 3.into());
+    assert_eq!(token.query_named_key::<U256>(TREASURY_FEE.into()), 5.into());
     token.call_contract(
         owner,
         "set_treasury_fee_percent",
