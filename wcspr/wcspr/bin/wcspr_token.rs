@@ -3,7 +3,6 @@
 use std::collections::BTreeSet;
 use wcspr_crate::{
     contract_api::{runtime, storage, system},
-    functions::get_purse,
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
@@ -182,19 +181,6 @@ fn withdraw() {
     Token::default().withdraw(amount, purse).unwrap_or_revert();
 }
 
-#[no_mangle]
-fn get_main_purse() {
-    runtime::ret(CLValue::from_t(get_purse()).unwrap_or_revert());
-}
-
-#[no_mangle]
-fn get_main_purse_balance() {
-    runtime::ret(
-        CLValue::from_t(system::get_purse_balance(get_purse()).unwrap_or_revert())
-            .unwrap_or_revert(),
-    );
-}
-
 fn get_entry_points() -> EntryPoints {
     let mut entry_points = EntryPoints::new();
     entry_points.add_entry_point(EntryPoint::new(
@@ -324,20 +310,6 @@ fn get_entry_points() -> EntryPoints {
         EntryPointAccess::Public,
         EntryPointType::Contract,
     ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "get_main_purse",
-        vec![],
-        CLType::URef,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
-    entry_points.add_entry_point(EntryPoint::new(
-        "get_main_purse_balance",
-        vec![],
-        CLType::U512,
-        EntryPointAccess::Public,
-        EntryPointType::Contract,
-    ));
     entry_points
 }
 
@@ -422,6 +394,31 @@ fn call() {
 
         let (contract_hash, _): (ContractHash, _) =
             storage::add_contract_version(package_hash, get_entry_points(), Default::default());
+        let purse: URef = system::create_purse();
+
+        // Prepare constructor args
+        let constructor_args = runtime_args! {
+            "contract_hash" => contract_hash,
+            "package_hash"=> package_hash,
+            "purse" => purse
+        };
+
+        // Add the constructor group to the package hash with a single URef.
+        let constructor_access: URef =
+            storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
+                .unwrap_or_revert()
+                .pop()
+                .unwrap_or_revert();
+
+        // Call the constructor entry point
+        let _: () =
+            runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+
+        // Remove all URefs from the constructor group, so no one can call it for the second time.
+        let mut urefs = BTreeSet::new();
+        urefs.insert(constructor_access);
+        storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
+            .unwrap_or_revert();
 
         // update contract hash
         runtime::put_key(
