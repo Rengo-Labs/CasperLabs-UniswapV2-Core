@@ -39,7 +39,7 @@ fn call() {
               None,
               WITHDRAW,
               runtime_args! {
-                  "purse" => account::get_main_purse(),
+                  "purse" => account::get_main_purse().into_add(),
                   "amount" => amount
               },
           );
