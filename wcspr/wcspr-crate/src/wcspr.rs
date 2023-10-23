@@ -27,7 +27,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
             runtime::revert(Errors::UniswapV2CoreWCSPROverFlow2);
         }
         // transfers native cspr from source purse to destination purse
-        system::transfer_from_purse_to_purse(purse, get_purse(), amount, None).unwrap_or_revert();
+        system::transfer_from_purse_to_purse(purse, get_purse().into_add(), amount, None).unwrap_or_revert();
         // mint wcspr for the caller
         self.mint(Address::from(self.get_caller()), u512_to_u256(amount))
             .unwrap_or_revert();
