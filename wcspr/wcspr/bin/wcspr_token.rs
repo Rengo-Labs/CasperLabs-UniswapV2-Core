@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 use wcspr_crate::{
-    contract_api::{runtime, storage, system},
+    contract_api::{runtime, storage},
     unwrap_or_revert::UnwrapOrRevert,
     *,
 };
@@ -14,9 +14,8 @@ impl Token {
         &self,
         contract_hash: ContractHash,
         package_hash: ContractPackageHash,
-        purse: URef,
     ) {
-        WCSPR::init(self, contract_hash, package_hash, purse);
+        WCSPR::init(self, contract_hash, package_hash);
     }
 }
 
@@ -32,8 +31,7 @@ impl ERC20<OnChainContractStorage> for Token {}
 fn constructor() {
     let contract_hash: ContractHash = runtime::get_named_arg("contract_hash");
     let package_hash: ContractPackageHash = runtime::get_named_arg("package_hash");
-    let purse: URef = runtime::get_named_arg("purse");
-    Token::default().constructor(contract_hash, package_hash, purse);
+    Token::default().constructor(contract_hash, package_hash);
 }
 
 /// This function is to return the Name of contract
@@ -334,13 +332,10 @@ fn call() {
                 .unwrap_or_revert(),
         );
 
-        let purse: URef = system::create_purse();
-
         // Prepare constructor args
         let constructor_args = runtime_args! {
             "contract_hash" => contract_hash,
-            "package_hash"=> package_hash,
-            "purse" => purse
+            "package_hash"=> package_hash
         };
 
         // Add the constructor group to the package hash with a single URef.
@@ -381,7 +376,6 @@ fn call() {
             &format!("{}_package_access_token", contract_name),
             access_token.into(),
         );
-        runtime::put_key(&format!("{}_contract_purse", contract_name), purse.into());
     } else {
         // this is a contract upgrade
 
@@ -394,13 +388,11 @@ fn call() {
 
         let (contract_hash, _): (ContractHash, _) =
             storage::add_contract_version(package_hash, get_entry_points(), Default::default());
-        let purse: URef = system::create_purse();
 
         // Prepare constructor args
         let constructor_args = runtime_args! {
             "contract_hash" => contract_hash,
-            "package_hash"=> package_hash,
-            "purse" => purse
+            "package_hash"=> package_hash
         };
 
         // Add the constructor group to the package hash with a single URef.

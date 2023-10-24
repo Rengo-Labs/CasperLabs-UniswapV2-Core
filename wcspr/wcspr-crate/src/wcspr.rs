@@ -11,8 +11,11 @@ use common::{
 use uniswap_erc20::{data::get_package_hash, Address, ERC20};
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Storage> {
-    fn init(&self, contract_hash: ContractHash, package_hash: ContractPackageHash, purse: URef) {
+    fn init(&self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
         ERC20::init(self, contract_hash, package_hash);
+        
+        let purse: URef = system::create_purse();
+
         set_purse(purse);
     }
 
