@@ -186,7 +186,6 @@ fn get_entry_points() -> EntryPoints {
         vec![
             Parameter::new("contract_hash", ContractHash::cl_type()),
             Parameter::new("package_hash", ContractPackageHash::cl_type()),
-            Parameter::new("purse", URef::cl_type()),
         ],
         <()>::cl_type(),
         EntryPointAccess::Groups(vec![Group::new("constructor")]),
