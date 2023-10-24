@@ -19,6 +19,24 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
         set_purse(purse);
     }
 
+    fn migrate(&self) {
+      let old_purse = get_purse();
+      let balance = system::get_purse_balance(old_purse).unwrap_or_revert();
+
+      if balance > u256_to_u512(U256::MAX) {
+        runtime::revert(Errors::UniswapV2CoreWCSPROverFlow2);
+      }
+      
+      let purse: URef = system::create_purse();
+
+      if balance > 0.into() {
+        system::transfer_from_purse_to_purse(old_purse, purse.into_add(), balance, None).unwrap_or_revert();
+      }
+
+      set_purse(purse);
+    }
+
+
     fn deposit(&self, amount: U512, purse: URef) -> Result<(), u32> {
         if amount.is_zero() {
             return Err(5); // Amount to transfer is 0

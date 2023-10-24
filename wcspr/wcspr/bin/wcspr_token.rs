@@ -34,6 +34,11 @@ fn constructor() {
     Token::default().constructor(contract_hash, package_hash);
 }
 
+#[no_mangle]
+fn migrate() {
+    Token::default().migrate()
+}
+
 /// This function is to return the Name of contract
 #[no_mangle]
 fn name() {
@@ -192,6 +197,13 @@ fn get_entry_points() -> EntryPoints {
         EntryPointType::Contract,
     ));
     entry_points.add_entry_point(EntryPoint::new(
+      "migrate",
+      vec![],
+      <()>::cl_type(),
+      EntryPointAccess::Groups(vec![Group::new("migrate")]),
+      EntryPointType::Contract,
+  ));
+    entry_points.add_entry_point(EntryPoint::new(
         "name",
         vec![],
         CLType::String,
@@ -346,7 +358,7 @@ fn call() {
 
         // Call the constructor entry point
         let _: () =
-            runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+            runtime::call_versioned_contract(package_hash, None, "", constructor_args);
 
         // Remove all URefs from the constructor group, so no one can call it for the second time.
         let mut urefs = BTreeSet::new();
@@ -389,26 +401,23 @@ fn call() {
             storage::add_contract_version(package_hash, get_entry_points(), Default::default());
 
         // Prepare constructor args
-        let constructor_args = runtime_args! {
-            "contract_hash" => contract_hash,
-            "package_hash"=> package_hash
-        };
+        let constructor_args = runtime_args! {};
 
         // Add the constructor group to the package hash with a single URef.
         let constructor_access: URef =
-            storage::create_contract_user_group(package_hash, "constructor", 1, Default::default())
+            storage::create_contract_user_group(package_hash, "migrate", 1, Default::default())
                 .unwrap_or_revert()
                 .pop()
                 .unwrap_or_revert();
 
         // Call the constructor entry point
         let _: () =
-            runtime::call_versioned_contract(package_hash, None, "constructor", constructor_args);
+            runtime::call_versioned_contract(package_hash, None, "migrate", constructor_args);
 
         // Remove all URefs from the constructor group, so no one can call it for the second time.
         let mut urefs = BTreeSet::new();
         urefs.insert(constructor_access);
-        storage::remove_contract_user_group_urefs(package_hash, "constructor", urefs)
+        storage::remove_contract_user_group_urefs(package_hash, "migrate", urefs)
             .unwrap_or_revert();
 
         // update contract hash
