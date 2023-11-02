@@ -11,10 +11,31 @@ use common::{
 use uniswap_erc20::{data::get_package_hash, Address, ERC20};
 
 pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Storage> {
-    fn init(&self, contract_hash: ContractHash, package_hash: ContractPackageHash, purse: URef) {
+    fn init(&self, contract_hash: ContractHash, package_hash: ContractPackageHash) {
         ERC20::init(self, contract_hash, package_hash);
+        
+        let purse: URef = system::create_purse();
+
         set_purse(purse);
     }
+
+    fn migrate(&self) {
+      let old_purse = get_purse();
+      let balance = system::get_purse_balance(old_purse).unwrap_or_revert();
+
+      if balance > u256_to_u512(U256::MAX) {
+        runtime::revert(Errors::UniswapV2CoreWCSPROverFlow2);
+      }
+      
+      let purse: URef = system::create_purse();
+
+      if balance > 0.into() {
+        system::transfer_from_purse_to_purse(old_purse, purse.into_add(), balance, None).unwrap_or_revert();
+      }
+
+      set_purse(purse);
+    }
+
 
     fn deposit(&self, amount: U512, purse: URef) -> Result<(), u32> {
         if amount.is_zero() {
@@ -27,7 +48,7 @@ pub trait WCSPR<Storage: ContractStorage>: ContractContext<Storage> + ERC20<Stor
             runtime::revert(Errors::UniswapV2CoreWCSPROverFlow2);
         }
         // transfers native cspr from source purse to destination purse
-        system::transfer_from_purse_to_purse(purse, get_purse(), amount, None).unwrap_or_revert();
+        system::transfer_from_purse_to_purse(purse, get_purse().into_add(), amount, None).unwrap_or_revert();
         // mint wcspr for the caller
         self.mint(Address::from(self.get_caller()), u512_to_u256(amount))
             .unwrap_or_revert();
